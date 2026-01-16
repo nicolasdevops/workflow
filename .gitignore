@@ -1,0 +1,25 @@
+# Environment variables
+.env
+
+# N8N data
+n8n_data/
+.n8n/
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Playwright
+playwright-report/
+test-results/

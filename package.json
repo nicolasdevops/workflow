@@ -1,0 +1,15 @@
+{
+  "name": "gaza-n8n",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "n8n start",
+    "test-automation": "node test-instagram.js"
+  },
+  "dependencies": {
+    "n8n": "latest",
+    "pg": "latest",
+    "playwright": "^1.48.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1"
+  }
+}

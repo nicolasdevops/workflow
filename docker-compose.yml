@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  n8n:
+    build: .
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - DATABASE_TYPE=postgresdb
+      - DATABASE_POSTGRESDB_HOST=${SUPABASE_HOST}
+      - DATABASE_POSTGRESDB_DATABASE=postgres
+      - DATABASE_POSTGRESDB_USER=postgres
+      - DATABASE_POSTGRESDB_PASSWORD=${SUPABASE_PASSWORD}
+      - TIMEZONE=${TIMEZONE:-Asia/Gaza}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+
+volumes:
+  n8n_data:

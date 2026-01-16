@@ -1,0 +1,34 @@
+## Pre-Launch (Day -1)
+
+□ Supabase database created
+□ Railway N8N deployed
+□ Cloudflare Workers deployed
+□ Master N8N workflows configured
+□ Test with 1 family account
+□ Verify comment posting works
+□ Check anti-detection measures
+
+## Launch Day
+
+□ Register all 15 families in database
+□ Input family profiles (children, medical, etc)
+□ Assign testimony pools to each family
+□ Deploy N8N to all phones
+□ Test webhook connectivity
+□ Start with 5 comments per family
+□ Monitor first hour closely
+
+## Day 1-3
+
+□ Gradually increase to 10 comments/day
+□ Monitor for shadowbans
+□ Adjust timing delays if needed
+□ Add more target accounts
+□ Track donation conversions
+
+## Week 1 Review
+
+□ Analyze which testimonies work
+□ Which families get most engagement
+□ Optimize testimony assignments
+□ Scale to 15 comments/day if safe
