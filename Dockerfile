@@ -1,8 +1,5 @@
 FROM node:18-bookworm
 
-# Create node user
-RUN groupadd -g 1000 node && useradd -u 1000 -g node -m node || true
-
 USER root
 
 # Install system dependencies for N8N, Playwright and PostgreSQL
@@ -34,17 +31,20 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install N8N globally
-RUN npm install -g n8n
+# Install N8N and Playwright globally as root
+RUN npm install -g n8n playwright
 
-# Switch to node user
+# Install Playwright browsers (as root so it can install dependencies)
+RUN npx playwright install --with-deps firefox
+
+# Create N8N directory with proper permissions
+RUN mkdir -p /home/node/.n8n && \
+    chown -R node:node /home/node/.n8n && \
+    mkdir -p /home/node/.cache/ms-playwright && \
+    chown -R node:node /home/node/.cache
+
+# Switch to node user for runtime
 USER node
-
-# Create N8N directory
-RUN mkdir -p /home/node/.n8n
-
-# Install Playwright and Firefox browser
-RUN npx playwright install firefox --with-deps
 
 ENV N8N_BASIC_AUTH_ACTIVE=true
 ENV N8N_BASIC_AUTH_USER=admin
