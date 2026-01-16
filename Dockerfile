@@ -1,4 +1,4 @@
-FROM node:18-bookworm
+FROM node:20-bookworm
 
 USER root
 
@@ -31,8 +31,8 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install N8N and Playwright globally as root
-RUN npm install -g n8n playwright
+# Install N8N (specific stable version) and Playwright globally as root
+RUN npm install -g n8n@1.63.4 playwright
 
 # Install Playwright browsers (as root so it can install dependencies)
 RUN npx playwright install --with-deps firefox
@@ -54,9 +54,10 @@ ENV N8N_PROTOCOL=https
 ENV EXECUTIONS_PROCESS=main
 ENV N8N_PUSH_BACKEND=websocket
 ENV PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
+ENV N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
 
 WORKDIR /home/node
 
 EXPOSE 5678
 
-CMD ["n8n", "start"]
+CMD ["n8n"]
