@@ -3,8 +3,10 @@ CREATE TABLE families (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100),
     instagram_handle VARCHAR(50) UNIQUE,
+    phone_number VARCHAR(20),
+    session_cookies TEXT,
     api_key VARCHAR(64) UNIQUE,
-    children_count INT,
+    children_count INT DEFAULT 0,
     children_ages TEXT[],
     children_genders TEXT[],
     housing_type VARCHAR(20),
@@ -14,6 +16,7 @@ CREATE TABLE families (
     displacement_count INT DEFAULT 1,
     allowed_testimonies INT[] DEFAULT ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
     last_comment_at TIMESTAMP,
+    active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
