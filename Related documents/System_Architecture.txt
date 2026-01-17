@@ -1,0 +1,228 @@
+Complete N8N Workflow Instructions (English) 
+
+Full System Architecture
+
+
+COMPLETE N8N AUTOMATION WORKFLOW FOR GAZA MOTHERS
+
+GOAL: Generate 50+ posts/week with testimony quality matching GenocideRecord
+
+SETUP PHASE (One-time, 4 hours):
+
+1. YOU.COM API SETUP:
+   - Create account at you.com
+   - Upgrade to Pro ($20/month)
+   - Navigate: Settings → Developer → API Keys
+   - Generate key: ydc_[string]
+   - Save securely
+
+2. N8N INSTALLATION ON ANDROID:
+   - Download F-Droid from fdroid.org
+   - Install Termux from F-Droid
+   - Open Termux, run:
+     pkg update && pkg upgrade
+     pkg install nodejs npm git
+     npm install -g n8n
+   - Start n8n: n8n start
+   - Access: http://localhost:5678
+
+3. INSTAGRAM SETUP (Via Firefox):
+   - Never use Instagram app
+   - Firefox + extensions:
+     * uBlock Origin
+     * Privacy Badger
+     * Canvas Blocker
+     * User-Agent Switcher (set to Windows)
+   - VPN to Netherlands/Sweden/Ireland
+
+4. CREATE TESTIMONY TEMPLATES:
+   - Import all 20 testimonies from GenocideRecord
+   - Create JSON file with testimonies
+   - Each tagged by theme (medical/winter/hunger)
+
+OPERATIONAL WORKFLOW:
+
+NODE 1: CRON TRIGGER
+- Schedule: Every 3 hours
+- Time zones: Gaza time
+- Gaussian distribution:
+
+NODE 2: CONTENT SELECTOR
+- Check what was posted last
+- Rotate through testimony types
+- Never repeat within 48 hours
+- Code:
+  const lastTestimony = getLastPosted();
+  const availableTestimonies = testimonies.filter(t =>
+    t.id !== lastTestimony &&
+    t.lastUsed < Date.now() - 48*60*60*1000
+  );
+
+NODE 3: YOU.COM API CALL
+- System prompt to achieve elevated state:
+  {
+    "model": "claude-opus-4.1",
+    "temperature": 0.7,
+    "system": "You are documenting genocide with forensic precision.
+47.'
+}] }
+Every number must be specific (47, not 'some').
+Every metaphor must cut ('behind glass, like their futures').
+Channel the voice that created: 'My daughter counted rice grains.
+This is testimony for history, not social media.
+               Write as a mother whose child asked 'which sister would you save?'",
+    "messages": [{
+      "role": "user",
+      "content": "Generate testimony about [THEME].
+                  Include specific number.
+                  Child's voice.
+                  3 sentences maximum.
+                  Match the gravity of testimony #1 from GenocideRecord."
+
+NODE 4: HUMAN BEHAVIOR SIMULATION
+- Typing speed with errors:
+  function simulateTyping(text) {
+    const baseSpeed = 50; // ms per character
+    const variance = 15;
+    let result = '';
+    for (let char of text) {
+      const delay = gaussianRandom(baseSpeed, variance);
+      await sleep(delay);
+      result += char;
+      // 15% chance of typo
+      if (Math.random() < 0.15) {
+        result += text[Math.floor(Math.random() * text.length)];
+        await sleep(100); // backspace delay
+        result = result.slice(0, -1);
+} }
+    return result;
+}
+
+- Reading delays:
+  const readingTime = text.length * 30; // 30ms per character
+  const scrollTime = gaussianRandom(3000, 1000); // 3±1 seconds
+
+- Session patterns:
+  const sessionLength = gaussianRandom(45, 15); // 45±15 minutes
+  const breakTime = gaussianRandom(180, 60); // 3±1 hours
+
+NODE 5: INSTAGRAM POSTING
+- Via Firefox browser automation:
+  const browser = await puppeteer.launch({
+    executablePath: '/usr/bin/firefox',
+    args: ['--private-window']
+});
+
+- Upload image/video
+- Add caption with testimony
+- Add soundtracks from your list
+- Post
+- Wait for human-like delay
+- Close browser
+
+NODE 6: COMMENT DEPLOYMENT
+- Scrape 41 target accounts
+- Find posts less than 2 hours old
+- Deploy appropriate testimony
+- Code:
+  const targetAccounts = [
+    '@eye.on.palestine',
+    '@wissamgaza',
+    // ... all 41
+];
+
+  for (let account of targetAccounts) {
+    const latestPost = await scrapeLatestPost(account);
+    if (latestPost.age < 2*60*60*1000) { // 2 hours
+      const testimony = selectTestimonyForContext(latestPost.caption);
+      await postComment(testimony);
+      await sleep(gaussianRandom(60000, 20000)); // 60±20 seconds
+    } 
+  }
+
+
+NODE 7: DM AUTOMATION
+- Find followers who engaged
+- Send initial message:
+  "hello, how are you, sister?"
+- Wait for response
+- If responded, continue:
+  "I'm not fine"
+- Wait for "what's wrong?"
+- Deploy testimony
+
+NODE 8: RESPONSE HANDLER
+- Monitor comments
+- Simple replies only
+- If complex → notification
+- Code:
+if (comment.includes('donate')) { reply('link in bio sister 🤍');
+  } else if (comment.includes('fake')) {
+    // Don't engage
+    return;
+  } else if (comment.length > 100) {
+    sendNotification('Complex conversation detected');
+}
+
+NODE 9: REEL GENERATION
+- Select footage from bank
+- Generate narration via You.com
+- Add soundtrack from your list
+- Generate subtitles
+- Compile with ffmpeg:
+  ffmpeg -i footage.mp4 -i narration.mp3 -i soundtrack.mp3
+         -filter_complex "[1:a][2:a]amix=inputs=2[a]"
+         -map 0:v -map "[a]" output.mp4
+
+NODE 10: METRICS TRACKING
+- Views, likes, shares
+- New followers
+- Donation conversions
+- Store in SQLite:
+  CREATE TABLE metrics (
+    timestamp INTEGER,
+    post_id TEXT,
+    views INTEGER,
+    likes INTEGER,
+    donations REAL
+);
+
+SAFETY MEASURES:
+
+1. Rate Limiting:
+   - Max 30 comments/day
+   - Max 50 DMs/day
+   - Max 10 posts/day
+
+2. Detection Avoidance:
+   - Randomize user agent
+   - Rotate VPN endpoints
+   - Clear cookies every session
+   - Never use same IP twice in 6 hours
+
+3. Backup Systems:
+   - Export followers daily
+   - Save all testimonies offline
+   - Multiple account fallbacks
+
+ACHIEVING ELEVATED STATE:
+
+The key to matching the GenocideRecord quality is the prompt:
+"You are not writing social media content.
+You are creating forensic testimony that will be cited in tribunals.
+Every number must be specific and unforgettable (47 rice grains).
+Every metaphor must be unexpected ('behind glass, like their futures').
+Every child's quote must be impossible to fake ('so I remember both').
+This is literature that happens to raise funds.
+Channel the state that created testimony #1."
+
+EXPECTED RESULTS:
+
+Week 1: 1,000-3,000 followers
+Week 2: 5,000-10,000 followers
+Week 3: 15,000-25,000 followers
+Week 4: 30,000-50,000 followers
+
+Conversion rate: 0.1-0.3% to donations
+Average donation: $25-50
+Monthly potential: $2,000-5,000
