@@ -81,7 +81,7 @@ class InstagramAutomation {
   async init() {
     console.log('Initializing browser...');
     this.browser = await firefox.launch({
-      headless: false,
+      headless: true,
       firefoxUserPrefs: {
         'privacy.trackingprotection.enabled': true,
         'privacy.donottrackheader.enabled': true

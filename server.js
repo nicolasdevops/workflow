@@ -101,6 +101,11 @@ app.get('/', (req, res) => {
   });
 });
 
+// Health Check
+app.get('/up', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // Admin Routes
 app.get('/admin', basicAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
@@ -649,8 +654,8 @@ app.post('/api/2fa', async (req, res) => {
   return res.status(400).json({ error: 'Invalid code' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
   
   // Debug: Log Environment Variable Status (Masked)
   const apiKey = process.env.YOUCOM_API_KEY || '';
