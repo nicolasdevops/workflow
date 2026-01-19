@@ -1,0 +1,15 @@
+name: Deploy PR to Railway
+on:
+  pull_request:
+    types: [opened, synchronize]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+      - name: Deploy
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service 27617f46-74e7-4bdb-939e-9d3779e7df76 --detach
