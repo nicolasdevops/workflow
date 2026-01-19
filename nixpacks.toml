@@ -1,5 +1,8 @@
 [phases.setup]
-nixPkgs = ["nodejs", "postgresql"]
+nixPkgs = ["nodejs", "postgresql", "ffmpeg", "firefox"]
+
+[phases.install]
+cmds = ["npm ci", "npx playwright install --with-deps firefox"]
 
 [start]
 cmd = "npm start"
