@@ -431,6 +431,72 @@ app.post('/api/portal/upload', portalAuth, upload.single('file'), async (req, re
   }
 });
 
+// List Media
+app.get('/api/portal/media', portalAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  const userFolder = req.user.instagram_handle || req.user.email.replace(/[^a-z0-9]/gi, '_');
+  
+  try {
+    const { data, error } = await supabase
+      .storage
+      .from('media')
+      .list(userFolder, {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: 'created_at', order: 'desc' },
+      });
+
+    if (error) throw error;
+
+    // Generate signed URLs for display
+    const filesWithUrls = await Promise.all(data.map(async (file) => {
+      const { data: signed } = await supabase
+        .storage
+        .from('media')
+        .createSignedUrl(`${userFolder}/${file.name}`, 60 * 60); // 1 hour URL
+        
+      return {
+        ...file,
+        url: signed?.signedUrl
+      };
+    }));
+
+    res.json(filesWithUrls);
+  } catch (e) {
+    console.error('List media error:', e);
+    res.status(500).json({ error: 'Failed to list media' });
+  }
+});
+
+// Delete Media
+app.post('/api/portal/media/delete', portalAuth, async (req, res) => {
+  const { fileName } = req.body;
+  if (!fileName) return res.status(400).json({ error: 'File name required' });
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  
+  const userFolder = req.user.instagram_handle || req.user.email.replace(/[^a-z0-9]/gi, '_');
+  const filePath = `${userFolder}/${fileName}`; 
+
+  // Basic path traversal prevention
+  if (fileName.includes('..') || fileName.includes('/')) {
+      return res.status(400).json({ error: 'Invalid file name' });
+  }
+
+  try {
+    const { error } = await supabase
+      .storage
+      .from('media')
+      .remove([filePath]);
+
+    if (error) throw error;
+    res.json({ status: 'SUCCESS' });
+  } catch (e) {
+    console.error('Delete media error:', e);
+    res.status(500).json({ error: 'Failed to delete media' });
+  }
+});
+
 // Forgot Password - Request Token
 app.post('/api/portal/forgot-password', async (req, res) => {
   const { email } = req.body;

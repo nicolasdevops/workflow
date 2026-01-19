@@ -37,7 +37,7 @@
                 <div class="font-bold text-[10px] leading-none">System Active | v2.4.0</div>
             </div>
             <button v-if="profile.email" @click="signOut" class="absolute bottom-[5px] right-4 md:right-[37px] text-white/80 hover:text-white text-[8px] border border-white/30 px-1 py-0.5 rounded transition">
-                Sign Out
+                Sign Out | تسجيل خروج
             </button>
         </div>
 
@@ -235,7 +235,7 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <input v-model="newMember.condition" type="text" placeholder="Medical Condition (Optional) | حالة صحية (اختياري)" class="border p-1 rounded text-sm w-full">
+                                    <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border p-1 rounded text-sm w-full text-right">
                                 </div>
                                 <button type="button" @click="addMember" :disabled="!newMember.name || !newMember.age" class="w-auto px-[14px] py-[6px] mx-auto block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:cursor-not-allowed">
                                     + Add | إضافة
@@ -277,7 +277,7 @@
 
                 <!-- Tab: Media -->
                 <div v-if="tab === 'media'">
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6">
                         <input type="file" @change="handleFileUpload" class="hidden" id="fileInput" accept="image/*,video/*">
                         <label for="fileInput" class="cursor-pointer block">
                             <div class="text-lg text-gray-500 mb-3 leading-none">
@@ -290,9 +290,26 @@
                             </div>
                         </label>
                     </div>
-                    <div v-if="uploadStatus" class="mt-4 text-sm text-center" :class="uploadStatus.type === 'success' ? 'text-green-600' : 'text-red-600'">
+                    <div v-if="uploadStatus" class="mt-4 text-sm text-center mb-4" :class="uploadStatus.type === 'success' ? 'text-green-600' : 'text-red-600'">
                         {{ uploadStatus.message }}
                     </div>
+
+                    <!-- Media Grid -->
+                    <div v-if="mediaFiles.length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div v-for="file in mediaFiles" :key="file.id" class="relative group border rounded-lg overflow-hidden bg-gray-50">
+                            <!-- Delete Button -->
+                            <button @click="deleteMedia(file.name)" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-80 hover:opacity-100 z-10 font-bold">×</button>
+                            
+                            <!-- Thumbnail -->
+                            <div class="aspect-square flex items-center justify-center overflow-hidden">
+                                <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
+                                <video v-else-if="file.metadata.mimetype.startsWith('video')" :src="file.url" class="w-full h-full object-cover" controls preload="metadata"></video>
+                                <div v-else class="text-gray-400 text-xs">File</div>
+                            </div>
+                            <div class="p-2 text-[10px] text-gray-500 truncate text-center">{{ new Date(file.created_at).toLocaleDateString() }}</div>
+                        </div>
+                    </div>
+                    <div v-else class="text-center text-gray-400 text-sm mt-8">No media uploaded yet.</div>
                 </div>
 
                 <!-- Tab: Instagram (Original Logic) -->
@@ -377,6 +394,7 @@
                     token: null,
                     showInstaLogin: false,
                     uploadStatus: null,
+                    mediaFiles: [], // New state for media files
                     profile: {},
                     newUrgentNeed: '',
                     newMember: { name: '', age: '', gender: 'Male', condition: '' },
@@ -401,6 +419,13 @@
                     ],
                     form: { email: '', family_name: '', password: '', insta_username: '', insta_password: '', code: '' } 
                 } 
+            },
+            watch: {
+                tab(newVal) {
+                    if (newVal === 'media') {
+                        this.fetchMedia();
+                    }
+                }
             },
             mounted() {
                 // Check for reset token in URL
@@ -535,8 +560,34 @@
                     
                     this.uploadStatus = { type: 'info', message: 'Uploading...' };
                     const res = await fetch('/api/portal/upload', { method: 'POST', headers: { 'x-portal-token': this.token }, body: formData });
-                    if (res.ok) this.uploadStatus = { type: 'success', message: 'Upload complete!' };
+                    if (res.ok) {
+                        this.uploadStatus = { type: 'success', message: 'Upload complete!' };
+                        this.fetchMedia(); // Refresh list
+                    }
                     else this.uploadStatus = { type: 'error', message: 'Upload failed.' };
+                },
+                async fetchMedia() {
+                    try {
+                        const res = await fetch('/api/portal/media', { headers: { 'x-portal-token': this.token } });
+                        if (res.ok) {
+                            this.mediaFiles = await res.json();
+                        }
+                    } catch(e) { console.error('Fetch media failed', e); }
+                },
+                async deleteMedia(fileName) {
+                    if (!confirm('Are you sure you want to delete this file? | هل أنت متأكد من الحذف؟')) return;
+                    try {
+                        const res = await fetch('/api/portal/media/delete', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ fileName })
+                        });
+                        if (res.ok) {
+                            this.fetchMedia(); // Refresh list
+                        } else {
+                            alert('Failed to delete file.');
+                        }
+                    } catch(e) { console.error('Delete media failed', e); }
                 },
                 async handleInstaLogin() {
                     this.loading = true; this.error = null;
