@@ -16,7 +16,7 @@ const { encrypt, decrypt } = require('./encryption');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || process.env.N8N_PORT || 5678;
 
 // Configure Multer for memory storage (we upload directly to Supabase)
 const upload = multer({ storage: multer.memoryStorage() });
