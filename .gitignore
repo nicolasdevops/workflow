@@ -19,10 +19,19 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+Workflow.code-workspace
 
 # Playwright
 playwright-report/
 test-results/
 
-# Screenshots
+# Backups
+public/index.old.*.html
+
+# Images
 screenshots/
+table.png
+login_error.png
+
+# Other
+Related documents/

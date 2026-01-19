@@ -7,7 +7,14 @@ const crypto = require('crypto');
 // In production, keep this in .env (ENCRYPTION_KEY)
 // Must be 32 bytes (64 hex characters)
 const ALGORITHM = 'aes-256-gcm';
-const KEY = process.env.ENCRYPTION_KEY ? Buffer.from(process.env.ENCRYPTION_KEY, 'hex') : crypto.randomBytes(32);
+
+let KEY;
+if (process.env.ENCRYPTION_KEY) {
+  KEY = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
+} else {
+  console.warn('⚠️ WARNING: ENCRYPTION_KEY not set. Using random key. Encrypted data will be unreadable after restart.');
+  KEY = crypto.randomBytes(32);
+}
 
 function encrypt(text) {
   const iv = crypto.randomBytes(16);

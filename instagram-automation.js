@@ -18,7 +18,8 @@ async function humanType(page, selector, text) {
   await page.click(selector);
 
   // Force exactly one typo for realism if text is long enough
-  const typoIndex = text.length > 4 ? Math.floor(Math.random() * (text.length - 2)) + 1 : -1;
+  // Randomize position: anywhere from 2nd character to the end
+  const typoIndex = text.length > 3 ? Math.floor(Math.random() * (text.length - 1)) + 1 : -1;
 
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
@@ -63,16 +64,16 @@ function isOperationWindowActive() {
   const gazaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Gaza' }));
   const hour = gazaTime.getHours();
 
-  const startHour = parseInt(process.env.OPERATION_START_HOUR || 8);
-  const endHour = parseInt(process.env.OPERATION_END_HOUR || 18);
-
-  return hour >= startHour && hour < endHour;
+  // User requested flexible hours based on key events rather than fixed window
+  // We still return true to allow the script to run, but logic is now handled by the scheduler
+  return true; 
 }
 
 class InstagramAutomation {
   constructor(cookies = [], userAgent = null) {
     this.cookies = cookies;
-    this.userAgent = userAgent || 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1';
+    // Use Desktop User Agent to avoid "Get the App" redirects and allow Guest Mode
+    this.userAgent = userAgent || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/115.0';
     this.browser = null;
     this.page = null;
   }
@@ -80,16 +81,19 @@ class InstagramAutomation {
   async init() {
     console.log('Initializing browser...');
     this.browser = await firefox.launch({
-      headless: false
+      headless: false,
+      firefoxUserPrefs: {
+        'privacy.trackingprotection.enabled': true,
+        'privacy.donottrackheader.enabled': true
+      }
     });
     console.log('   Browser launched. Creating context...');
 
     const context = await this.browser.newContext({
       userAgent: this.userAgent,
-      viewport: { width: 375, height: 812 }, // iPhone viewport
+      viewport: { width: 1280, height: 800 }, // Desktop viewport
       locale: 'en-US',
       timezoneId: 'Asia/Gaza',
-      geolocation: { longitude: 34.4668, latitude: 31.5017 }, // Gaza coordinates
       permissions: ['geolocation']
     });
 
@@ -223,6 +227,52 @@ class InstagramAutomation {
     }
   }
 
+  /**
+   * Send a Direct Message to a user
+   */
+  async sendDirectMessage(username, message) {
+    console.log(`Sending DM to ${username}...`);
+    try {
+      // Go to profile
+      await this.page.goto(`https://www.instagram.com/${username}/`, { waitUntil: 'networkidle' });
+      await this.page.waitForTimeout(gaussianRandom(3000, 1000));
+
+      // Click Message button
+      // Note: Selectors vary between accounts, trying common ones
+      const messageBtnSelectors = [
+        'div[role="button"]:has-text("Message")',
+        'button:has-text("Message")'
+      ];
+      
+      let messageBtn = null;
+      for (const sel of messageBtnSelectors) {
+        messageBtn = await this.page.$(sel);
+        if (messageBtn) break;
+      }
+
+      if (!messageBtn) throw new Error('Message button not found (account may be private or restricted)');
+      
+      await messageBtn.click();
+      await this.page.waitForTimeout(gaussianRandom(4000, 2000));
+
+      // Wait for chat input
+      const inputSelector = 'div[contenteditable="true"][role="textbox"]';
+      await this.page.waitForSelector(inputSelector, { timeout: 10000 });
+      
+      // Type and send
+      await humanType(this.page, inputSelector, message);
+      await this.page.waitForTimeout(gaussianRandom(1000, 500));
+      await this.page.keyboard.press('Enter');
+      
+      console.log('DM sent successfully');
+      return { success: true };
+
+    } catch (error) {
+      console.error('Error sending DM:', error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
   async postGenericComment() {
     const genericComments = [
       'Free Palestine 🇵🇸❤️',
@@ -248,6 +298,137 @@ class InstagramAutomation {
     } catch (error) {
       console.log('Could not post generic comment:', error.message);
       return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Check a target account for the latest post
+   * Returns { url, timestamp, isFresh }
+   */
+  async getLatestPostInfo(targetUsername) {
+    console.log(`Checking @${targetUsername} for new posts...`);
+    try {
+      await this.page.goto(`https://www.instagram.com/${targetUsername}/`, { waitUntil: 'domcontentloaded' });
+      await this.page.waitForTimeout(gaussianRandom(3000, 1000));
+      
+      // 1. Handle Cookie Consent (Decline)
+      try {
+        const declineBtn = await this.page.$('button:has-text("Decline optional cookies"), button:has-text("Decline")');
+        if (declineBtn && await declineBtn.isVisible()) {
+          console.log('   Cookie consent found. Clicking Decline...');
+          await declineBtn.click();
+          await this.page.waitForTimeout(1500);
+        }
+      } catch (e) {}
+
+      // 2. Handle Popups (X button) - Check multiple times as they stack
+      for (let i = 0; i < 5; i++) {
+        try {
+          const closeButton = await this.page.$('svg[aria-label="Close"]');
+          if (closeButton && await closeButton.isVisible()) {
+            console.log('   Detected popup (X). Closing...');
+            await closeButton.click();
+            await this.page.waitForTimeout(1000);
+          }
+        } catch (e) {}
+        await this.page.waitForTimeout(500);
+      }
+
+      // Selector for the first post in the grid (most recent)
+      // Updated to handle Guest Mode paths like /username/p/id inside main content
+      const firstPostSelector = 'main a[href*="/p/"], main a[href*="/reel/"], article a[href*="/p/"], article a[href*="/reel/"]';
+      
+      try {
+        await this.page.waitForSelector(firstPostSelector, { timeout: 30000 });
+      } catch (e) {
+        console.log('   Timeout waiting for post grid. Account might be private or layout changed.');
+        return null;
+      }
+      
+      // Get all post links and pick the first one (most recent)
+      const posts = await this.page.$$(firstPostSelector);
+      const firstPost = posts[0];
+      
+      if (!firstPost) return null;
+      
+      const postUrl = await firstPost.getAttribute('href');
+      // Construct full URL (Guest mode links might include username prefix, which is valid)
+      const fullUrl = `https://www.instagram.com${postUrl}`;
+      
+      // Navigate directly to post (Guest Mode fix)
+      console.log(`   Navigating directly to post: ${fullUrl}`);
+      await this.page.goto(fullUrl, { waitUntil: 'domcontentloaded' });
+      
+      // Wait for content to load (Guest mode often loads skeleton first)
+      try {
+        await this.page.waitForSelector('article, main', { timeout: 15000 });
+      } catch (e) {
+        console.log('   Warning: Main content selector timeout');
+      }
+      await this.page.waitForTimeout(gaussianRandom(2000, 1000));
+      
+      // Handle popups on post page (Login wall, App upsell)
+      for (let i = 0; i < 5; i++) {
+        try {
+          // Check for cookie consent on post page too
+          const declineBtn = await this.page.$('button:has-text("Decline optional cookies"), button:has-text("Decline")');
+          if (declineBtn && await declineBtn.isVisible()) {
+            console.log('   Cookie consent found on post page. Clicking Decline...');
+            await declineBtn.click();
+            await this.page.waitForTimeout(1500);
+          }
+
+          const closeButton = await this.page.$('svg[aria-label="Close"]');
+          if (closeButton && await closeButton.isVisible()) {
+            console.log('   Detected popup on post page (X). Closing...');
+            await closeButton.click();
+            await this.page.waitForTimeout(1000);
+          }
+        } catch (e) {}
+        await this.page.waitForTimeout(500);
+      }
+
+      // Attempt to expand caption (click "more")
+      try {
+        const moreButton = await this.page.$('span[role="button"]:has-text("more"), button:has-text("more")');
+        if (moreButton) {
+          console.log('   Expanding caption...');
+          await moreButton.click();
+          await this.page.waitForTimeout(1500);
+        }
+      } catch (e) {
+        // Ignore expansion errors (button might not exist for short captions)
+      }
+
+      const timeElement = await this.page.$('time');
+      const timestamp = timeElement ? await timeElement.getAttribute('datetime') : new Date().toISOString();
+      
+      // Extract caption for context
+      let caption = '';
+      try {
+        // Try H1 (standard) and specific Span classes (Guest Mode)
+        const captionSelector = 'h1, span.x193iq5w.xeuugli.x13faqbe.x1vvkbs.xt0psk2';
+        
+        // Wait for caption to render
+        try {
+            await this.page.waitForSelector(captionSelector, { timeout: 8000 });
+        } catch (e) {}
+
+        const captionEl = await this.page.$(captionSelector);
+        if (captionEl) caption = await captionEl.textContent();
+      } catch (e) {
+        console.log('   Could not extract caption');
+      }
+
+      return {
+        username: targetUsername,
+        url: fullUrl,
+        timestamp: timestamp,
+        caption: caption
+      };
+    } catch (e) {
+      console.log(`Error checking ${targetUsername}: ${e.message}`);
+      return null;
     }
   }
 
@@ -289,7 +470,7 @@ class InstagramAutomation {
 
       // Random hesitation before clicking login
       console.log('   Hesitating before login...');
-      await this.page.waitForTimeout(gaussianRandom(2000, 1000));
+      await this.page.waitForTimeout(Math.floor(Math.random() * 1000) + 500);
 
       // Click login
       console.log('6. Clicking login button...');
@@ -341,7 +522,22 @@ class InstagramAutomation {
       
       const cookies = await this.page.context().cookies();
       console.log(`   Success! Extracted ${cookies.length} cookies.`);
-      return { status: 'SUCCESS', cookies };
+
+      // Extract profile picture
+      let profilePicUrl = null;
+      try {
+        console.log('   Fetching profile picture...');
+        await this.page.goto(`https://www.instagram.com/${username}/`, { waitUntil: 'networkidle' });
+        // Try to find the profile image (usually in header)
+        const img = await this.page.$('header img');
+        if (img) {
+            profilePicUrl = await img.getAttribute('src');
+        }
+      } catch (e) {
+        console.log('   Could not fetch profile pic:', e.message);
+      }
+
+      return { status: 'SUCCESS', cookies, profilePicUrl };
 
     } catch (error) {
       console.error('Login error details:', error);
