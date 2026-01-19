@@ -651,6 +651,13 @@ app.post('/api/2fa', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  
+  // Debug: Log Environment Variable Status (Masked)
+  const apiKey = process.env.YOUCOM_API_KEY || '';
+  const agentId = process.env.YOUCOM_AGENT_ID || '';
+  console.log('🔑 Environment Check:');
+  console.log(`   YOUCOM_API_KEY: ${apiKey ? apiKey.substring(0, 8) + '...' : 'NOT SET'}`);
+  console.log(`   YOUCOM_AGENT_ID: ${agentId ? agentId : 'NOT SET'}`);
 
   const publicPath = path.join(__dirname, 'public');
   const indexPath = path.join(publicPath, 'index.html');
