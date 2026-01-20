@@ -21,9 +21,13 @@ jobs:
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         run: |
-          # Forcefully clear the Project Token variable to prevent priority conflicts
+          # 1. Forcefully unset RAILWAY_TOKEN to bypass CLI priority conflicts
           unset RAILWAY_TOKEN
           
+          # 2. Kill any local CLI cache from the runner
+          rm -rf ~/.railway
+          
+          # 3. Proceed with the logic
           if [ "${{ github.ref_name }}" = "main" ]; then
             echo "Target: Production"
             railway up --service 27617f46-74e7-4bdb-939e-9d3779e7df76 --environment production --detach
