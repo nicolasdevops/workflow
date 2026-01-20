@@ -24,7 +24,12 @@ jobs:
         # If not, it deploys to Jules1.
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "Target: Production"
             railway up --service 27617f46-74e7-4bdb-939e-9d3779e7df76 --environment production --detach
+          elif [[ "${{ github.ref_name }}" == gemini/* ]]; then
+            echo "Target: Gemini Sandbox"
+            railway up --service 27617f46-74e7-4bdb-939e-9d3779e7df76 --environment gemini-fix --detach
           else
+            echo "Target: Jules Sandbox"
             railway up --service 27617f46-74e7-4bdb-939e-9d3779e7df76 --environment Jules1 --detach
           fi
