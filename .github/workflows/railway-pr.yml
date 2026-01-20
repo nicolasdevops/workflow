@@ -19,7 +19,7 @@ jobs:
 
       - name: Deploy to Railway
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         # This logic checks if the branch is 'main'. If yes, it deploys to production. 
         # If not, it deploys to Jules1.
         run: |
