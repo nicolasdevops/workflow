@@ -21,20 +21,17 @@ jobs:
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
         run: |
-          # 1. Forcefully unset RAILWAY_TOKEN to bypass CLI priority conflicts
           unset RAILWAY_TOKEN
+          PROJECT_ID="7a92338c-d15a-4448-b1f6-7f1a229e7b8f"
+          SERVICE_ID="27617f46-74e7-4bdb-939e-9d3779e7df76"
           
-          # 2. Kill any local CLI cache from the runner
-          rm -rf ~/.railway
-          
-          # 3. Proceed with the logic
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "Target: Production"
-            railway up --service 27617f46-74e7-4bdb-939e-9d3779e7df76 --environment production --detach
+            echo "Targeting Production Environment"
+            railway up --project $PROJECT_ID --service $SERVICE_ID --environment production --detach
           elif [[ "${{ github.ref_name }}" == gemini/* ]]; then
-            echo "Target: Gemini Sandbox"
-            railway up --service 27617f46-74e7-4bdb-939e-9d3779e7df76 --environment gemini-fix --detach
+            echo "Targeting Gemini Sandbox"
+            railway up --project $PROJECT_ID --service $SERVICE_ID --environment gemini-fix --detach
           else
-            echo "Target: Jules Sandbox"
-            railway up --service 27617f46-74e7-4bdb-939e-9d3779e7df76 --environment Jules1 --detach
+            echo "Targeting Jules Sandbox"
+            railway up --project $PROJECT_ID --service $SERVICE_ID --environment Jules1 --detach
           fi
