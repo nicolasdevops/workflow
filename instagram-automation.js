@@ -275,12 +275,12 @@ class InstagramAutomation {
 
   async postGenericComment() {
     const genericComments = [
-      'Free Palestine 🇵🇸❤️',
-      'From the river to the sea 🇵🇸',
-      'Justice for Palestine 🕊️',
-      'We stand with Gaza 💚❤️',
-      'Free free Palestine 🇵🇸🇵🇸',
-      'Palestine will be free 🕊️🇵🇸',
+      'PALESTINE IN MY HEART!!!! ❤️❤️❤️🇵🇸❤️',
+      'From the river to the sea yeah? Yeah? Get it??✊🏻✊🏻✊🏻✊🏻🇵🇸😘🙈',
+      'Justice for Palestine!!!! ✊🏻✊🏻✊🏻✊🏻✊🏻✊🏻✊🏻✊🏻✊🏻✊🏻✊🏻✊🏻🕊️',
+      'GAZA MY LOVE!!! 😭🩸💥✊🏻✊🏻✊🏻',
+      'FREEDOM!!!!! ❤️❤️❤️❤️❤️❤️🇵🇸🇵🇸🌌🌌🌠🌠🌟🌟',
+      'AMEEN FOR FELESTEEN!! 🙈✊🏻💥❤️🙏🏻🕊️✊🏻🌎🕊️',
     ];
 
     const comment = genericComments[Math.floor(Math.random() * genericComments.length)];
