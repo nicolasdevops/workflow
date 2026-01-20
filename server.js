@@ -721,7 +721,11 @@ app.post('/api/2fa', async (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
+  console.log('==================================================');
+  console.log('   GAZA PROTOCOL SERVER STARTING (IPV4 FORCED)    ');
+  console.log('==================================================');
   console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log(`Bound explicitly to 0.0.0.0 (IPv4) on port ${PORT}`);
   
   // Debug: Log Environment Variable Status (Masked)
   const apiKey = process.env.YOUCOM_API_KEY || '';
