@@ -16,7 +16,8 @@ const { encrypt, decrypt } = require('./encryption');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || process.env.N8N_PORT || 5678;
+// Default to 8080 to align with Railway standard, but respect env var if injected
+const PORT = process.env.PORT || 8080;
 
 // Configure Multer for memory storage (we upload directly to Supabase)
 const upload = multer({ storage: multer.memoryStorage() });

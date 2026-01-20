@@ -22,8 +22,8 @@ RUN npx playwright install firefox
 COPY . .
 
 # Exjwose the port (Railway will inject PORT env var, defaulting to 3000 if not set)
-# We document 3000, but the app listens on process.env.PORT
-EXPOSE 3000
+# We document 8080, but the app listens on process.env.PORT
+EXPOSE 8080
 
 # Start the application
 CMD ["node", "server.js"]
