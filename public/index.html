@@ -75,9 +75,9 @@
         <div class="max-w-2xl w-full bg-white rounded-lg shadow-lg p-4 md:p-8">
             
             <!-- Header -->
-            <div class="text-center mb-8">
-                <h1 class="text-xl text-[#3274B5] uppercase tracking-wide" style="font-family: 'Oswald', sans-serif;">Test Group Portal</h1>
-                <p class="text-gray-500 text-xs mt-px uppercase" style="font-family: 'Roboto Mono', monospace; letter-spacing: 0.18em;">Secure Environment</p>
+            <div class="text-center mb-[29px]">
+                <h1 class="text-xl text-[#3274B5] uppercase tracking-wide leading-none" style="font-family: 'Oswald', sans-serif;">Test Group Portal</h1>
+                <p class="text-gray-500 text-xs uppercase -mt-[1px]" style="font-family: 'Roboto Mono', monospace; letter-spacing: 0.18em;">Secure Environment</p>
             </div>
 
             <!-- Success State -->
@@ -113,9 +113,10 @@
                     <div v-if="authMode === 'login'" class="mb-6 text-right">
                         <button type="button" @click="step = 'forgot_password'" class="text-xs text-[#3274B5] hover:underline">Forgot Password? | نسيت كلمة المرور؟</button>
                     </div>
-                    <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm">
-                        <span v-if="!loading">{{ authMode === 'login' ? 'Enter Portal | دخول' : 'Create Account | إنشاء حساب' }}</span>
-                        <div v-else class="loader"></div>
+                    <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm gap-1">
+                        <span v-if="!loading && authMode === 'login'" class="flex items-center gap-1">Enter Portal | <span class="text-base">دخول</span></span>
+                        <span v-if="!loading && authMode === 'register'" class="flex items-center gap-1">Create Account | <span class="text-base">إنشاء حساب</span></span>
+                        <div v-if="loading" class="loader"></div>
                     </button>
                 </form>
             </div>
@@ -235,15 +236,15 @@
                                     <span class="text-base">إضافة فرد</span>
                                 </div>
                                 <div class="grid grid-cols-3 gap-2 mb-2">
-                                    <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="Name | الاسم" autocomplete="off" class="border p-1 rounded text-sm w-full">
-                                    <input v-model="newMember.age" type="number" placeholder="Age | العمر" class="border p-1 rounded text-sm w-full">
+                                    <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="Name | الاسم" autocomplete="off" class="border p-1 rounded text-base w-full">
+                                    <input v-model="newMember.age" type="number" placeholder="Age | العمر" class="border p-1 rounded text-base w-full">
                                     <select v-model="newMember.gender" class="border p-1 rounded text-sm w-full">
                                         <option value="Male">Male | ذكر</option>
                                         <option value="Female">Female | أنثى</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <input v-model="newMember.condition" type="text" placeholder="Medical Condition (Optional) | حالة صحية (اختياري)" class="border p-1 rounded text-sm w-full">
+                                    <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري) | Medical Condition (Optional)" class="border p-1 rounded text-sm w-full">
                                 </div>
                                 <button type="button" @click="addMember" :disabled="!newMember.name || !newMember.age" class="w-auto px-[14px] py-[6px] mx-auto block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:cursor-not-allowed gap-1">
                                     <span>+ Add | </span>
@@ -265,13 +266,14 @@
                             </div>
 
                             <div class="mb-4 flex gap-2">
-                                <select v-model="newUrgentNeed" class="w-full border p-2 rounded text-sm">
-                                    <option value="" disabled>اختر احتياج...</option>
+                                <select v-model="newUrgentNeed" class="w-full border p-2 rounded text-base">
+                                    <option value="" disabled>اختر احتياج... | Select Need</option>
                                     <option v-for="opt in urgentNeedOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                                 </select>
                                 <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="bg-[#3274B5] text-white font-bold px-4 rounded hover:bg-[#285e94] text-sm flex items-center gap-1">
                                     <span>Add</span>
-                                    <span class="text-base">| إضافة</span>
+                                    <span class="text-[10px] text-white/70">|</span>
+                                    <span class="text-base">إضافة</span>
                                 </button>
                             </div>
                             <div class="mb-4">
@@ -283,7 +285,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="bg-[#3274B5] text-white px-4 py-2 rounded hover:bg-[#285e94] flex flex-col items-center justify-center mx-auto min-w-[120px]">
+                        <button type="submit" class="bg-[#3274B5] text-white px-3 py-1.5 rounded hover:bg-[#285e94] flex flex-col items-center justify-center mx-auto min-w-[120px]">
                             <span class="font-bold text-sm">Save Profile</span>
                             <span class="text-base">حفظ الملف</span>
                         </button>
