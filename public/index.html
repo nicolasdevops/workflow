@@ -36,8 +36,9 @@
                 <div class="font-bold text-[9px] md:text-xs leading-tight md:leading-none mb-[3.5px] whitespace-nowrap tracking-tight">[72H] تسجيل دخول مجموعة الاختبار | Test Group Login</div>
                 <div class="font-bold text-[10px] leading-none">System Active | v2.4.0</div>
             </div>
-            <button v-if="profile.email" @click="signOut" class="absolute bottom-[5px] right-[20.5px] md:right-[40px] text-white/80 hover:text-white text-[8px] border border-white/30 px-2 py-0.5 rounded transition">
-                Sign Out | تسجيل خروج
+            <button v-if="profile.email" @click="signOut" class="absolute bottom-[5px] right-[20.5px] md:right-[40px] text-white/80 hover:text-white text-[8px] border border-white/30 px-2 py-0.5 rounded transition flex items-baseline gap-1">
+                <span>Sign Out | </span>
+                <span class="text-[10px]">تسجيل خروج</span>
             </button>
         </div>
 
@@ -195,7 +196,7 @@
                                     <div class="text-center">نوع السكن</div>
                                     <div class="text-center text-xs">Housing Type</div>
                                 </label>
-                                <select v-model="profile.housing_type" class="w-[calc(100%-0.5cm)] mx-auto block border p-1 rounded text-sm">
+                                <select v-model="profile.housing_type" class="w-[calc(100%-0.5cm)] mx-auto block border p-1 rounded text-base">
                                     <option value="tent">Tent | خيمة</option>
                                     <option value="school">School | مدرسة</option>
                                     <option value="damaged_home">Damaged Home | بيت متضرر</option>
@@ -213,7 +214,11 @@
 
                         <!-- Children Details Section -->
                         <div class="mb-6 border-t pt-4">
-                            <label class="block text-sm font-bold mb-3">Family Members أفراد العائلة ({{ profile.children_details?.length || 0 }})</label>
+                            <label class="block text-sm font-bold mb-3 flex items-baseline gap-1">
+                                <span>Family Members</span>
+                                <span class="text-base">أفراد العائلة</span>
+                                <span>({{ profile.children_details?.length || 0 }})</span>
+                            </label>
                             
                             <!-- List of added children -->
                             <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
@@ -225,7 +230,10 @@
 
                             <!-- Add new child form -->
                             <div class="bg-blue-50 p-3 rounded border border-blue-100">
-                                <div class="text-xs font-bold text-[#3274B5] mb-2">Add Member | إضافة فرد</div>
+                                <div class="text-xs font-bold text-[#3274B5] mb-2 flex items-baseline gap-1">
+                                    <span>Add Member | </span>
+                                    <span class="text-base">إضافة فرد</span>
+                                </div>
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="Name | الاسم" autocomplete="off" class="border p-1 rounded text-sm w-full">
                                     <input v-model="newMember.age" type="number" placeholder="Age | العمر" class="border p-1 rounded text-sm w-full">
@@ -237,8 +245,9 @@
                                 <div class="mb-3">
                                     <input v-model="newMember.condition" type="text" placeholder="Medical Condition (Optional) | حالة صحية (اختياري)" class="border p-1 rounded text-sm w-full">
                                 </div>
-                                <button type="button" @click="addMember" :disabled="!newMember.name || !newMember.age" class="w-auto px-[14px] py-[6px] mx-auto block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:cursor-not-allowed">
-                                    + Add | إضافة
+                                <button type="button" @click="addMember" :disabled="!newMember.name || !newMember.age" class="w-auto px-[14px] py-[6px] mx-auto block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:cursor-not-allowed gap-1">
+                                    <span>+ Add | </span>
+                                    <span class="text-base">إضافة</span>
                                 </button>
                             </div>
                         </div>
@@ -260,17 +269,23 @@
                                     <option value="" disabled>اختر احتياج...</option>
                                     <option v-for="opt in urgentNeedOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                                 </select>
-                                <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="bg-[#3274B5] text-white font-bold px-4 rounded hover:bg-[#285e94] text-sm">إضافة</button>
+                                <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="bg-[#3274B5] text-white font-bold px-4 rounded hover:bg-[#285e94] text-sm flex items-center gap-1">
+                                    <span>Add</span>
+                                    <span class="text-base">| إضافة</span>
+                                </button>
                             </div>
                             <div class="mb-4">
-                                <label class="block text-xs text-gray-600 mb-1">Cash Amount Needed | المبلغ المطلوب</label>
+                                <label class="block text-xs text-gray-600 mb-1 flex items-baseline gap-1">
+                                    <span>Cash Amount Needed | </span>
+                                    <span class="text-base">المبلغ المطلوب</span>
+                                </label>
                                 <input v-model="profile.urgent_need_amount" type="text" class="w-full border p-2 rounded text-sm" placeholder="e.g. $500">
                             </div>
                         </div>
 
                         <button type="submit" class="bg-[#3274B5] text-white px-4 py-2 rounded hover:bg-[#285e94] flex flex-col items-center justify-center mx-auto min-w-[120px]">
                             <span class="font-bold text-sm">Save Profile</span>
-                            <span class="text-xs">حفظ الملف</span>
+                            <span class="text-base">حفظ الملف</span>
                         </button>
                     </form>
                 </div>
