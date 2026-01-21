@@ -25,6 +25,15 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Hide spin buttons for number inputs */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 <body>
@@ -54,19 +63,19 @@
                 <div class="text-xs font-bold text-gray-700">{{ profile.name || profile.family_name || profile.email }}</div>
             </div>
             <div class="grid grid-cols-[auto_auto_auto] text-[9px] text-[#3274B5] leading-tight items-baseline">
-                <span class="text-right">تعليقات الذكاء</span>
+                <span class="text-right text-[10px]">تعليقات الذكاء</span>
                 <span class="text-left text-[8px] pl-1">AI Comments</span>
                 <span class="font-mono text-right pl-[19px]">{{ profile.comments_count || 0 }}</span>
 
-                <span class="text-right">رسائل مرسلة</span>
+                <span class="text-right text-[10px]">رسائل مرسلة</span>
                 <span class="text-left text-[8px] pl-1">DMs Sent</span>
                 <span class="font-mono text-right pl-[19px]">{{ profile.dms_count || 0 }}</span>
 
-                <span class="text-right">ريلز منشأة</span>
+                <span class="text-right text-[10px]">ريلز منشأة</span>
                 <span class="text-left text-[8px] pl-1">Reels Created</span>
                 <span class="font-mono text-right pl-[19px]">{{ profile.reels_count || 0 }}</span>
 
-                <span class="text-right">أيام النشاط</span>
+                <span class="text-right text-[10px]">أيام النشاط</span>
                 <span class="text-left text-[8px] pl-1">Active Days</span>
                 <span class="font-mono text-right pl-[19px]">{{ getRunningTime() }}</span>
             </div>
@@ -285,7 +294,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="bg-[#3274B5] text-white px-2.5 py-1 rounded hover:bg-[#285e94] flex flex-col items-center justify-center mx-auto min-w-[120px]">
+                        <button type="submit" class="bg-[#3274B5] text-white px-[6px] py-1 rounded hover:bg-[#285e94] flex flex-col items-center justify-center mx-auto min-w-[120px]">
                             <span class="font-bold text-sm">Save Profile</span>
                             <span class="text-base">حفظ الملف</span>
                         </button>
@@ -367,13 +376,13 @@
                         <form @submit.prevent="handleInstaLogin">
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    IG username | اسم حساب الانستغرام
+                                    IG username | <span class="text-base">اسم حساب الانستغرام</span>
                                 </label>
                                 <input v-model="form.insta_username" type="text" class="w-full border p-2 rounded text-sm" placeholder="e.g. @ahmed_gaza">
                             </div>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Password | كلمة السر
+                                    Password | <span class="text-base">كلمة السر</span>
                                 </label>
                                 <input v-model="form.insta_password" type="password" class="w-full border p-2 rounded text-sm" placeholder="••••••••">
                             </div>
