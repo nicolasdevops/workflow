@@ -314,7 +314,8 @@ setInterval(async () => {
 
 // Portal Register
 app.post('/api/portal/register', async (req, res) => {
-  const { email, password, family_name } = req.body;
+  const { password, family_name } = req.body;
+  const email = req.body.email.toLowerCase();
   
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
 
@@ -344,7 +345,8 @@ app.post('/api/portal/register', async (req, res) => {
 
 // Portal Login
 app.post('/api/portal/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { password } = req.body;
+  const email = req.body.email.toLowerCase();
   
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
 
@@ -500,7 +502,7 @@ app.post('/api/portal/media/delete', portalAuth, async (req, res) => {
 
 // Forgot Password - Request Token
 app.post('/api/portal/forgot-password', async (req, res) => {
-  const { email } = req.body;
+  const email = req.body.email.toLowerCase();
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
 
   // Check if user exists (silently fail if not to prevent enumeration)
