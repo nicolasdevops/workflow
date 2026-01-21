@@ -217,8 +217,8 @@
                         <div class="mb-6 border-t pt-4">
                             <label class="block text-sm font-bold mb-3 flex items-baseline gap-1">
                                 <span>Family Members</span>
-                                <span class="text-base">أفراد العائلة</span>
                                 <span>({{ profile.children_details?.length || 0 }})</span>
+                                <span class="text-base">أفراد العائلة</span>
                             </label>
                             
                             <!-- List of added children -->
@@ -236,9 +236,9 @@
                                     <span class="text-base">إضافة فرد</span>
                                 </div>
                                 <div class="grid grid-cols-3 gap-2 mb-2">
-                                    <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="Name | الاسم" autocomplete="off" class="border p-1 rounded text-base w-full">
-                                    <input v-model="newMember.age" type="number" placeholder="Age | العمر" class="border p-1 rounded text-base w-full">
-                                    <select v-model="newMember.gender" class="border p-1 rounded text-sm w-full">
+                                    <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="الاسم | Name" autocomplete="off" class="border py-0.5 px-2 rounded text-base w-full h-[34px]">
+                                    <input v-model="newMember.age" type="number" placeholder="العمر | Age" class="border py-0.5 px-2 rounded text-base w-full h-[34px]">
+                                    <select v-model="newMember.gender" class="border p-1 rounded text-sm w-full h-[34px]">
                                         <option value="Male">Male | ذكر</option>
                                         <option value="Female">Female | أنثى</option>
                                     </select>
@@ -285,7 +285,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="bg-[#3274B5] text-white px-3 py-1.5 rounded hover:bg-[#285e94] flex flex-col items-center justify-center mx-auto min-w-[120px]">
+                        <button type="submit" class="bg-[#3274B5] text-white px-2.5 py-1 rounded hover:bg-[#285e94] flex flex-col items-center justify-center mx-auto min-w-[120px]">
                             <span class="font-bold text-sm">Save Profile</span>
                             <span class="text-base">حفظ الملف</span>
                         </button>
@@ -448,23 +448,23 @@
                     newUrgentNeed: '',
                     newMember: { name: '', age: '', gender: 'Male', condition: '' },
                     urgentNeedOptions: [
-                        { value: "floods", label: "Facing severe floods | نواجه فيضانات" },
-                        { value: "tent_repair", label: "Broken tent needs repair | الخيمة بدها تصليح" },
-                        { value: "tent_tarp", label: "Tent has holes, needs tarp | الخيمة بدها شادر" },
-                        { value: "new_tent", label: "Collapsed/ruined tent (need new) | الخيمة تدمرت (بدنا جديدة)" },
-                        { value: "home_repair", label: "Building needs critical repairs | البيت بدو ترميم" },
-                        { value: "displacement", label: "Displacement order received | استلمنا أمر إخلاء" },
-                        { value: "rent", label: "Rent arrears overdue | علينا إيجار متأخر" },
-                        { value: "medicines", label: "Medicines urgently needed | بدنا دواء ضروري" },
-                        { value: "food", label: "In critical need of food | بحاجة ماسة لأكل" },
-                        { value: "blankets", label: "Blankets needed | بدنا بطانيات" },
-                        { value: "clothes", label: "Jackets or clothes needed | بدنا واعي شتوي" },
-                        { value: "other", label: "Other necessities needed | احتياجات تانية" },
-                        { value: "medical_op", label: "Finance mandatory medical operation | تكاليف عملية" },
-                        { value: "evacuation", label: "Finance evacuation to Egypt | تكاليف السفر لمصر" },
-                        { value: "campaign", label: "Finance fundraising campaign | دعم الحملة" },
-                        { value: "medical_consult", label: "Medical consultation urgently needed | استشارة طبية عاجلة" },
-                        { value: "business_setup", label: "Business setup overhead costs | تكاليف تأسيس مشروع" }
+                        { value: "floods", label: "نواجه فيضانات | Facing severe floods" },
+                        { value: "tent_repair", label: "الخيمة بدها تصليح | Broken tent needs repair" },
+                        { value: "tent_tarp", label: "الخيمة بدها شادر | Tent has holes, needs tarp" },
+                        { value: "new_tent", label: "الخيمة تدمرت (بدنا جديدة) | Collapsed/ruined tent (need new)" },
+                        { value: "home_repair", label: "البيت بدو ترميم | Building needs critical repairs" },
+                        { value: "displacement", label: "استلمنا أمر إخلاء | Displacement order received" },
+                        { value: "rent", label: "علينا إيجار متأخر | Rent arrears overdue" },
+                        { value: "medicines", label: "بدنا دواء ضروري | Medicines urgently needed" },
+                        { value: "food", label: "بحاجة ماسة لأكل | In critical need of food" },
+                        { value: "blankets", label: "بدنا بطانيات | Blankets needed" },
+                        { value: "clothes", label: "بدنا واعي شتوي | Jackets or clothes needed" },
+                        { value: "other", label: "احتياجات تانية | Other necessities needed" },
+                        { value: "medical_op", label: "تكاليف عملية | Finance mandatory medical operation" },
+                        { value: "evacuation", label: "تكاليف السفر لمصر | Finance evacuation to Egypt" },
+                        { value: "campaign", label: "دعم الحملة | Finance fundraising campaign" },
+                        { value: "medical_consult", label: "استشارة طبية عاجلة | Medical consultation urgently needed" },
+                        { value: "business_setup", label: "تكاليف تأسيس مشروع | Business setup overhead costs" }
                     ],
                     form: { email: '', family_name: '', password: '', insta_username: '', insta_password: '', code: '' } 
                 } 
