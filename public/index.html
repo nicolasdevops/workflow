@@ -458,8 +458,8 @@
                 }
             },
             mounted() {
-                // Check for local token
-                const localToken = localStorage.getItem('portal_token');
+                // Check for local token (SessionStorage for tab persistence only)
+                const localToken = sessionStorage.getItem('portal_token');
                 if (localToken) {
                     this.token = localToken;
                     this.step = 'dashboard';
@@ -490,7 +490,7 @@
                     this.profile = {};
                     this.step = 'portal_login';
                     this.authMode = 'login';
-                    localStorage.removeItem('portal_token');
+                    sessionStorage.removeItem('portal_token');
                 },
                 async handlePortalLogin() {
                     this.loading = true; this.error = null;
@@ -504,7 +504,7 @@
                         if (data.error) throw new Error(data.error);
                         
                         this.token = data.token;
-                        localStorage.setItem('portal_token', data.token);
+                        sessionStorage.setItem('portal_token', data.token);
                         this.profile = data.user;
                         this.form.insta_username = data.user.handle || ''; // Pre-fill if exists
                         this.step = 'dashboard';
@@ -523,7 +523,7 @@
                         if (data.error) throw new Error(data.error);
                         
                         this.token = data.token;
-                        localStorage.setItem('portal_token', data.token);
+                        sessionStorage.setItem('portal_token', data.token);
                         this.profile = data.user;
                         this.step = 'dashboard';
                         this.fetchProfile(); // Get full details
@@ -554,12 +554,21 @@
                     } catch (e) { this.error = e.message; } finally { this.loading = false; }
                 },
                 async fetchProfile() {
-                    const res = await fetch('/api/portal/me', { headers: { 'x-portal-token': this.token } });
-                    this.profile = await res.json();
-                    // Ensure children_details array exists
-                    if (!this.profile.children_details) this.profile.children_details = [];
-                    // Ensure urgent_needs array exists
-                    if (!this.profile.urgent_needs) this.profile.urgent_needs = [];
+                    try {
+                        const res = await fetch('/api/portal/me', { headers: { 'x-portal-token': this.token } });
+                        if (res.status === 401) {
+                            // Token invalid (server restarted or session expired)
+                            this.signOut();
+                            return;
+                        }
+                        this.profile = await res.json();
+                        // Ensure children_details array exists
+                        if (!this.profile.children_details) this.profile.children_details = [];
+                        // Ensure urgent_needs array exists
+                        if (!this.profile.urgent_needs) this.profile.urgent_needs = [];
+                    } catch (e) {
+                        console.error('Fetch profile error', e);
+                    }
                 },
                 async updateProfile() {
                     // Sync count
