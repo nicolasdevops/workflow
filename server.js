@@ -737,35 +737,8 @@ app.listen(PORT, '0.0.0.0', () => {
 
   const publicPath = path.join(__dirname, 'public');
   const indexPath = path.join(publicPath, 'index.html');
-  const rootIndexPath = path.join(__dirname, 'index.html');
 
-  // Always update public/index.html if a new version exists in root
-  if (fs.existsSync(rootIndexPath)) {
-    // Check if content is different to avoid unnecessary backups
-    if (!fs.existsSync(publicPath)) fs.mkdirSync(publicPath);
-    
-    // Always copy on startup to ensure latest version
-    console.log('📦 Setup: Updating public/index.html...');
-    try {
-      if (fs.existsSync(indexPath)) {
-        const backupPath = path.join(publicPath, `index.old.${Date.now()}.html`);
-        fs.renameSync(indexPath, backupPath);
-        console.log(`   Old version backed up to ${path.basename(backupPath)}`);
-      }
-      fs.copyFileSync(rootIndexPath, indexPath);
-      console.log('✅ Setup complete: index.html updated successfully.');
-    } catch (e) {
-      console.error('❌ Error updating index.html:', e.message);
-    }
-
-    // Watch for changes in index.html and update public version immediately
-    fs.watchFile(rootIndexPath, { interval: 1000 }, (curr, prev) => {
-      if (curr.mtime > prev.mtime) {
-        console.log('🔄 Detected change in index.html. Updating public/index.html...');
-        fs.copyFileSync(rootIndexPath, indexPath);
-      }
-    });
-  } else if (!fs.existsSync(indexPath)) {
+  if (!fs.existsSync(indexPath)) {
     console.log('⚠️  WARNING: public/index.html not found! Please ensure index.html is in the "public" folder.');
   }
 });
