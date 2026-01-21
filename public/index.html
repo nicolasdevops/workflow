@@ -31,12 +31,12 @@
     <div id="app" class="min-h-screen bg-gray-100">
         <!-- Navy Header Bar -->
         <div class="w-full bg-[#3274B5] text-white h-20 flex items-center pl-4 pr-2 md:pl-[37px] md:pr-[11px] shadow-md relative">
-            <div class="text-3xl md:text-4xl whitespace-nowrap" style="font-family: 'Asap Condensed', sans-serif; letter-spacing: 0.03em;">[D|H|S]</div>
+            <div class="text-3xl md:text-4xl whitespace-nowrap" style="font-family: 'Asap Condensed', sans-serif; letter-spacing: 0.03em;">[D|H<span style="letter-spacing: calc(0.03em + 1px)">|S]</span></div>
             <div class="ml-3 md:ml-6 text-sm opacity-90 font-light border-l border-white/30 pl-3 md:pl-6 h-16 flex flex-col justify-center">
                 <div class="font-bold text-[9px] md:text-xs leading-tight md:leading-none mb-[3.5px] whitespace-nowrap tracking-tight">[72H] تسجيل دخول مجموعة الاختبار | Test Group Login</div>
                 <div class="font-bold text-[10px] leading-none">System Active | v2.4.0</div>
             </div>
-            <button v-if="profile.email" @click="signOut" class="absolute bottom-[5px] right-4 md:right-[37px] text-white/80 hover:text-white text-[8px] border border-white/30 px-1 py-0.5 rounded transition">
+            <button v-if="profile.email" @click="signOut" class="absolute bottom-[5px] right-[19px] md:right-[40px] text-white/80 hover:text-white text-[8px] border border-white/30 px-2 py-0.5 rounded transition">
                 Sign Out | تسجيل خروج
             </button>
         </div>
@@ -235,7 +235,7 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border p-1 rounded text-sm w-full text-right">
+                                    <input v-model="newMember.condition" type="text" placeholder="Medical Condition (Optional) | حالة صحية (اختياري)" class="border p-1 rounded text-sm w-full">
                                 </div>
                                 <button type="button" @click="addMember" :disabled="!newMember.name || !newMember.age" class="w-auto px-[14px] py-[6px] mx-auto block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:cursor-not-allowed">
                                     + Add | إضافة
@@ -290,26 +290,28 @@
                             </div>
                         </label>
                     </div>
-                    <div v-if="uploadStatus" class="mt-4 text-sm text-center mb-4" :class="uploadStatus.type === 'success' ? 'text-green-600' : 'text-red-600'">
+                    <div v-if="uploadStatus" class="mb-4 text-sm text-center" :class="uploadStatus.type === 'success' ? 'text-green-600' : 'text-red-600'">
                         {{ uploadStatus.message }}
                     </div>
 
-                    <!-- Media Grid -->
-                    <div v-if="mediaFiles.length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <div v-for="file in mediaFiles" :key="file.id" class="relative group border rounded-lg overflow-hidden bg-gray-50">
-                            <!-- Delete Button -->
-                            <button @click="deleteMedia(file.name)" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-80 hover:opacity-100 z-10 font-bold">×</button>
+                    <!-- Media Gallery -->
+                    <div v-if="mediaFiles.length > 0" class="grid grid-cols-3 gap-2">
+                        <div v-for="file in mediaFiles" :key="file.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
+                            <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
+                            <video v-else :src="file.url" class="w-full h-full object-cover"></video>
                             
-                            <!-- Thumbnail -->
-                            <div class="aspect-square flex items-center justify-center overflow-hidden">
-                                <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
-                                <video v-else-if="file.metadata.mimetype.startsWith('video')" :src="file.url" class="w-full h-full object-cover" controls preload="metadata"></video>
-                                <div v-else class="text-gray-400 text-xs">File</div>
+                            <!-- Overlay -->
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                <button @click="deleteMedia(file.name)" class="text-white bg-red-600 p-1.5 rounded-full hover:bg-red-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
                             </div>
-                            <div class="p-2 text-[10px] text-gray-500 truncate text-center">{{ new Date(file.created_at).toLocaleDateString() }}</div>
                         </div>
                     </div>
-                    <div v-else class="text-center text-gray-400 text-sm mt-8">No media uploaded yet.</div>
+                    <div v-else-if="!loading" class="text-center text-gray-400 text-sm mt-4">
+                        No media uploaded yet.
+                    </div>
+                    <div v-if="loading" class="flex justify-center mt-4"><div class="loader"></div></div>
                 </div>
 
                 <!-- Tab: Instagram (Original Logic) -->
@@ -335,11 +337,17 @@
                     <!-- Instagram Login Form (Nested) -->
                     <div v-if="showInstaLogin || !profile.cookies" class="mt-4 border-t pt-4">
                         <form @submit.prevent="handleInstaLogin">
-                            <div class="mb-2">
-                                <input v-model="form.insta_username" type="text" class="w-full border p-2 rounded text-sm placeholder:text-[9px]" placeholder="Instagram Username (e.g. @ahmed_gaza) | اسم حساب الانستغرام">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Instagram Username <span class="block text-lg font-bold">اسم حساب الانستغرام</span>
+                                </label>
+                                <input v-model="form.insta_username" type="text" class="w-full border p-2 rounded text-sm" placeholder="e.g. @ahmed_gaza">
                             </div>
                             <div class="mb-4">
-                                <input v-model="form.insta_password" type="password" class="w-full border p-2 rounded text-sm placeholder:text-[9px]" placeholder="Instagram Password | كلمة السر">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Instagram Password <span class="block text-lg font-bold">كلمة السر</span>
+                                </label>
+                                <input v-model="form.insta_password" type="password" class="w-full border p-2 rounded text-sm" placeholder="••••••••">
                             </div>
                     <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm">
                         <span v-if="!loading">{{ profile.cookies ? 'Update Cookies | تحديث البيانات' : 'Connect Account | ربط الحساب' }}</span>
@@ -394,7 +402,7 @@
                     token: null,
                     showInstaLogin: false,
                     uploadStatus: null,
-                    mediaFiles: [], // New state for media files
+                    mediaFiles: [],
                     profile: {},
                     newUrgentNeed: '',
                     newMember: { name: '', age: '', gender: 'Male', condition: '' },
@@ -421,10 +429,8 @@
                 } 
             },
             watch: {
-                tab(newVal) {
-                    if (newVal === 'media') {
-                        this.fetchMedia();
-                    }
+                tab(newTab) {
+                    if (newTab === 'media') this.fetchMedia();
                 }
             },
             mounted() {
@@ -562,32 +568,29 @@
                     const res = await fetch('/api/portal/upload', { method: 'POST', headers: { 'x-portal-token': this.token }, body: formData });
                     if (res.ok) {
                         this.uploadStatus = { type: 'success', message: 'Upload complete!' };
-                        this.fetchMedia(); // Refresh list
+                        this.fetchMedia();
                     }
                     else this.uploadStatus = { type: 'error', message: 'Upload failed.' };
                 },
                 async fetchMedia() {
+                    this.loading = true;
                     try {
                         const res = await fetch('/api/portal/media', { headers: { 'x-portal-token': this.token } });
                         if (res.ok) {
                             this.mediaFiles = await res.json();
                         }
-                    } catch(e) { console.error('Fetch media failed', e); }
+                    } catch (e) { console.error(e); } finally { this.loading = false; }
                 },
                 async deleteMedia(fileName) {
-                    if (!confirm('Are you sure you want to delete this file? | هل أنت متأكد من الحذف؟')) return;
+                    if (!confirm('Are you sure you want to delete this?')) return;
                     try {
                         const res = await fetch('/api/portal/media/delete', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
                             body: JSON.stringify({ fileName })
                         });
-                        if (res.ok) {
-                            this.fetchMedia(); // Refresh list
-                        } else {
-                            alert('Failed to delete file.');
-                        }
-                    } catch(e) { console.error('Delete media failed', e); }
+                        if (res.ok) this.fetchMedia();
+                    } catch (e) { alert('Failed to delete'); }
                 },
                 async handleInstaLogin() {
                     this.loading = true; this.error = null;
