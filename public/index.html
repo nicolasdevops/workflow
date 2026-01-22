@@ -464,33 +464,36 @@
                     </div>
                     
                     <div class="flex-1 overflow-y-auto space-y-4">
-                        <div v-for="(item, index) in mediaStaging" :key="index" class="flex gap-4 border rounded p-2 relative">
+                        <div v-for="(item, index) in mediaStaging" :key="index" class="flex gap-3 border rounded p-2 relative items-start">
                             <!-- Thumbnail -->
-                            <div class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded overflow-hidden relative">
+                            <div class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded overflow-hidden relative border border-gray-200">
                                 <img v-if="item.type.startsWith('image')" :src="item.url" class="w-full h-full object-cover">
-                                <video v-else :src="item.url" class="w-full h-full object-cover"></video>
-                                <button @click="removeStagedMedia(index)" class="absolute top-0 right-0 bg-red-500 text-white rounded-bl p-1 hover:bg-red-600">
+                                <video v-else :src="item.url + '#t=0.5'" class="w-full h-full object-cover bg-gray-900" preload="metadata" playsinline muted></video>
+                                <button @click="removeStagedMedia(index)" class="absolute top-0 right-0 bg-red-500 text-white rounded-bl p-1 hover:bg-red-600 z-10">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>
                             
                             <!-- Description Input -->
-                            <div class="flex-1">
-                                <label class="block text-xs font-bold mb-1 flex items-baseline gap-1 text-[#3274B5]">
-                                    <span class="text-sm">وصف المحتوى</span>
-                                    <span class="text-[10px] text-gray-500">|</span>
-                                    <span class="text-xs text-gray-500">Content Description</span>
+                            <div class="flex-1 flex flex-col h-24">
+                                <label class="block mb-[2px] leading-tight text-[#3274B5]">
+                                    <div class="flex flex-row items-center gap-1 flex-wrap">
+                                        <span class="text-sm font-bold whitespace-nowrap">وصف المحتوى</span>
+                                        <span class="text-[10px] text-gray-400">|</span>
+                                        <span class="text-xs text-gray-500 whitespace-nowrap">Content Description</span>
+                                    </div>
                                 </label>
-                                <textarea v-model="item.description" class="w-full border rounded p-2 text-sm h-20 resize-none focus:ring-2 focus:ring-[#3274B5] focus:outline-none" placeholder="اشرح ما يحدث في الصورة/الفيديو... | Explain what is happening..."></textarea>
+                                <textarea v-model="item.description" class="w-full border rounded p-2 text-sm flex-1 resize-none focus:ring-2 focus:ring-[#3274B5] focus:outline-none" placeholder="اشرح ما يحدث... | Explain..."></textarea>
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-4 pt-4 border-t">
-                        <button @click="sendMedia" class="w-full bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center gap-2">
-                            <span class="text-lg">إرسال</span>
-                            <span class="text-white/50">|</span>
-                            <span>Send</span>
+                        <button @click="sendMedia" :disabled="isUploading" class="w-full bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span v-if="!isUploading" class="text-lg">إرسال</span>
+                            <span v-if="!isUploading" class="text-white/50">|</span>
+                            <span v-if="!isUploading">Send</span>
+                            <div v-else class="loader border-white border-t-transparent"></div>
                         </button>
                     </div>
                 </div>
@@ -553,6 +556,7 @@
                     tab: sessionStorage.getItem('current_tab') || 'profile',
                     resetToken: null,
                     loading: false, 
+                    isUploading: false,
                     error: null, 
                     token: null,
                     previewFile: null,
@@ -808,6 +812,8 @@
                     }
                 },
                 async sendMedia() {
+                    if (this.isUploading) return;
+                    this.isUploading = true;
                     this.uploadStatus = { type: 'info', message: 'Uploading...' };
                     let successCount = 0;
                     
@@ -831,6 +837,7 @@
                     this.mediaStaging = [];
                     this.isMediaEditorOpen = false;
                     this.uploadStatus = { type: 'success', message: `Uploaded ${successCount} items.` };
+                    this.isUploading = false;
                     this.fetchMedia();
                 },
                 async fetchMedia() {
