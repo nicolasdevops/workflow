@@ -1,0 +1,10 @@
+{
+  "general": {
+    "previewFeatures": true,
+    "model": "gemini-3-pro-preview"
+  },
+  "agent": {
+    "system_instructions": "CRITICAL: You are in an automated Railway environment. Never modify 'main' directly. Always run 'git checkout -b gemini/your-task' before editing files. Your prefix MUST be 'gemini/'.",
+    "autoApprove": ["git checkout", "git branch"]
+  }
+}

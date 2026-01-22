@@ -415,53 +415,84 @@ app.post('/api/portal/upload', portalAuth, upload.single('file'), async (req, re
   const fileName = `${userFolder}/${Date.now()}.${fileExt}`;
 
   try {
-    const { data, error } = await supabase
+    // 1. Upload to Storage
+    const { data: storageData, error: storageError } = await supabase
       .storage
       .from('media')
       .upload(fileName, req.file.buffer, {
         contentType: req.file.mimetype
       });
 
-    if (error) throw error;
+    if (storageError) throw storageError;
 
-    // Log upload in database (optional, or just rely on storage)
-    // await supabase.from('media_uploads').insert({...})
+    // 2. Insert into DB (media_uploads)
+    // req.user should contain the family row (including id) from portalAuth
+    const description = req.body.description || '';
+    
+    const { error: dbError } = await supabase
+      .from('media_uploads')
+      .insert([{
+        family_id: req.user.id,
+        file_path: fileName,
+        description: description
+      }]);
 
-    res.json({ status: 'SUCCESS', path: data.path });
+    if (dbError) {
+      console.error('DB Insert Error (Cleaning up storage):', dbError);
+      // Optional: Cleanup storage if DB fails to keep consistency
+      await supabase.storage.from('media').remove([fileName]);
+      throw dbError;
+    }
+
+    res.json({ status: 'SUCCESS', path: fileName });
   } catch (e) {
     console.error('Upload error:', e);
-    res.status(500).json({ error: 'Upload failed' });
+    res.status(500).json({ error: 'Upload failed: ' + e.message });
   }
 });
 
-// List Media
+// Helper to guess mime type from extension (since we don't store it in DB yet)
+const getMimeType = (path) => {
+    const ext = path.split('.').pop().toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image/' + ext;
+    if (['mp4', 'mov', 'webm'].includes(ext)) return 'video/' + ext;
+    return 'application/octet-stream';
+};
+
+// List Media (From Database)
 app.get('/api/portal/media', portalAuth, async (req, res) => {
   if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
 
-  const userFolder = req.user.instagram_handle || req.user.email.replace(/[^a-z0-9]/gi, '_');
-  
   try {
-    const { data, error } = await supabase
-      .storage
-      .from('media')
-      .list(userFolder, {
-        limit: 100,
-        offset: 0,
-        sortBy: { column: 'created_at', order: 'desc' },
-      });
+    // 1. Get records from DB for this family
+    const { data: dbFiles, error: dbError } = await supabase
+      .from('media_uploads')
+      .select('*')
+      .eq('family_id', req.user.id)
+      .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (dbError) throw dbError;
 
-    // Generate signed URLs for display
-    const filesWithUrls = await Promise.all(data.map(async (file) => {
+    // 2. Generate Signed URLs for each
+    const filesWithUrls = await Promise.all(dbFiles.map(async (file) => {
       const { data: signed } = await supabase
         .storage
         .from('media')
-        .createSignedUrl(`${userFolder}/${file.name}`, 60 * 60); // 1 hour URL
+        .createSignedUrl(file.file_path, 60 * 60); // 1 hour URL
         
+      // Map to frontend structure
+      // Frontend expects: { name, url, metadata: { mimetype, description } }
+      const name = file.file_path.split('/').pop();
       return {
-        ...file,
-        url: signed?.signedUrl
+        id: file.id, // DB ID
+        name: name,
+        fullPath: file.file_path,
+        url: signed?.signedUrl,
+        metadata: {
+            mimetype: getMimeType(file.file_path),
+            description: file.description
+        },
+        created_at: file.created_at
       };
     }));
 
@@ -472,27 +503,72 @@ app.get('/api/portal/media', portalAuth, async (req, res) => {
   }
 });
 
+// Update Media Description
+app.post('/api/portal/media/update', portalAuth, async (req, res) => {
+    const { id, description } = req.body;
+    if (!id) return res.status(400).json({ error: 'Media ID required' });
+
+    try {
+        const { error } = await supabase
+            .from('media_uploads')
+            .update({ description })
+            .eq('id', id)
+            .eq('family_id', req.user.id); // Security: Ensure ownership
+
+        if (error) throw error;
+        res.json({ status: 'SUCCESS' });
+    } catch (e) {
+        console.error('Update media error:', JSON.stringify(e, null, 2));
+        res.status(500).json({ error: 'Failed to update media: ' + (e.message || 'Unknown error') });
+    }
+});
+
 // Delete Media
 app.post('/api/portal/media/delete', portalAuth, async (req, res) => {
-  const { fileName } = req.body;
-  if (!fileName) return res.status(400).json({ error: 'File name required' });
-  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  const { id, fileName } = req.body; 
+  // Support both ID (new way) and fileName (legacy/backup)
   
-  const userFolder = req.user.instagram_handle || req.user.email.replace(/[^a-z0-9]/gi, '_');
-  const filePath = `${userFolder}/${fileName}`; 
-
-  // Basic path traversal prevention
-  if (fileName.includes('..') || fileName.includes('/')) {
-      return res.status(400).json({ error: 'Invalid file name' });
-  }
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
 
   try {
-    const { error } = await supabase
+    let filePath = fileName;
+
+    // If ID provided, get path from DB first
+    if (id) {
+        const { data: fileRow } = await supabase
+            .from('media_uploads')
+            .select('file_path')
+            .eq('id', id)
+            .eq('family_id', req.user.id)
+            .single();
+        
+        if (fileRow) filePath = fileRow.file_path;
+    } else {
+        // Fallback construct path
+        const userFolder = req.user.instagram_handle || req.user.email.replace(/[^a-z0-9]/gi, '_');
+        filePath = `${userFolder}/${fileName}`; 
+    }
+
+    if (!filePath) return res.status(404).json({ error: 'File not found' });
+
+    // 1. Delete from DB
+    // We match by file_path and family_id to be safe
+    const { error: dbError } = await supabase
+        .from('media_uploads')
+        .delete()
+        .eq('file_path', filePath)
+        .eq('family_id', req.user.id);
+
+    if (dbError) console.error('DB Delete Warning:', dbError);
+
+    // 2. Delete from Storage
+    const { error: storageError } = await supabase
       .storage
       .from('media')
       .remove([filePath]);
 
-    if (error) throw error;
+    if (storageError) throw storageError;
+
     res.json({ status: 'SUCCESS' });
   } catch (e) {
     console.error('Delete media error:', e);
