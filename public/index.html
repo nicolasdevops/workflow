@@ -215,7 +215,7 @@
                                                         <div class="mb-4">
                                                             <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                                <span class="text-sm text-black">عدد مرات النزوح</span>
+                                                                <span class="text-sm text-black">مرات النزوح</span>
                                                             </label>
                                                             <input v-model="profile.displacement_count" type="number" class="w-1/3 mx-auto block border p-1 rounded text-sm h-[32px]">
                                                         </div>
@@ -455,8 +455,8 @@
                 <div class="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-xl p-4 flex-1 flex flex-col">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h3 class="font-bold text-lg flex items-center gap-2">
-                            <span>Add Details</span>
-                            <span class="text-[#3274B5]">| إضافة تفاصيل</span>
+                            <span class="text-[#3274B5]">إضافة تفاصيل</span>
+                            <span>| Add Details</span>
                         </h3>
                         <button @click="isMediaEditorOpen = false; mediaStaging = []" class="text-gray-500 hover:text-red-500">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -464,7 +464,7 @@
                     </div>
                     
                     <div class="flex-1 overflow-y-auto space-y-4">
-                        <div v-for="(item, index) in mediaStaging" :key="index" class="flex gap-3 border rounded p-2 relative items-start">
+                        <div v-for="(item, index) in mediaStaging" :key="index" class="flex gap-3 border rounded p-2 relative items-center">
                             <!-- Thumbnail -->
                             <div class="w-24 h-24 flex-shrink-0 bg-gray-100 rounded overflow-hidden relative border border-gray-200">
                                 <img v-if="item.type.startsWith('image')" :src="item.url" class="w-full h-full object-cover">
@@ -478,9 +478,7 @@
                             <div class="flex-1 flex flex-col h-24">
                                 <label class="block mb-[2px] leading-tight text-[#3274B5]">
                                     <div class="flex flex-row items-center gap-1 flex-wrap">
-                                        <span class="text-sm font-bold whitespace-nowrap">وصف المحتوى</span>
-                                        <span class="text-[10px] text-gray-400">|</span>
-                                        <span class="text-xs text-gray-500 whitespace-nowrap">Content Description</span>
+                                        <span class="text-sm font-bold whitespace-nowrap">اكتب وصفًا</span>
                                     </div>
                                 </label>
                                 <textarea v-model="item.description" class="w-full border rounded p-2 text-sm flex-1 resize-none focus:ring-2 focus:ring-[#3274B5] focus:outline-none" placeholder="اشرح ما يحدث... | Explain..."></textarea>
@@ -488,8 +486,8 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 pt-4 border-t">
-                        <button @click="sendMedia" :disabled="isUploading" class="w-full bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <div class="mt-4 pt-4 border-t flex justify-center">
+                        <button @click="sendMedia" :disabled="isUploading" class="w-auto px-8 bg-[#3274B5] text-white font-bold py-2 rounded-full hover:bg-[#285e94] transition flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                             <span v-if="!isUploading" class="text-lg">إرسال</span>
                             <span v-if="!isUploading" class="text-white/50">|</span>
                             <span v-if="!isUploading">Send</span>
@@ -504,8 +502,8 @@
                 <div class="bg-white rounded-lg shadow-xl p-4 max-w-lg w-full" @click.stop>
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h3 class="font-bold text-lg flex items-center gap-2">
-                            <span class="text-[#3274B5]">تعديل التفاصيل</span>
-                            <span>| Edit Details</span>
+                            <span>Edit Details</span>
+                            <span class="text-[#3274B5]">| تعديل التفاصيل</span>
                         </h3>
                         <button @click="editingFile = null" class="text-gray-500 hover:text-red-500">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -812,7 +810,11 @@
                     }
                 },
                 async sendMedia() {
-                    if (this.isUploading) return;
+                    if (this.isUploading) {
+                        console.log('Upload already in progress. Ignoring click.');
+                        return;
+                    }
+                    console.log('Starting media upload.');
                     this.isUploading = true;
                     this.uploadStatus = { type: 'info', message: 'Uploading...' };
                     let successCount = 0;
@@ -850,7 +852,6 @@
                     } catch (e) { console.error(e); } finally { this.loading = false; }
                 },
                 async deleteMedia(file) {
-                    if (!confirm('Are you sure you want to delete this?')) return;
                     try {
                         const res = await fetch('/api/portal/media/delete', {
                             method: 'POST',
