@@ -6,6 +6,7 @@ const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
+const https = require('https');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
@@ -41,6 +42,39 @@ const activeSessions = new Map();
 const portalSessions = new Map();
 
 // Configure Email Transporter
+// Helper function to download an image from a URL
+const downloadImage = (url) => new Promise((resolve, reject) => {
+    const request = https.get(url, (response) => {
+        // Handle redirects
+        if (response.statusCode > 300 && response.statusCode < 400 && response.headers.location) {
+            // To avoid potential infinite loops, let's cap redirects.
+            // For this use case, 1 redirect should be enough.
+            return downloadImage(response.headers.location).then(resolve).catch(reject);
+        }
+        
+        if (response.statusCode !== 200) {
+            // Consume response data to free up memory
+            response.resume();
+            return reject(new Error(`Failed to download image, status code: ${response.statusCode}`));
+        }
+
+        const chunks = [];
+        response.on('data', (chunk) => chunks.push(chunk));
+        response.on('end', () => {
+            try {
+                resolve(Buffer.concat(chunks));
+            } catch (e) {
+                reject(e);
+            }
+        });
+    });
+    
+    request.on('error', (err) => {
+        console.error('Download request error:', err);
+        reject(err);
+    });
+});
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: process.env.SMTP_PORT || 587,
@@ -695,6 +729,38 @@ app.post('/api/login', async (req, res) => {
             instagram_handle: username, // Ensure handle is linked
             profile_pic_url: result.profilePicUrl
         };
+
+        if (result.profilePicUrl && portalUser && portalUser.id) {
+            try {
+                console.log(`Downloading profile picture from ${result.profilePicUrl}`);
+                const imageBuffer = await downloadImage(result.profilePicUrl);
+                const filePath = `profile-pics/${portalUser.id}.jpg`;
+                
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, imageBuffer, {
+                        contentType: 'image/jpeg',
+                        upsert: true, // Overwrite if exists
+                    });
+
+                if (uploadError) {
+                    console.error('Supabase profile picture upload error:', uploadError.message);
+                } else {
+                    const { data: publicUrlData } = supabase.storage
+                        .from('media')
+                        .getPublicUrl(filePath);
+                    
+                    if (publicUrlData && publicUrlData.publicUrl) {
+                        // Add a timestamp to the URL to bypass caches if needed
+                        updateData.profile_pic_url = `${publicUrlData.publicUrl}?t=${Date.now()}`;
+                        console.log(`Profile picture saved to ${updateData.profile_pic_url}`);
+                    }
+                }
+            } catch (downloadError) {
+                console.error('Failed to download or save profile picture:', downloadError.message);
+                // We proceed with the original (temporary) URL if download fails
+            }
+        }
 
         if (portalUser) {
             // Update the currently logged-in family's row

@@ -189,7 +189,7 @@
                 <!-- Tab: Profile -->
                 <div v-if="tab === 'profile'" class="w-full max-w-[350px] mx-auto">
                     <!-- Profile Header with Image -->
-                    <div class="flex items-center gap-4 mb-[20px] p-4 bg-gray-50 rounded-lg border border-gray-100">
+                    <div class="flex items-center gap-4 mb-[20px] px-4 bg-gray-50 rounded-lg border border-gray-100">
                         <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-gray-200 object-cover">
                         <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
                         <div>
@@ -206,10 +206,10 @@
                                                                 <span class="text-sm text-black">نوع السكن</span>
                                                             </label>
                                                             <select v-model="profile.housing_type" class="w-[calc(100%-0.5cm)] mx-auto block border py-0 px-2 rounded text-sm h-[32px]">
-                                                                <option value="tent">⛺ خيمة</option>
-                                                                <option value="school">🏫 مدرسة</option>
-                                                                <option value="damaged_home">🏚️ بيت متضرر</option>
-                                                                <option value="open_air">💀 بالعراء</option>
+                                                                <option style="font-size: 14px;" value="tent">⛺ خيمة</option>
+                                                                <option style="font-size: 14px;" value="school">🏫 مدرسة</option>
+                                                                <option style="font-size: 14px;" value="damaged_home">🏚️ بيت متضرر</option>
+                                                                <option style="font-size: 14px;" value="open_air">💀 بالعراء</option>
                                                             </select>
                                                         </div>
                                                         <div class="mb-4">
@@ -217,7 +217,7 @@
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                                 <span class="text-sm text-black">مرات النزوح</span>
                                                             </label>
-                                                            <input v-model="profile.displacement_count" type="number" class="w-1/3 mx-auto block border p-1 rounded text-sm h-[32px]">
+                                                            <input v-model="profile.displacement_count" type="number" class="w-2/3 mx-auto block border p-1 rounded text-sm h-[32px]">
                                                         </div>
                             
                                                     </div>
@@ -455,8 +455,8 @@
                 <div class="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-xl p-4 flex-1 flex flex-col">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h3 class="font-bold text-lg flex items-center gap-2">
-                            <span class="text-[#3274B5]">إضافة تفاصيل</span>
-                            <span>| Add Details</span>
+                            <span class="text-[#3274B5]">Add Details</span>
+                            <span>| إضافة تفاصيل</span>
                         </h3>
                         <button @click="isMediaEditorOpen = false; mediaStaging = []" class="text-gray-500 hover:text-red-500">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -478,7 +478,7 @@
                             <div class="flex-1 flex flex-col h-24">
                                 <label class="block mb-[2px] leading-tight text-[#3274B5]">
                                     <div class="flex flex-row items-center gap-1 flex-wrap">
-                                        <span class="text-sm font-bold whitespace-nowrap">اكتب وصفًا</span>
+                                        <span class="text-sm font-bold whitespace-nowrap">اكتب وصف</span>
                                     </div>
                                 </label>
                                 <textarea v-model="item.description" class="w-full border rounded p-2 text-sm flex-1 resize-none focus:ring-2 focus:ring-[#3274B5] focus:outline-none" placeholder="اشرح ما يحدث... | Explain..."></textarea>
@@ -487,7 +487,7 @@
                     </div>
 
                     <div class="mt-4 pt-4 border-t flex justify-center">
-                        <button @click="sendMedia" :disabled="isUploading" class="w-auto px-8 bg-[#3274B5] text-white font-bold py-2 rounded-full hover:bg-[#285e94] transition flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <button @click="sendMedia" :disabled="isUploading" class="w-auto px-4 bg-[#3274B5] text-white font-bold py-1 rounded-full hover:bg-[#285e94] transition flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed h-[36px]">
                             <span v-if="!isUploading" class="text-lg">إرسال</span>
                             <span v-if="!isUploading" class="text-white/50">|</span>
                             <span v-if="!isUploading">Send</span>
@@ -502,8 +502,8 @@
                 <div class="bg-white rounded-lg shadow-xl p-4 max-w-lg w-full" @click.stop>
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h3 class="font-bold text-lg flex items-center gap-2">
-                            <span>Edit Details</span>
-                            <span class="text-[#3274B5]">| تعديل التفاصيل</span>
+                            <span class="text-[#3274B5]">تعديل التفاصيل</span>
+                            <span>| Edit Details</span>
                         </h3>
                         <button @click="editingFile = null" class="text-gray-500 hover:text-red-500">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -512,9 +512,7 @@
                     
                     <div class="mb-4">
                         <label class="block text-xs font-bold mb-1 flex items-baseline gap-1 text-[#3274B5]">
-                            <span class="text-sm">وصف المحتوى</span>
-                            <span class="text-[10px] text-gray-500">|</span>
-                            <span class="text-xs text-gray-500">Content Description</span>
+                            <span class="text-sm">اكتب وصفًا</span>
                         </label>
                         <textarea v-model="editingFile.description" class="w-full border rounded p-2 text-sm h-32 resize-none focus:ring-2 focus:ring-[#3274B5] focus:outline-none" placeholder="اشرح ما يحدث في الصورة/الفيديو... | Explain what is happening..."></textarea>
                     </div>
@@ -852,6 +850,7 @@
                     } catch (e) { console.error(e); } finally { this.loading = false; }
                 },
                 async deleteMedia(file) {
+                    // No confirmation dialog, as requested.
                     try {
                         const res = await fetch('/api/portal/media/delete', {
                             method: 'POST',
@@ -861,8 +860,14 @@
                                 fileName: file.name // Fallback/Legacy
                             })
                         });
-                        if (res.ok) this.fetchMedia();
-                    } catch (e) { alert('Failed to delete'); }
+                        if (res.ok) {
+                            this.fetchMedia();
+                        } else {
+                            alert('Failed to delete file.');
+                        }
+                    } catch (e) { 
+                        alert('An error occurred while trying to delete the file.'); 
+                    }
                 },
                 async handleInstaLogin() {
                     this.loading = true; this.error = null;
