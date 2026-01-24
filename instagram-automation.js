@@ -73,7 +73,7 @@ class InstagramAutomation {
   constructor(cookies = [], userAgent = null) {
     this.cookies = cookies;
     // Use Desktop User Agent to avoid "Get the App" redirects and allow Guest Mode
-    this.userAgent = userAgent || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/115.0';
+    this.userAgent = userAgent || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0';
     this.browser = null;
     this.page = null;
   }
