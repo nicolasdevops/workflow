@@ -440,7 +440,23 @@ class InstagramAutomation {
     
     try {
       console.log('1. Navigating to login page...');
-      await this.page.goto('https://www.instagram.com/accounts/login/', { waitUntil: 'networkidle' });
+      let navigationSuccess = false;
+      for (let i = 0; i < 3; i++) {
+          try {
+              await this.page.goto('https://www.instagram.com/accounts/login/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+              navigationSuccess = true;
+              break;
+          } catch (e) {
+              console.log(`   Navigation attempt ${i + 1} failed: ${e.message}`);
+              if (i < 2) {
+                  console.log('   Retrying in 5 seconds...');
+                  await this.page.waitForTimeout(5000);
+              }
+          }
+      }
+      if (!navigationSuccess) {
+          throw new Error('Failed to navigate to Instagram login page after 3 attempts.');
+      }
       await this.page.waitForTimeout(gaussianRandom(2000, 1000));
 
       // Handle cookie consent if it appears
