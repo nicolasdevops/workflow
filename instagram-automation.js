@@ -81,6 +81,28 @@ class InstagramAutomation {
 
   async init() {
     console.log('Initializing browser...');
+
+    // Check proxy configuration and warn if not set (critical for datacenter environments like Railway)
+    if (!this.proxy || !this.proxy.server) {
+      console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.warn('⚠️  WARNING: NO PROXY CONFIGURED!');
+      console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.warn('Instagram WILL BLOCK datacenter IPs (Railway, AWS, GCP, Azure, etc.)');
+      console.warn('');
+      console.warn('Required environment variables:');
+      console.warn('  - PROXY_SERVER=socks5://your-proxy.com:1080');
+      console.warn('  - PROXY_USERNAME=your_username (optional)');
+      console.warn('  - PROXY_PASSWORD=your_password (optional)');
+      console.warn('');
+      console.warn('Recommended proxy types:');
+      console.warn('  1. Mobile proxies (4G/5G) - Highest success rate');
+      console.warn('  2. Residential proxies - Good for automation');
+      console.warn('  3. ISP proxies - Static residential IPs');
+      console.warn('');
+      console.warn('See proxy provider recommendations in documentation.');
+      console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    }
+
     const launchOptions = {
       headless: true,
       firefoxUserPrefs: {
@@ -90,7 +112,7 @@ class InstagramAutomation {
     };
 
     if (this.proxy && this.proxy.server) {
-      console.log(`Using proxy: ${this.proxy.server}`);
+      console.log(`✓ Using proxy: ${this.proxy.server}`);
       launchOptions.proxy = this.proxy;
     }
 
@@ -449,21 +471,43 @@ class InstagramAutomation {
     try {
       console.log('1. Navigating to login page...');
       let navigationSuccess = false;
+      let lastError = null;
+
       for (let i = 0; i < 3; i++) {
           try {
               await this.page.goto('https://www.instagram.com/accounts/login/', { waitUntil: 'domcontentloaded', timeout: 30000 });
               navigationSuccess = true;
               break;
           } catch (e) {
+              lastError = e;
               console.log(`   Navigation attempt ${i + 1} failed: ${e.message}`);
+
+              // Detect specific error types
+              if (e.message.includes('NS_ERROR_NET_EMPTY_RESPONSE')) {
+                  console.error('   ⚠️  EMPTY RESPONSE - Instagram is refusing the connection!');
+                  console.error('   This typically means:');
+                  console.error('   1. Your IP is from a datacenter (Railway, AWS, etc.) and is BLOCKED');
+                  console.error('   2. No proxy is configured to mask your datacenter IP');
+                  console.error('   3. Solution: Configure a residential/mobile proxy (see logs above)');
+              } else if (e.message.includes('net::ERR_PROXY_CONNECTION_FAILED')) {
+                  console.error('   ⚠️  PROXY CONNECTION FAILED');
+                  console.error('   Check your proxy configuration (server, username, password)');
+              } else if (e.message.includes('Timeout')) {
+                  console.error('   ⚠️  TIMEOUT - Instagram not responding');
+              }
+
               if (i < 2) {
                   console.log('   Retrying in 5 seconds...');
                   await this.page.waitForTimeout(5000);
               }
           }
       }
+
       if (!navigationSuccess) {
-          throw new Error('Failed to navigate to Instagram login page after 3 attempts.');
+          const errorMsg = lastError?.message.includes('NS_ERROR_NET_EMPTY_RESPONSE')
+              ? 'Instagram blocked connection (datacenter IP detected). PROXY REQUIRED. Configure PROXY_SERVER, PROXY_USERNAME, PROXY_PASSWORD environment variables with a residential or mobile proxy service.'
+              : `Failed to navigate to Instagram login page after 3 attempts: ${lastError?.message || 'Unknown error'}`;
+          throw new Error(errorMsg);
       }
       await this.page.waitForTimeout(gaussianRandom(2000, 1000));
 
