@@ -299,13 +299,7 @@ setInterval(async () => {
         continue;
       }
 
-      const proxyConfig = {
-        server: process.env.PROXY_SERVER,
-        username: process.env.PROXY_USERNAME,
-        password: process.env.PROXY_PASSWORD
-      };
-
-      const bot = new InstagramAutomation(cookies, null, proxyConfig);
+      const bot = new InstagramAutomation(cookies);
       await bot.init();
       const agent = new YouComAgent();
 
@@ -709,23 +703,7 @@ app.post('/api/login', async (req, res) => {
 
   console.log(`Starting login session for ${username}`);
 
-  const proxyConfig = {
-    server: process.env.PROXY_SERVER,
-    username: process.env.PROXY_USERNAME,
-    password: process.env.PROXY_PASSWORD
-  };
-
-  // Warn if no proxy is configured (will likely fail on Railway/cloud)
-  if (!proxyConfig.server) {
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.error('⚠️  CRITICAL: Login attempt WITHOUT proxy configuration!');
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.error('Instagram blocks datacenter IPs. This will likely fail.');
-    console.error('Set PROXY_SERVER environment variable with a residential/mobile proxy.');
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  }
-
-  const bot = new InstagramAutomation([], null, proxyConfig);
+  const bot = new InstagramAutomation();
   
   try {
     await bot.init();
@@ -842,26 +820,7 @@ app.post('/api/login', async (req, res) => {
     console.error('Login error:', error);
     try { await bot.close(); } catch(e) {}
     activeSessions.delete(username);
-
-    // Provide helpful error messages for common issues
-    let userFriendlyError = error.message;
-    let statusCode = 500;
-
-    if (error.message.includes('datacenter IP detected') || error.message.includes('PROXY REQUIRED')) {
-      userFriendlyError = 'Instagram blocked the connection. A proxy is required to use this service from Railway/cloud environments. Please contact the administrator to configure proxy settings.';
-      statusCode = 503; // Service Unavailable
-    } else if (error.message.includes('NS_ERROR_NET_EMPTY_RESPONSE')) {
-      userFriendlyError = 'Instagram refused the connection (possible IP block). Proxy configuration needed.';
-      statusCode = 503;
-    } else if (error.message.includes('Timeout')) {
-      userFriendlyError = 'Connection to Instagram timed out. Please try again later.';
-      statusCode = 504; // Gateway Timeout
-    }
-
-    return res.status(statusCode).json({
-      error: userFriendlyError,
-      technical_details: error.message
-    });
+    return res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 });
 
