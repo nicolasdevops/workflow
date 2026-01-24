@@ -299,7 +299,13 @@ setInterval(async () => {
         continue;
       }
 
-      const bot = new InstagramAutomation(cookies);
+      const proxyConfig = {
+        server: process.env.PROXY_SERVER,
+        username: process.env.PROXY_USERNAME,
+        password: process.env.PROXY_PASSWORD
+      };
+
+      const bot = new InstagramAutomation(cookies, null, proxyConfig);
       await bot.init();
       const agent = new YouComAgent();
 
@@ -703,7 +709,13 @@ app.post('/api/login', async (req, res) => {
 
   console.log(`Starting login session for ${username}`);
   
-  const bot = new InstagramAutomation();
+  const proxyConfig = {
+    server: process.env.PROXY_SERVER,
+    username: process.env.PROXY_USERNAME,
+    password: process.env.PROXY_PASSWORD
+  };
+
+  const bot = new InstagramAutomation([], null, proxyConfig);
   
   try {
     await bot.init();

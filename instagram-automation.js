@@ -70,23 +70,31 @@ function isOperationWindowActive() {
 }
 
 class InstagramAutomation {
-  constructor(cookies = [], userAgent = null) {
+  constructor(cookies = [], userAgent = null, proxy = null) {
     this.cookies = cookies;
     // Use Desktop User Agent to avoid "Get the App" redirects and allow Guest Mode
     this.userAgent = userAgent || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0';
+    this.proxy = proxy;
     this.browser = null;
     this.page = null;
   }
 
   async init() {
     console.log('Initializing browser...');
-    this.browser = await firefox.launch({
+    const launchOptions = {
       headless: true,
       firefoxUserPrefs: {
         'privacy.trackingprotection.enabled': true,
         'privacy.donottrackheader.enabled': true
       }
-    });
+    };
+
+    if (this.proxy && this.proxy.server) {
+      console.log(`Using proxy: ${this.proxy.server}`);
+      launchOptions.proxy = this.proxy;
+    }
+
+    this.browser = await firefox.launch(launchOptions);
     console.log('   Browser launched. Creating context...');
 
     const context = await this.browser.newContext({
