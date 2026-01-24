@@ -100,12 +100,20 @@ class InstagramAutomation {
     this.browser = await firefox.launch(launchOptions);
     console.log('   Browser launched. Creating context...');
 
+    // Use timezone that matches proxy location (default to Toronto/Canada for safety)
+    // This prevents Instagram from detecting Gaza location
+    const timezone = process.env.TIMEZONE || 'America/Toronto';
+
     const context = await this.browser.newContext({
       userAgent: this.userAgent,
       viewport: { width: 1280, height: 800 }, // Desktop viewport
       locale: 'en-US',
-      timezoneId: 'Asia/Gaza',
-      permissions: ['geolocation']
+      timezoneId: timezone,
+      permissions: ['geolocation'],
+      geolocation: {
+        latitude: 43.6532,
+        longitude: -79.3832
+      } // Toronto coordinates - change to match proxy location
     });
 
     // Add cookies
