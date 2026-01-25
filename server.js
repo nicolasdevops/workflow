@@ -141,6 +141,42 @@ app.get('/up', (req, res) => {
   res.status(200).send('OK');
 });
 
+// Fundraising Redirect (stealth link for Instagram bios)
+// Usage: your-app.railway.app/f/abc123 → redirects to family's chuffed.org page
+app.get('/f/:familyId', async (req, res) => {
+  const { familyId } = req.params;
+
+  if (!supabase) {
+    console.error('Supabase not configured for redirect');
+    return res.redirect(301, 'https://www.instagram.com'); // Fallback
+  }
+
+  try {
+    // Look up family's fundraising URL
+    const { data, error } = await supabase
+      .from('families')
+      .select('fundraising_url, name')
+      .eq('id', familyId)
+      .single();
+
+    if (error || !data) {
+      console.log(`Redirect failed for family ID ${familyId}: ${error?.message || 'Not found'}`);
+      return res.redirect(301, 'https://www.instagram.com'); // Fallback
+    }
+
+    if (data.fundraising_url) {
+      console.log(`Redirecting ${familyId} (${data.name}) to ${data.fundraising_url}`);
+      return res.redirect(301, data.fundraising_url);
+    } else {
+      console.log(`Family ${familyId} has no fundraising URL set`);
+      return res.redirect(301, 'https://www.instagram.com'); // Fallback
+    }
+  } catch (err) {
+    console.error('Redirect error:', err);
+    return res.redirect(301, 'https://www.instagram.com'); // Fallback
+  }
+});
+
 // Admin Routes
 app.get('/admin', basicAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
