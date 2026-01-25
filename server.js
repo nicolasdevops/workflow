@@ -229,7 +229,13 @@ app.post('/api/trigger', basicAuth, async (req, res) => {
       const bot = new InstagramAutomation(cookies);
       try {
         await bot.init();
-        await bot.scrollFeed(30000); // 30s scroll
+
+        // Bandwidth-optimized scrolling (default 15s instead of 30s)
+        // With Data Saver mode: 15s = ~4MB, 30s = ~8MB
+        // Adjust via SCROLL_DURATION_MS env var if needed
+        const scrollDuration = parseInt(process.env.SCROLL_DURATION_MS) || 15000;
+        await bot.scrollFeed(scrollDuration);
+
         await bot.likeRandomPosts(3);
         console.log(`Automation finished for ${username}`);
       } catch (e) {

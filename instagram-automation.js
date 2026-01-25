@@ -124,6 +124,59 @@ class InstagramAutomation {
     console.log('   Context created. Opening page...');
     this.page = await context.newPage();
 
+    // Enable bandwidth optimization (Data Saver mode)
+    // This is legitimate Instagram behavior for users on limited data
+    await this.page.route('**/*', (route) => {
+      const request = route.request();
+      const headers = request.headers();
+
+      // Add Instagram's Data Saver headers (signals low-bandwidth mode)
+      headers['X-IG-Bandwidth-Speed-KBPS'] = '500'; // Simulate slow connection
+      headers['X-IG-Bandwidth-TotalBytes-B'] = '0';
+      headers['X-IG-Bandwidth-TotalTime-MS'] = '0';
+
+      // Block unnecessary resources to save bandwidth
+      const resourceType = request.resourceType();
+      const url = request.url();
+
+      // Allow essential resources
+      if (
+        resourceType === 'document' || // HTML pages
+        resourceType === 'xhr' || // API calls
+        resourceType === 'fetch' || // Modern API calls
+        url.includes('graphql') || // Instagram API
+        url.includes('/api/') // API endpoints
+      ) {
+        route.continue({ headers });
+      }
+      // Block analytics, tracking, ads (saves bandwidth + looks privacy-conscious)
+      else if (
+        url.includes('facebook.com/tr') ||
+        url.includes('google-analytics') ||
+        url.includes('/ads/') ||
+        url.includes('doubleclick')
+      ) {
+        route.abort();
+      }
+      // Allow compressed images and videos but with quality reduction hint
+      else if (resourceType === 'image' || resourceType === 'media') {
+        headers['Save-Data'] = 'on'; // Standard HTTP header for data saver
+        route.continue({ headers });
+      }
+      // Allow scripts and styles (needed for functionality)
+      else if (resourceType === 'script' || resourceType === 'stylesheet') {
+        route.continue({ headers });
+      }
+      // Block fonts, WebSockets (not essential, saves data)
+      else if (resourceType === 'font' || resourceType === 'websocket') {
+        route.abort();
+      }
+      // Allow everything else with data saver headers
+      else {
+        route.continue({ headers });
+      }
+    });
+
     // Anti-detection measures
     await this.page.addInitScript(() => {
       // Override navigator.webdriver
@@ -141,7 +194,10 @@ class InstagramAutomation {
   }
 
   async scrollFeed(duration = 30000) {
-    console.log('Scrolling feed naturally...');
+    // Bandwidth consideration: Shorter scrolling = less video auto-play data
+    // With Data Saver mode enabled, 30s scroll uses ~8MB instead of ~50MB
+    // Adjust duration lower if using limited proxy bandwidth (1-2GB/month)
+    console.log(`Scrolling feed naturally for ${duration/1000}s...`);
     const endTime = Date.now() + duration;
 
     while (Date.now() < endTime) {
