@@ -226,7 +226,9 @@ app.post('/api/trigger', basicAuth, async (req, res) => {
     // 3. Run Automation (Background)
     // We don't await the whole process so the UI doesn't hang
     (async () => {
-      const bot = new InstagramAutomation(cookies);
+      // Pass username as sessionId for unique proxy session per family
+      const sessionId = `family-${username}`;
+      const bot = new InstagramAutomation(cookies, null, { server: 'proxy' }, sessionId);
       try {
         await bot.init();
 
@@ -341,7 +343,9 @@ setInterval(async () => {
         continue;
       }
 
-      const bot = new InstagramAutomation(cookies);
+      // Pass family instagram handle as sessionId for unique proxy session per family
+      const sessionId = `family-${family.instagram_handle}`;
+      const bot = new InstagramAutomation(cookies, null, { server: 'proxy' }, sessionId);
       await bot.init();
       const agent = new YouComAgent();
 
@@ -745,8 +749,10 @@ app.post('/api/login', async (req, res) => {
 
   console.log(`Starting login session for ${username}`);
 
-  const bot = new InstagramAutomation();
-  
+  // Pass username as sessionId for unique proxy session during login
+  const sessionId = `login-${username}`;
+  const bot = new InstagramAutomation([], null, { server: 'proxy' }, sessionId);
+
   try {
     await bot.init();
     

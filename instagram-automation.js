@@ -70,13 +70,68 @@ function isOperationWindowActive() {
 }
 
 class InstagramAutomation {
-  constructor(cookies = [], userAgent = null, proxy = null) {
+  constructor(cookies = [], userAgent = null, proxy = null, sessionId = null) {
     this.cookies = cookies;
-    // Use Desktop User Agent to avoid "Get the App" redirects and allow Guest Mode
-    this.userAgent = userAgent || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0';
+    // CRITICAL: Use Mobile User-Agent to match mobile proxy (prevents device-type mismatch detection)
+    // High-end devices have better trust scores with Instagram
+    this.userAgent = userAgent || 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1';
     this.proxy = proxy;
+    this.sessionId = sessionId || `session-${Date.now()}`;
     this.browser = null;
     this.page = null;
+  }
+
+  /**
+   * Test proxy connection before initializing browser
+   * CRITICAL: Fail-closed behavior to prevent Railway IP exposure
+   */
+  async testProxyConnection(proxyUrl) {
+    const https = require('https');
+    const { SocksProxyAgent } = require('socks-proxy-agent');
+
+    return new Promise((resolve) => {
+      try {
+        const agent = new SocksProxyAgent(proxyUrl);
+        const options = {
+          hostname: 'ip.decodo.com',
+          port: 443,
+          path: '/',
+          method: 'GET',
+          agent: agent,
+          timeout: 15000
+        };
+
+        const req = https.request(options, (res) => {
+          let data = '';
+          res.on('data', (chunk) => { data += chunk; });
+          res.on('end', () => {
+            try {
+              const ipInfo = JSON.parse(data);
+              resolve({
+                success: true,
+                ip: ipInfo.ip || 'unknown',
+                location: `${ipInfo.city || 'unknown'}, ${ipInfo.country || 'unknown'}`
+              });
+            } catch (e) {
+              resolve({ success: true, ip: 'connected', location: 'unknown' });
+            }
+          });
+        });
+
+        req.on('error', (error) => {
+          resolve({ success: false, error: error.message });
+        });
+
+        req.on('timeout', () => {
+          req.destroy();
+          resolve({ success: false, error: 'Connection timeout' });
+        });
+
+        req.end();
+      } catch (error) {
+        resolve({ success: false, error: error.message });
+      }
+    });
   }
 
   async init() {
@@ -92,28 +147,75 @@ class InstagramAutomation {
       }
     };
 
+    // CRITICAL: Build Decodo Mobile SOCKS5H proxy URL with session ID
+    // Each family should have unique session ID for IP rotation
     if (this.proxy && this.proxy.server) {
-      console.log(`Using proxy: ${this.proxy.server}`);
-      launchOptions.proxy = this.proxy;
+      // Decodo format: socks5h://username-modifiers:password@server:port
+      // Example: user-spmto59f4g-country-ca-city-montreal-session-family123-sessionduration-60
+      const proxyUsername = process.env.PROXY_USERNAME || 'user-spmto59f4g';
+      const proxyPassword = process.env.PROXY_PASSWORD || '';
+      const proxyServer = process.env.PROXY_SERVER || 'gate.decodo.com';
+      const proxyPort = process.env.PROXY_PORT || '7000';
+      const proxyCity = process.env.PROXY_CITY || 'montreal';
+      const proxyCountry = process.env.PROXY_COUNTRY || 'ca';
+      const sessionDuration = process.env.PROXY_SESSION_DURATION || '60'; // 60 minutes sticky
+
+      // Build proxy URL with session ID
+      const fullProxyUsername = `${proxyUsername}-country-${proxyCountry}-city-${proxyCity}-session-${this.sessionId}-sessionduration-${sessionDuration}`;
+      const proxyUrl = `socks5://${fullProxyUsername}:${proxyPassword}@${proxyServer}:${proxyPort}`;
+
+      console.log(`Using Decodo Mobile Proxy:`);
+      console.log(`   Server: ${proxyServer}:${proxyPort}`);
+      console.log(`   Location: ${proxyCity}, ${proxyCountry.toUpperCase()}`);
+      console.log(`   Session ID: ${this.sessionId}`);
+      console.log(`   Duration: ${sessionDuration} minutes (sticky)`);
+
+      launchOptions.proxy = {
+        server: proxyUrl
+      };
+
+      // CRITICAL: Verify proxy connectivity before proceeding (fail-closed behavior)
+      // This prevents Railway IP exposure if proxy fails
+      try {
+        console.log('   Testing proxy connectivity...');
+        const testResult = await this.testProxyConnection(proxyUrl);
+        if (!testResult.success) {
+          throw new Error(`Proxy test failed: ${testResult.error}. STOPPING to prevent Railway IP exposure.`);
+        }
+        console.log(`   ✓ Proxy test successful. IP: ${testResult.ip}, Location: ${testResult.location}`);
+      } catch (error) {
+        console.error('❌ CRITICAL: Proxy connection failed. Refusing to continue without proxy.');
+        console.error('   This prevents accidental Railway datacenter IP exposure to Instagram.');
+        throw error;
+      }
+    } else {
+      // FAIL-CLOSED: If no proxy configured, refuse to run
+      throw new Error('CRITICAL: No proxy configured. Refusing to run without proxy to prevent Railway IP exposure.');
     }
 
     this.browser = await firefox.launch(launchOptions);
     console.log('   Browser launched. Creating context...');
 
-    // Use timezone that matches proxy location (default to Toronto/Canada for safety)
-    // This prevents Instagram from detecting Gaza location
-    const timezone = process.env.TIMEZONE || 'America/Toronto';
+    // CRITICAL: Use timezone and geolocation that match Decodo proxy location
+    // Montreal (Eastern Time, Videotron network)
+    const timezone = process.env.TIMEZONE || 'America/Montreal';
+    const geoLatitude = parseFloat(process.env.GEO_LATITUDE || '45.5017'); // Montreal
+    const geoLongitude = parseFloat(process.env.GEO_LONGITUDE || '-73.5673'); // Montreal
 
     const context = await this.browser.newContext({
       userAgent: this.userAgent,
-      viewport: { width: 1280, height: 800 }, // Desktop viewport
-      locale: 'en-US',
+      viewport: { width: 390, height: 844 }, // iPhone 16 Pro viewport
+      locale: 'en-CA', // Canadian English
       timezoneId: timezone,
       permissions: ['geolocation'],
       geolocation: {
-        latitude: 43.6532,
-        longitude: -79.3832
-      } // Toronto coordinates - change to match proxy location
+        latitude: geoLatitude,
+        longitude: geoLongitude
+      },
+      // Mobile device characteristics
+      isMobile: true,
+      hasTouch: true,
+      deviceScaleFactor: 3 // iPhone Retina
     });
 
     // Add cookies
@@ -177,17 +279,39 @@ class InstagramAutomation {
       }
     });
 
-    // Anti-detection measures
+    // Anti-detection measures (Mobile device simulation)
     await this.page.addInitScript(() => {
       // Override navigator.webdriver
       Object.defineProperty(navigator, 'webdriver', {
         get: () => undefined
       });
 
-      // Mock touch support
+      // Mobile touch support (iPhone 16 Pro has 10 touch points)
       Object.defineProperty(navigator, 'maxTouchPoints', {
-        get: () => 5
+        get: () => 10
       });
+
+      // Mobile platform
+      Object.defineProperty(navigator, 'platform', {
+        get: () => 'iPhone'
+      });
+
+      // Mobile hardware concurrency (A17 Pro chip)
+      Object.defineProperty(navigator, 'hardwareConcurrency', {
+        get: () => 6
+      });
+
+      // Mobile device memory (8GB on iPhone 16 Pro)
+      Object.defineProperty(navigator, 'deviceMemory', {
+        get: () => 8
+      });
+
+      // Connection type (cellular for mobile proxy)
+      if (navigator.connection) {
+        Object.defineProperty(navigator.connection, 'effectiveType', {
+          get: () => '4g'
+        });
+      }
     });
 
     console.log('Browser initialized');

@@ -36,7 +36,9 @@ async function testAutomation() {
   ];
 
   console.log('2. Initializing Instagram automation...');
-  const bot = new InstagramAutomation(testCookies);
+  // Pass test sessionId for unique proxy session
+  const sessionId = 'test-session';
+  const bot = new InstagramAutomation(testCookies, null, { server: 'proxy' }, sessionId);
 
   try {
     await bot.init();

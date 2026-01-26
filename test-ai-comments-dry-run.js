@@ -58,7 +58,8 @@ async function runDryRun() {
   console.log(`   - Urgent Needs: ${JSON.stringify(family.urgent_needs)}\n`);
 
   // 3. Initialize Automation (No Cookies) & AI Agent
-  const bot = new InstagramAutomation(); // No cookies = guest mode
+  const sessionId = 'dry-run-test';
+  const bot = new InstagramAutomation([], null, { server: 'proxy' }, sessionId); // No cookies = guest mode
   const agent = new YouComAgent();
 
   try {
