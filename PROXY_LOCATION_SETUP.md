@@ -8,16 +8,42 @@ Each family can now have their own unique proxy location (city, country, timezon
 
 ## Quick Setup
 
-### 1. Run SQL Migration in Supabase
+### 1. Run SQL Migrations in Supabase
+
+**Central Migrations File:** All SQL migrations are in `migrations.sql` (separated by horizontal bars)
 
 1. Go to Supabase Dashboard → SQL Editor
-2. Copy and paste contents of `add_proxy_location_columns.sql`
+2. Copy and paste **Migration 1** from `migrations.sql` (location columns)
 3. Click "Run"
-4. Verify columns added successfully
+4. Copy and paste **Migration 2** from `migrations.sql` (city rotation system)
+5. Click "Run"
+6. Verify with the verification queries at the end
 
 ### 2. Configure Family Locations
 
-Update each family's location in Supabase:
+**Option A: Automatic Rotation (Recommended)**
+
+The city rotation system automatically assigns families to 7 cities in round-robin order:
+1. Beirut, Lebanon
+2. Sarajevo, Bosnia
+3. Paris, France
+4. Chicago, USA
+5. San Francisco, USA
+6. Montreal, Canada
+7. Quebec City, Canada
+
+**To use automatic rotation:**
+```sql
+-- The batch assignment runs automatically in Migration 2
+-- Assigns all existing families to cities in rotation order
+
+-- For new families, call:
+SELECT assign_proxy_city('new_family_instagram_handle');
+```
+
+**Option B: Manual Assignment**
+
+Update each family's location manually in Supabase:
 
 ```sql
 -- Example: Set different locations for 5 families
@@ -400,16 +426,54 @@ All 3 are different IPs, even though 2 are same city.
 
 ---
 
+## City Rotation System
+
+### How It Works
+
+**Automatic Assignment:**
+- 7 cities in rotation (Beirut → Sarajevo → Paris → Chicago → SF → Montreal → Quebec)
+- Families assigned round-robin based on creation order
+- Family 1: Beirut, Family 2: Sarajevo, Family 3: Paris, etc.
+- After Quebec (Family 7), rotation starts over at Beirut (Family 8)
+
+**Lookup Table:** `proxy_cities`
+```sql
+SELECT * FROM proxy_cities ORDER BY rotation_order;
+```
+
+**Functions Available:**
+- `get_next_proxy_city()` - Returns next city in rotation
+- `assign_proxy_city('instagram_handle')` - Assigns city to specific family
+
+**Usage Examples:**
+```sql
+-- Assign next city to new family
+SELECT assign_proxy_city('new_family_handle');
+
+-- View current assignments
+SELECT
+    f.instagram_handle,
+    f.proxy_city,
+    pc.rotation_order
+FROM families f
+LEFT JOIN proxy_cities pc ON f.proxy_city = pc.city_key
+ORDER BY pc.rotation_order;
+```
+
+---
+
 ## Summary
 
 **What Changed:**
 - ✅ Added per-family location columns to database
+- ✅ Created automatic city rotation system (7 cities)
 - ✅ Updated code to use database config (with env var fallback)
 - ✅ Each family can appear from different city
 - ✅ Railway env vars now serve as global defaults only
+- ✅ Central migrations.sql file (all future migrations go here)
 
 **Files Modified:**
-- `add_proxy_location_columns.sql` (new)
+- `migrations.sql` (central SQL file with 2 migrations)
 - `instagram-automation.js` (accepts locationConfig parameter)
 - `server.js` (fetches and passes location config)
 
