@@ -211,3 +211,69 @@ ORDER BY pc.rotation_order, f.instagram_handle;
 --     geo_latitude = 33.8886,
 --     geo_longitude = 35.4955
 -- WHERE instagram_handle = 'specific_family_handle';
+
+-- ============================================================================
+-- MIGRATION 3: Instagram Account Creation Columns
+-- Purpose: Store Instagram credentials for accounts created on behalf of families
+-- Date: 2026-01-28
+-- ============================================================================
+
+-- Add Instagram account creation columns
+ALTER TABLE families
+ADD COLUMN IF NOT EXISTS ig_email TEXT,
+ADD COLUMN IF NOT EXISTS ig_email_password TEXT,
+ADD COLUMN IF NOT EXISTS ig_username TEXT,
+ADD COLUMN IF NOT EXISTS ig_password TEXT,
+ADD COLUMN IF NOT EXISTS ig_phone_number TEXT,
+ADD COLUMN IF NOT EXISTS ig_account_created_at TIMESTAMP,
+ADD COLUMN IF NOT EXISTS ig_account_status TEXT DEFAULT 'pending';
+
+-- Add comments for documentation
+COMMENT ON COLUMN families.ig_email IS 'Email address created for Instagram account (e.g., from ProtonMail/Tutanota)';
+COMMENT ON COLUMN families.ig_email_password IS 'Password for the email account (encrypted in app)';
+COMMENT ON COLUMN families.ig_username IS 'Instagram username (created on their behalf)';
+COMMENT ON COLUMN families.ig_password IS 'Instagram account password (encrypted in app)';
+COMMENT ON COLUMN families.ig_phone_number IS 'Phone number used for verification (from SMS service)';
+COMMENT ON COLUMN families.ig_account_created_at IS 'Timestamp when Instagram account was created';
+COMMENT ON COLUMN families.ig_account_status IS 'Status: pending, created, verified, suspended, or active';
+
+-- Create index for account status queries
+CREATE INDEX IF NOT EXISTS idx_families_ig_status ON families(ig_account_status);
+
+-- View accounts pending creation
+SELECT
+    id,
+    family_name,
+    ig_email,
+    ig_username,
+    ig_account_status,
+    proxy_city
+FROM families
+WHERE ig_account_status = 'pending'
+ORDER BY id;
+
+-- View all created accounts
+SELECT
+    id,
+    family_name,
+    ig_email,
+    ig_username,
+    ig_account_created_at,
+    ig_account_status,
+    proxy_city
+FROM families
+WHERE ig_account_status IN ('created', 'verified', 'active')
+ORDER BY ig_account_created_at DESC;
+
+-- Example: Mark account as created
+-- UPDATE families
+-- SET ig_account_status = 'created',
+--     ig_account_created_at = NOW()
+-- WHERE id = 1;
+
+-- Example: Update account credentials (do this via app with encryption)
+-- UPDATE families
+-- SET ig_email = 'sarah_gaza_2026@protonmail.com',
+--     ig_username = 'sarah_gaza_voice',
+--     ig_account_status = 'verified'
+-- WHERE id = 1;
