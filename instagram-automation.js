@@ -136,8 +136,9 @@ class InstagramAutomation {
 
   async init() {
     console.log('Initializing browser...');
-    // Use env var to control headless mode (default true in production/railway)
-    const isHeadless = process.env.HEADLESS !== 'false';
+    // Railway env vars are always strings, not booleans
+    // Default to true (headless) for production; set HEADLESS="false" for local debugging
+    const isHeadless = process.env.HEADLESS === undefined || process.env.HEADLESS === 'true';
 
     const launchOptions = {
       headless: isHeadless,

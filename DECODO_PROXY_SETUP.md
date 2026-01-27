@@ -62,7 +62,7 @@ TIMEZONE=America/Montreal
 GEO_LATITUDE=45.5017
 GEO_LONGITUDE=-73.5673
 
-# Browser mode
+# Browser mode (Railway env vars are strings, not booleans)
 HEADLESS=true
 ```
 
@@ -90,7 +90,7 @@ PROXY_SESSION_DURATION=60
 TIMEZONE=America/Montreal
 GEO_LATITUDE=45.5017
 GEO_LONGITUDE=-73.5673
-HEADLESS=false  # For local testing, set to false to see browser
+HEADLESS=false  # For local testing, set to "false" (string) to see browser window
 ```
 
 ---
