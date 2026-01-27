@@ -70,13 +70,15 @@ function isOperationWindowActive() {
 }
 
 class InstagramAutomation {
-  constructor(cookies = [], userAgent = null, proxy = null, sessionId = null) {
+  constructor(cookies = [], userAgent = null, proxy = null, sessionId = null, locationConfig = null) {
     this.cookies = cookies;
     // CRITICAL: Use Mobile User-Agent to match mobile proxy (prevents device-type mismatch detection)
     // High-end devices have better trust scores with Instagram
     this.userAgent = userAgent || 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1';
     this.proxy = proxy;
     this.sessionId = sessionId || `session-${Date.now()}`;
+    // Per-family location config (overrides env vars)
+    this.locationConfig = locationConfig || {};
     this.browser = null;
     this.page = null;
   }
@@ -157,8 +159,10 @@ class InstagramAutomation {
       const proxyPassword = process.env.PROXY_PASSWORD || '';
       const proxyServer = process.env.PROXY_SERVER || 'gate.decodo.com';
       const proxyPort = process.env.PROXY_PORT || '7000';
-      const proxyCity = process.env.PROXY_CITY || 'montreal';
-      const proxyCountry = process.env.PROXY_COUNTRY || 'ca';
+
+      // Use per-family location config if provided, otherwise fall back to env vars
+      const proxyCity = this.locationConfig.proxy_city || process.env.PROXY_CITY || 'montreal';
+      const proxyCountry = this.locationConfig.proxy_country || process.env.PROXY_COUNTRY || 'ca';
       const sessionDuration = process.env.PROXY_SESSION_DURATION || '60'; // 60 minutes sticky
 
       // Build proxy URL with session ID
@@ -198,10 +202,10 @@ class InstagramAutomation {
     console.log('   Browser launched. Creating context...');
 
     // CRITICAL: Use timezone and geolocation that match Decodo proxy location
-    // Montreal (Eastern Time, Videotron network)
-    const timezone = process.env.TIMEZONE || 'America/Montreal';
-    const geoLatitude = parseFloat(process.env.GEO_LATITUDE || '45.5017'); // Montreal
-    const geoLongitude = parseFloat(process.env.GEO_LONGITUDE || '-73.5673'); // Montreal
+    // Per-family location config overrides env vars
+    const timezone = this.locationConfig.timezone || process.env.TIMEZONE || 'America/Montreal';
+    const geoLatitude = parseFloat(this.locationConfig.geo_latitude || process.env.GEO_LATITUDE || '45.5017');
+    const geoLongitude = parseFloat(this.locationConfig.geo_longitude || process.env.GEO_LONGITUDE || '-73.5673');
 
     const context = await this.browser.newContext({
       userAgent: this.userAgent,

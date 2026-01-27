@@ -203,10 +203,10 @@ app.post('/api/trigger', basicAuth, async (req, res) => {
   if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
 
   try {
-    // 1. Get cookies from DB
+    // 1. Get cookies and location config from DB
     const { data, error } = await supabase
       .from('families')
-      .select('cookies')
+      .select('cookies, proxy_city, proxy_country, timezone, geo_latitude, geo_longitude')
       .eq('instagram_handle', username)
       .single();
 
@@ -223,12 +223,21 @@ app.post('/api/trigger', basicAuth, async (req, res) => {
       return res.status(500).json({ error: 'Failed to decrypt cookies' });
     }
 
-    // 3. Run Automation (Background)
+    // 3. Prepare location config
+    const locationConfig = {
+      proxy_city: data.proxy_city,
+      proxy_country: data.proxy_country,
+      timezone: data.timezone,
+      geo_latitude: data.geo_latitude,
+      geo_longitude: data.geo_longitude
+    };
+
+    // 4. Run Automation (Background)
     // We don't await the whole process so the UI doesn't hang
     (async () => {
       // Pass username as sessionId for unique proxy session per family
       const sessionId = `family-${username}`;
-      const bot = new InstagramAutomation(cookies, null, { server: 'proxy' }, sessionId);
+      const bot = new InstagramAutomation(cookies, null, { server: 'proxy' }, sessionId, locationConfig);
       try {
         await bot.init();
 
@@ -343,9 +352,18 @@ setInterval(async () => {
         continue;
       }
 
+      // Prepare per-family location config
+      const locationConfig = {
+        proxy_city: family.proxy_city,
+        proxy_country: family.proxy_country,
+        timezone: family.timezone,
+        geo_latitude: family.geo_latitude,
+        geo_longitude: family.geo_longitude
+      };
+
       // Pass family instagram handle as sessionId for unique proxy session per family
       const sessionId = `family-${family.instagram_handle}`;
-      const bot = new InstagramAutomation(cookies, null, { server: 'proxy' }, sessionId);
+      const bot = new InstagramAutomation(cookies, null, { server: 'proxy' }, sessionId, locationConfig);
       await bot.init();
       const agent = new YouComAgent();
 
@@ -749,9 +767,34 @@ app.post('/api/login', async (req, res) => {
 
   console.log(`Starting login session for ${username}`);
 
+  // Try to fetch location config from database (for existing families)
+  let locationConfig = null;
+  if (supabase) {
+    try {
+      const { data } = await supabase
+        .from('families')
+        .select('proxy_city, proxy_country, timezone, geo_latitude, geo_longitude')
+        .eq('instagram_handle', username)
+        .single();
+
+      if (data) {
+        locationConfig = {
+          proxy_city: data.proxy_city,
+          proxy_country: data.proxy_country,
+          timezone: data.timezone,
+          geo_latitude: data.geo_latitude,
+          geo_longitude: data.geo_longitude
+        };
+      }
+    } catch (e) {
+      // Family doesn't exist yet, will use env var defaults
+      console.log(`No existing location config found for ${username}, using defaults`);
+    }
+  }
+
   // Pass username as sessionId for unique proxy session during login
   const sessionId = `login-${username}`;
-  const bot = new InstagramAutomation([], null, { server: 'proxy' }, sessionId);
+  const bot = new InstagramAutomation([], null, { server: 'proxy' }, sessionId, locationConfig);
 
   try {
     await bot.init();
