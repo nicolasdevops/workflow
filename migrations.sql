@@ -272,8 +272,144 @@ ORDER BY ig_account_created_at DESC;
 -- WHERE id = 1;
 
 -- Example: Update account credentials (do this via app with encryption)
+-- IMPORTANT: Use Western names matching proxy location, NOT "gaza" keywords
 -- UPDATE families
--- SET ig_email = 'sarah_gaza_2026@protonmail.com',
---     ig_username = 'sarah_gaza_voice',
+-- SET ig_email = 'antoine.boucher.92@protonmail.com',
+--     ig_username = 'antoine_bouchard92',
 --     ig_account_status = 'verified'
 -- WHERE id = 1;
+
+-- ============================================================================
+-- NAMING STRATEGY: Western Names by Proxy City
+-- Purpose: Avoid "gaza" keywords that trigger Instagram content moderation
+-- ============================================================================
+
+-- Montreal/Quebec families (French-Canadian names):
+-- Email: antoine.boucher.92@protonmail.com, sylvie.perrault.88@protonmail.com
+-- IG: @antoine_bouchard92, @sylviep_mtl, @claudeb_qc
+
+-- Paris families (French names):
+-- Email: didier.lefren.84@protonmail.com, gilles.peltier.90@protonmail.com
+-- IG: @didier_lefren, @gillesparis, @didierlefrenelle
+
+-- Chicago/SF families (American names):
+-- Email: amy.rich.88@protonmail.com, marcus.powell.91@protonmail.com
+-- IG: @amy_rich88, @marcuspowell, @johnnymartinez
+
+-- Beirut families (Lebanese diaspora in West):
+-- Email: marco.haddad.91@protonmail.com, levy.khoury.89@protonmail.com
+-- IG: @marcohaddad91, @levykhoury, @marco_haddad
+
+-- Sarajevo families (Bosnian diaspora names):
+-- Email: mirza.kovac.90@protonmail.com, lejla.begic.93@protonmail.com
+-- IG: @mirzakovac, @lejlabegic93, @mirza_k90
+
+-- Birth year suffixes (88-95) make accounts look authentic without "gaza" keyword
+
+-- ============================================================================
+-- DETAILED NAMING GUIDE BY PROXY CITY
+-- ============================================================================
+
+-- MONTREAL/QUEBEC CITY (French-Canadian Names)
+-- Male: Antoine, Claude, Sylvain, Marc, Pierre, Jean, Luc, André, Michel
+-- Female: Sylvie, Marie, Sophie, Chantal, Nathalie, Julie, Isabelle, Véronique
+-- Surnames: Boucher, Perrault, Bouchard, Gagnon, Roy, Côté, Gauthier, Morin
+-- Examples:
+--   - antoine.boucher.92@protonmail.com → @antoine_bouchard92
+--   - sylvie.perrault.88@protonmail.com → @sylviep_mtl
+--   - marc.gagnon.91@protonmail.com → @marcgagnon91
+
+-- PARIS (French Names)
+-- Male: Didier, Gilles, Thierry, Laurent, Olivier, Philippe, François, Éric
+-- Female: Françoise, Brigitte, Catherine, Martine, Dominique, Monique
+-- Surnames: Lefren, Peltier, Martin, Bernard, Dubois, Thomas, Robert, Richard
+-- Examples:
+--   - didier.lefren.84@protonmail.com → @didier_lefren
+--   - gilles.peltier.90@protonmail.com → @gillesparis
+--   - brigitte.martin.89@protonmail.com → @brigittem_paris
+
+-- CHICAGO/SAN FRANCISCO (American Names)
+-- Male: Marcus, Johnny, David, Michael, James, Robert, William, Christopher
+-- Female: Amy, Amber, Jessica, Sarah, Jennifer, Emily, Ashley, Michelle
+-- Surnames: Richardson, Powell, Martinez, Johnson, Williams, Brown, Davis, Garcia
+-- Examples:
+--   - amy.rich.88@protonmail.com → @amy_rich88
+--   - marcus.powell.91@protonmail.com → @marcuspowell
+--   - johnny.martinez.93@protonmail.com → @johnnymartinez
+
+-- BEIRUT (Lebanese Diaspora - Western-friendly)
+-- Male: Marco, Levy, Tony, George, Joseph, Daniel, Michael, Anthony
+-- Female: Maya, Nadia, Layla, Rita, Tania, Mia, Sophia
+-- Surnames: Haddad, Khoury, Nassif, Frem, Gemayel, Rizk, Sarkis
+-- Examples:
+--   - marco.haddad.91@protonmail.com → @marcohaddad91
+--   - levy.khoury.89@protonmail.com → @levykhoury
+--   - maya.nassif.92@protonmail.com → @mayanassif
+
+-- SARAJEVO (Bosnian Diaspora Names)
+-- Male: Mirza, Emir, Aldin, Kemal, Tarik, Amer, Jasmin
+-- Female: Lejla, Amina, Emina, Selma, Samira, Lejla, Merima
+-- Surnames: Kovac, Begic, Hadzic, Omerovic, Muratovic, Halilovic
+-- Examples:
+--   - mirza.kovac.90@protonmail.com → @mirzakovac
+--   - lejla.begic.93@protonmail.com → @lejlabegic93
+--   - emir.hadzic.88@protonmail.com → @emirhadzic
+
+-- STRATEGY NOTES:
+-- 1. Birth years 1988-1995 (ages 31-38) appear authentic and active on Instagram
+-- 2. NEVER use "gaza", "palestine", "refugee" or politically charged keywords in usernames
+-- 3. Match name ethnicity to proxy city for consistency (French names in Paris, etc.)
+-- 4. Family can reveal Gaza story in BIO AFTER warm-up period (day 8+)
+-- 5. Fundraising links added on day 15+ only
+-- 6. Username/email mismatch is OK (antoine.boucher → @antoine_bouchard92)
+-- 7. Slight spelling variations reduce pattern detection (Boucher → Bouchard)
+
+-- ============================================================================
+-- MIGRATION 4: Warm-Up Tracking Fields
+-- Purpose: Track 14-day warm-up progress for new Instagram accounts
+-- Date: 2026-02-01
+-- ============================================================================
+
+-- Add warm-up tracking columns
+ALTER TABLE families
+ADD COLUMN IF NOT EXISTS last_warmup_at TIMESTAMP,
+ADD COLUMN IF NOT EXISTS warmup_day INTEGER DEFAULT 0;
+
+-- Add comments for documentation
+COMMENT ON COLUMN families.last_warmup_at IS 'Timestamp of last warm-up session run';
+COMMENT ON COLUMN families.warmup_day IS 'Current warm-up day (1-14), 0 = not started, 15+ = complete';
+
+-- Index for efficient warm-up queries
+CREATE INDEX IF NOT EXISTS idx_families_warmup ON families(ig_account_status, ig_account_created_at)
+WHERE ig_account_status IN ('created', 'warming_up');
+
+-- View: Warm-up status for all accounts
+-- Shows current phase and days remaining
+CREATE OR REPLACE VIEW warmup_status AS
+SELECT
+    id,
+    name,
+    ig_username,
+    ig_account_status,
+    ig_account_created_at,
+    last_warmup_at,
+    warmup_day,
+    CASE
+        WHEN ig_account_created_at IS NULL THEN 0
+        ELSE EXTRACT(DAY FROM (NOW() - ig_account_created_at)) + 1
+    END AS calculated_day,
+    CASE
+        WHEN ig_account_created_at IS NULL THEN 'pending'
+        WHEN EXTRACT(DAY FROM (NOW() - ig_account_created_at)) < 7 THEN 'phase1_silent'
+        WHEN EXTRACT(DAY FROM (NOW() - ig_account_created_at)) < 14 THEN 'phase2_engagement'
+        ELSE 'active'
+    END AS current_phase,
+    CASE
+        WHEN ig_account_created_at IS NULL THEN 14
+        ELSE GREATEST(0, 14 - EXTRACT(DAY FROM (NOW() - ig_account_created_at)))
+    END AS days_remaining
+FROM families
+WHERE ig_username IS NOT NULL
+ORDER BY ig_account_created_at DESC NULLS LAST;
+
+-- Usage: SELECT * FROM warmup_status;

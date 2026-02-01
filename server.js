@@ -15,6 +15,7 @@ const { InstagramAutomation } = require('./instagram-automation');
 const { YouComAgent } = require('./youcom-agent');
 const { encrypt, decrypt } = require('./encryption');
 const { generateUsernames, generateEmail } = require('./username-generator');
+const { runAllWarmups, runWarmupSession, getWarmupDay, getWarmupPhase } = require('./warmup-scheduler');
 require('dotenv').config();
 
 const app = express();
@@ -319,16 +320,127 @@ app.get('/api/admin/accounts', basicAuth, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('families')
-      .select('id, name, email, proxy_city, ig_email, ig_username, ig_account_status, ig_account_created_at, children_details')
+      .select('id, name, email, proxy_city, ig_email, ig_username, ig_account_status, ig_account_created_at, children_details, last_warmup_at, warmup_day')
       .order('id', { ascending: true });
 
     if (error) throw error;
 
-    res.json(data);
+    // Add calculated warm-up info
+    const enriched = data.map(family => {
+      const day = getWarmupDay(family.ig_account_created_at);
+      const phase = getWarmupPhase(day);
+      return {
+        ...family,
+        warmup_calculated_day: day,
+        warmup_phase: phase,
+        warmup_days_remaining: Math.max(0, 14 - day)
+      };
+    });
+
+    res.json(enriched);
   } catch (e) {
     console.error('List accounts error:', e);
     res.status(500).json({ error: e.message });
   }
+});
+
+// --- WARM-UP ADMIN ROUTES ---
+
+// Get warm-up status for all families
+app.get('/api/admin/warmup/status', basicAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  try {
+    const { data, error } = await supabase
+      .from('families')
+      .select('id, name, ig_username, ig_account_status, ig_account_created_at, last_warmup_at, warmup_day')
+      .not('ig_username', 'is', null)
+      .order('ig_account_created_at', { ascending: false, nullsFirst: false });
+
+    if (error) throw error;
+
+    const status = data.map(family => {
+      const day = getWarmupDay(family.ig_account_created_at);
+      const phase = getWarmupPhase(day);
+      return {
+        id: family.id,
+        name: family.name,
+        ig_username: family.ig_username,
+        status: family.ig_account_status,
+        created_at: family.ig_account_created_at,
+        last_warmup: family.last_warmup_at,
+        day: day,
+        phase: phase,
+        days_remaining: Math.max(0, 14 - day),
+        ready_for_activation: day >= 15
+      };
+    });
+
+    res.json(status);
+  } catch (e) {
+    console.error('Warmup status error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Trigger warm-up for a specific family (manual run)
+app.post('/api/admin/warmup/:familyId', basicAuth, async (req, res) => {
+  const { familyId } = req.params;
+
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  try {
+    const { data: family, error } = await supabase
+      .from('families')
+      .select('*')
+      .eq('id', familyId)
+      .single();
+
+    if (error || !family) {
+      return res.status(404).json({ error: 'Family not found' });
+    }
+
+    if (!family.ig_username || !family.ig_account_created_at) {
+      return res.status(400).json({ error: 'Family does not have an Instagram account set up' });
+    }
+
+    // Run warm-up in background (don't block the response)
+    res.json({
+      status: 'STARTED',
+      message: `Warm-up session started for @${family.ig_username}`,
+      day: getWarmupDay(family.ig_account_created_at),
+      phase: getWarmupPhase(getWarmupDay(family.ig_account_created_at))
+    });
+
+    // Execute warm-up asynchronously
+    runWarmupSession(family, supabase).then(result => {
+      console.log(`Warm-up completed for family ${familyId}:`, result);
+    }).catch(err => {
+      console.error(`Warm-up failed for family ${familyId}:`, err);
+    });
+
+  } catch (e) {
+    console.error('Trigger warmup error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Trigger warm-up for ALL eligible families (batch run)
+app.post('/api/admin/warmup/run-all', basicAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  // Start batch warm-up in background
+  res.json({
+    status: 'STARTED',
+    message: 'Batch warm-up started for all eligible families'
+  });
+
+  // Execute asynchronously
+  runAllWarmups(supabase).then(() => {
+    console.log('Batch warm-up completed');
+  }).catch(err => {
+    console.error('Batch warm-up failed:', err);
+  });
 });
 
 // API: Trigger Automation (Manual Run)
@@ -543,6 +655,49 @@ setInterval(async () => {
     console.error('Scheduler Error:', e);
   }
 }, 60 * 60 * 1000); // 60 minutes
+
+// --- WARM-UP SCHEDULER ---
+// Run warm-up sessions once per day (every 24 hours)
+// Staggers sessions across families with 5-15 min gaps
+
+// Calculate ms until next 6 AM UTC (good time to run warm-ups)
+function msUntilNextWarmupWindow() {
+  const now = new Date();
+  const target = new Date(now);
+  target.setUTCHours(6, 0, 0, 0);
+
+  // If it's past 6 AM UTC today, schedule for tomorrow
+  if (now >= target) {
+    target.setDate(target.getDate() + 1);
+  }
+
+  return target - now;
+}
+
+// Schedule first warm-up run at next 6 AM UTC
+setTimeout(() => {
+  console.log('🔥 Starting daily warm-up scheduler...');
+
+  // Run immediately for the first time
+  if (supabase) {
+    runAllWarmups(supabase).catch(err => {
+      console.error('Warm-up scheduler error:', err);
+    });
+  }
+
+  // Then run every 24 hours
+  setInterval(() => {
+    console.log('🔥 Daily warm-up scheduler triggered');
+    if (supabase) {
+      runAllWarmups(supabase).catch(err => {
+        console.error('Warm-up scheduler error:', err);
+      });
+    }
+  }, 24 * 60 * 60 * 1000); // 24 hours
+
+}, msUntilNextWarmupWindow());
+
+console.log(`🔥 Warm-up scheduler: First run in ${Math.round(msUntilNextWarmupWindow() / (1000 * 60 * 60))} hours`);
 
 // --- PORTAL API ---
 
