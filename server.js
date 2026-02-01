@@ -14,6 +14,7 @@ const { createClient } = require('@supabase/supabase-js');
 const { InstagramAutomation } = require('./instagram-automation');
 const { YouComAgent } = require('./youcom-agent');
 const { encrypt, decrypt } = require('./encryption');
+const { generateUsernames, generateEmail } = require('./username-generator');
 require('dotenv').config();
 
 const app = express();
@@ -184,15 +185,150 @@ app.get('/admin', basicAuth, (req, res) => {
 
 app.get('/api/families', basicAuth, async (req, res) => {
   if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
-  
+
   // Fetch families (excluding raw sensitive data if needed, though cookies are encrypted)
   const { data, error } = await supabase
     .from('families')
     .select('instagram_handle, status, last_login, children_count, cookies')
     .order('last_login', { ascending: false });
-    
+
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
+});
+
+// --- INSTAGRAM ACCOUNT CREATION ADMIN ROUTES ---
+
+// Generate username suggestions for a family
+app.get('/api/admin/generate-username/:familyId', basicAuth, async (req, res) => {
+  const { familyId } = req.params;
+
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  try {
+    // Fetch family data including children details and proxy city
+    const { data: family, error } = await supabase
+      .from('families')
+      .select('id, name, children_details, proxy_city, ig_username')
+      .eq('id', familyId)
+      .single();
+
+    if (error || !family) {
+      return res.status(404).json({ error: 'Family not found' });
+    }
+
+    // Generate username suggestions
+    const usernames = generateUsernames(family, 4);
+
+    // Generate email suggestion based on proxy city
+    const emailSuggestion = generateEmail(family.proxy_city);
+
+    res.json({
+      family_id: family.id,
+      family_name: family.name,
+      proxy_city: family.proxy_city,
+      current_username: family.ig_username,
+      username_suggestions: usernames,
+      email_suggestion: emailSuggestion
+    });
+  } catch (e) {
+    console.error('Generate username error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Save selected username and email for a family
+app.post('/api/admin/save-account/:familyId', basicAuth, async (req, res) => {
+  const { familyId } = req.params;
+  const { ig_username, ig_email, ig_email_password, ig_password } = req.body;
+
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  if (!ig_username) {
+    return res.status(400).json({ error: 'ig_username is required' });
+  }
+
+  try {
+    const updates = {
+      ig_username: ig_username.toLowerCase().replace(/^@/, ''), // Remove @ if present
+      ig_account_status: 'pending'
+    };
+
+    // Encrypt and store email credentials if provided
+    if (ig_email) updates.ig_email = ig_email;
+    if (ig_email_password) updates.ig_email_password = encrypt(ig_email_password);
+    if (ig_password) updates.ig_password = encrypt(ig_password);
+
+    const { error } = await supabase
+      .from('families')
+      .update(updates)
+      .eq('id', familyId);
+
+    if (error) throw error;
+
+    console.log(`Saved IG account details for family ${familyId}: @${updates.ig_username}`);
+
+    res.json({
+      status: 'SUCCESS',
+      message: `Username @${updates.ig_username} saved for family ${familyId}`,
+      ig_username: updates.ig_username
+    });
+  } catch (e) {
+    console.error('Save account error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Update account status (pending -> created -> warming_up -> active)
+app.post('/api/admin/account-status/:familyId', basicAuth, async (req, res) => {
+  const { familyId } = req.params;
+  const { status } = req.body;
+
+  const validStatuses = ['pending', 'created', 'warming_up', 'verified', 'active', 'suspended'];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
+  }
+
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  try {
+    const updates = { ig_account_status: status };
+
+    // Set creation timestamp when marked as created
+    if (status === 'created') {
+      updates.ig_account_created_at = new Date().toISOString();
+    }
+
+    const { error } = await supabase
+      .from('families')
+      .update(updates)
+      .eq('id', familyId);
+
+    if (error) throw error;
+
+    res.json({ status: 'SUCCESS', new_status: status });
+  } catch (e) {
+    console.error('Update status error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// List all families with account creation status
+app.get('/api/admin/accounts', basicAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  try {
+    const { data, error } = await supabase
+      .from('families')
+      .select('id, name, email, proxy_city, ig_email, ig_username, ig_account_status, ig_account_created_at, children_details')
+      .order('id', { ascending: true });
+
+    if (error) throw error;
+
+    res.json(data);
+  } catch (e) {
+    console.error('List accounts error:', e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // API: Trigger Automation (Manual Run)
