@@ -2,7 +2,7 @@
 
 ## 2026-02-06 - Automation Switches & City Rotation Update
 
-**Commit:** (pending)
+**Commit:** ba3bc90
 
 ### Changes
 - **4 automation switches** replacing single `automation_enabled`:
