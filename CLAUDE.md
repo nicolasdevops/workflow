@@ -24,12 +24,44 @@ A humanitarian system to help families in Gaza raise funds through Instagram out
 |------|---------|
 | `server.js` | Main Express server with all API routes and schedulers |
 | `instagram-automation.js` | Playwright-based Instagram bot with humanized behavior |
+| `apify-scraper.js` | Apify-based profile scraper (replaces headless login for initial data) |
 | `warmup-scheduler.js` | 14-day progressive warm-up for new accounts |
 | `username-generator.js` | Creates Instagram usernames with peaceful/Middle Eastern themes |
 | `youcom-agent.js` | Generates contextual comments via You.com AI |
 | `encryption.js` | AES-256-GCM for cookie/password storage |
 | `migrations.sql` | Supabase schema migrations (run manually in SQL Editor) |
 | `public/index.html` | Family registration SPA |
+
+## Apify Instagram Scraper
+
+Instead of requiring families to login via headless browser (risky for account safety), we now use Apify to scrape their public profile data:
+
+### Flow
+1. Family enters their Instagram username (password optional)
+2. System checks if account is public via Apify
+3. If public: scrape profile data (bio, pic, followers, all posts)
+4. Extract fundraiser links from bio automatically
+5. 24-hour cooldown between scrapes
+
+### Database Tables (Migration 6)
+- `mothers_profiles`: Scraped profile data (bio, pic, fundraiser links)
+- `mothers_content`: Scraped posts/reels
+- `profile_scrape_status`: View showing scrape cooldown status
+
+### API Endpoints
+```bash
+POST /api/portal/instagram/check-public  # Verify account is public
+POST /api/portal/instagram/scrape        # Trigger profile scrape
+GET /api/portal/instagram/profile        # Get scraped profile
+GET /api/portal/instagram/content        # Get scraped posts
+```
+
+### Environment Variable
+```bash
+APIFY_API_TOKEN=xxx  # Required for scraping
+```
+
+---
 
 ## Two Types of Instagram Accounts
 
@@ -85,8 +117,8 @@ Mobile proxies are expensive (~$10/2GB). Data Saver mode reduces usage:
 
 ## Proxy Configuration
 
-Each family gets a rotating proxy city (7 cities):
-- Beirut, Sarajevo, Paris, Chicago, San Francisco, Montreal, Quebec City
+Each family gets a rotating proxy city (8 cities):
+- Doha, Miami, Toronto, Barcelona, Helsinki, Oslo, Copenhagen, Sarajevo
 
 Stored per-family: `proxy_city`, `proxy_country`, `timezone`, `geo_latitude`, `geo_longitude`
 
@@ -96,15 +128,17 @@ Stored per-family: `proxy_city`, `proxy_country`, `timezone`, `geo_latitude`, `g
 - Family registration SPA with photo/video upload
 - Instagram login with 2FA support
 - Cookie encryption and storage
-- Per-family proxy location rotation
+- Per-family proxy location rotation (8 cities)
 - Username generator with Palestinian themes
 - 14-day warm-up scheduler
 - Hourly comment posting scheduler
 - 4 granular automation switches
 - Bandwidth optimization with Data Saver mode
+- Apify profile scraper (replaces headless login for initial data)
+- Fundraiser link extraction from bio
 
 ### Pending
-- Run Migration 5 in Supabase (adds 4 switch columns)
+- Run Migration 6 in Supabase (adds Apify scraper tables)
 - Content posting scheduler (`contentposting_enabled`)
 - DM automation (`dm_enabled`)
 - Admin dashboard UI for switch management
@@ -124,6 +158,9 @@ DECODO_PROXY_PASS=xxx
 # AI Comments
 YOUCOM_API_KEY=xxx
 YOUCOM_AGENT_ID=xxx
+
+# Apify (for profile scraping)
+APIFY_API_TOKEN=xxx
 
 # Optional
 SCROLL_DURATION_MS=15000

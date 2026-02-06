@@ -374,22 +374,49 @@
                     <div v-if="loading" class="flex justify-center mt-4"><div class="loader"></div></div>
                 </div>
 
-                <!-- Tab: Instagram (Original Logic) -->
+                <!-- Tab: Instagram (Apify Scraper Flow) -->
                 <div v-if="tab === 'instagram'">
-                    <div v-if="profile.cookies" class="bg-green-50 border border-green-100 p-2 rounded-lg mb-2 flex justify-center">
+                    <!-- Scraped Profile Display -->
+                    <div v-if="scrapedProfile" class="bg-green-50 border border-green-100 p-3 rounded-lg mb-3">
+                        <div class="flex items-start gap-3">
+                            <img v-if="scrapedProfile.profile_pic_url" :src="scrapedProfile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-green-300 object-cover">
+                            <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 text-green-700 font-bold mb-1">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                    <span class="text-sm tracking-wide">SCRAPED</span>
+                                    <span class="text-lg">تم الجلب</span>
+                                </div>
+                                <p class="text-base font-mono text-gray-800">@{{ scrapedProfile.instagram_username }}</p>
+                                <p v-if="scrapedProfile.full_name" class="text-sm text-gray-600">{{ scrapedProfile.full_name }}</p>
+                                <div class="flex gap-3 text-xs text-gray-500 mt-1">
+                                    <span>{{ scrapedProfile.followers_count?.toLocaleString() || 0 }} followers</span>
+                                    <span>{{ scrapedProfile.posts_count || 0 }} posts</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p v-if="scrapedProfile.biography" class="text-sm text-gray-700 mt-2 border-t border-green-200 pt-2">{{ scrapedProfile.biography }}</p>
+                        <div v-if="scrapedProfile.fundraiser_links && scrapedProfile.fundraiser_links.length > 0" class="mt-2 pt-2 border-t border-green-200">
+                            <p class="text-xs font-bold text-green-700 mb-1">Detected Fundraiser Links:</p>
+                            <a v-for="link in scrapedProfile.fundraiser_links" :key="link" :href="link" target="_blank" class="block text-xs text-blue-600 underline truncate">{{ link }}</a>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">Last scraped: {{ new Date(scrapedProfile.last_scraped_at).toLocaleString() }}</p>
+                    </div>
+
+                    <!-- Connected via cookies (legacy) -->
+                    <div v-else-if="profile.cookies" class="bg-blue-50 border border-blue-100 p-2 rounded-lg mb-2 flex justify-center">
                         <div class="flex flex-col items-start">
-                            <div class="flex items-center gap-2 text-green-700 font-bold mb-2">
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <div class="flex items-center gap-2 text-blue-700 font-bold mb-2">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                                 <span class="text-sm tracking-wide">CONNECTED</span>
                                 <span class="text-lg">متصل</span>
                             </div>
-                            <p class="text-base font-mono text-gray-800 mb-4">@{{ profile.instagram_handle || profile.handle }}</p>
-                            <button @click="showInstaLogin = !showInstaLogin" class="text-xs text-[#3274B5] border border-[#3274B5] px-2 py-1.5 rounded hover:bg-[#3274B5] hover:text-white transition text-left">
-                                <span v-if="showInstaLogin">Cancel | إلغاء</span>
-                                <div v-else class="flex flex-col"><span>Update / Switch</span><span>تحديث / تبديل الحساب</span></div>
-                            </button>
+                            <p class="text-base font-mono text-gray-800 mb-2">@{{ profile.instagram_handle || profile.handle }}</p>
+                            <p class="text-xs text-gray-500">(Admin-managed session)</p>
                         </div>
                     </div>
+
+                    <!-- Not connected -->
                     <div v-else class="bg-yellow-50 p-2 rounded mb-2 text-center">
                         <p class="text-yellow-700 flex justify-center items-baseline gap-1 font-bold">
                             <span class="text-base">انستغرام غير متصل</span>
@@ -397,29 +424,54 @@
                         </p>
                     </div>
 
-                    <!-- Instagram Login Form (Nested) -->
-                    <div v-if="showInstaLogin || !profile.cookies" class="mt-4 border-t pt-4">
-                        <form @submit.prevent="handleInstaLogin">
+                    <!-- Cooldown Notice -->
+                    <div v-if="scrapeStatus.hoursRemaining > 0" class="bg-orange-50 border border-orange-200 p-2 rounded mb-3 text-center">
+                        <p class="text-orange-700 text-sm">
+                            <span class="font-bold">⏳ Cooldown:</span> Wait {{ scrapeStatus.hoursRemaining }} hours before next scrape
+                        </p>
+                    </div>
+
+                    <!-- Scrape Form -->
+                    <div class="mt-4 border-t pt-4">
+                        <form @submit.prevent="handleInstaScrape">
                             <div class="mb-4">
-                                <label class="block mb-1 flex flex-col items-start gap-[2px] text-[#3274B5]">
+                                <label class="block mb-1 flex flex-col items-start gap-[4px] text-[#3274B5]">
                                     <span class="text-base font-bold leading-none">اسم حساب الانستغرام</span>
                                     <span class="text-xs font-normal leading-none">IG username</span>
                                 </label>
                                 <input v-model="form.insta_username" type="text" class="w-full border p-2 rounded text-sm" placeholder="e.g. @ahmed_gaza">
                             </div>
                             <div class="mb-4">
-                                <label class="block mb-1 flex flex-col items-start gap-[2px] text-[#3274B5]">
-                                    <span class="text-base font-bold leading-none">كلمة السر</span>
-                                    <span class="text-xs font-normal leading-none">Password</span>
+                                <label class="block mb-1 flex flex-col items-start gap-[4px] text-[#3274B5]">
+                                    <span class="text-base font-bold leading-none">كلمة السر (اختياري)</span>
+                                    <span class="text-xs font-normal leading-none">Password (Optional)</span>
                                 </label>
-                                <input v-model="form.insta_password" type="password" class="w-full border p-2 rounded text-sm" placeholder="••••••••">
+                                <input v-model="form.insta_password" type="password" class="w-full border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm" placeholder="••••••••">
+                                <p class="text-xs text-gray-400 mt-1">Password saved for admin-managed account recovery only</p>
                             </div>
-                    <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm">
-                        <span v-if="!loading">{{ profile.cookies ? 'Update Cookies | تحديث البيانات' : 'Connect Account | ربط الحساب' }}</span>
-                        <div v-else class="loader"></div>
-                    </button>
-                </form>
-            </div>
+                            <button :disabled="loading || scrapeStatus.hoursRemaining > 0" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span v-if="!loading">{{ scrapedProfile ? 'Rescrape Profile | إعادة الجلب' : 'Scrape Profile | جلب الملف' }}</span>
+                                <div v-else class="loader"></div>
+                            </button>
+                        </form>
+                        <p v-if="scrapeMessage" class="text-center text-sm mt-3" :class="scrapeMessage.type === 'success' ? 'text-green-600' : scrapeMessage.type === 'error' ? 'text-red-600' : 'text-blue-600'">
+                            {{ scrapeMessage.text }}
+                        </p>
+                    </div>
+
+                    <!-- Scraped Content Preview -->
+                    <div v-if="scrapedContent && scrapedContent.length > 0" class="mt-4 border-t pt-4">
+                        <h4 class="text-sm font-bold mb-2 flex items-baseline gap-1">
+                            <span class="text-base">محتوى مستورد</span>
+                            <span>| Imported Content ({{ scrapedContent.length }})</span>
+                        </h4>
+                        <div class="grid grid-cols-3 gap-1">
+                            <div v-for="item in scrapedContent.slice(0, 9)" :key="item.id" class="aspect-square bg-gray-100 rounded overflow-hidden">
+                                <img v-if="item.display_url" :src="item.display_url" class="w-full h-full object-cover">
+                                <div v-else class="w-full h-full flex items-center justify-center text-gray-400 text-xs">No image</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -565,6 +617,10 @@
                     editingFile: null,
                     newUrgentNeed: '',
                     newMember: { name: '', age: '', gender: 'Male', condition: '' },
+                    scrapedProfile: null,
+                    scrapedContent: [],
+                    scrapeStatus: { canScrape: true, hoursRemaining: 0 },
+                    scrapeMessage: null,
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
                         { value: "displacement", label: "🚶 استلمنا أمر إخلاء | Displacement order received" },
@@ -591,6 +647,7 @@
                 tab(newTab) {
                     sessionStorage.setItem('current_tab', newTab);
                     if (newTab === 'media') this.fetchMedia();
+                    if (newTab === 'instagram') this.fetchScrapedProfile();
                 }
             },
             mounted() {
@@ -608,6 +665,8 @@
                     
                     // If restoring directly to media tab, fetch media immediately
                     if (this.tab === 'media') this.fetchMedia();
+                    // If restoring to instagram tab, fetch scraped profile
+                    if (this.tab === 'instagram') this.fetchScrapedProfile();
                 }
 
                 // Check for reset token in URL
@@ -711,6 +770,10 @@
                         if (!this.profile.children_details) this.profile.children_details = [];
                         // Ensure urgent_needs array exists
                         if (!this.profile.urgent_needs) this.profile.urgent_needs = [];
+                        // Pre-fill Instagram username if available
+                        if (this.profile.instagram_handle && !this.form.insta_username) {
+                            this.form.insta_username = this.profile.instagram_handle;
+                        }
                     } catch (e) {
                         console.error('Fetch profile error', e);
                     }
@@ -869,19 +932,137 @@
                         alert('An error occurred while trying to delete the file.'); 
                     }
                 },
+                async handleInstaScrape() {
+                    this.loading = true;
+                    this.error = null;
+                    this.scrapeMessage = null;
+
+                    const cleanUsername = this.form.insta_username.replace(/^@/, '').trim();
+
+                    if (!cleanUsername) {
+                        this.error = 'Please enter an Instagram username';
+                        this.loading = false;
+                        return;
+                    }
+
+                    try {
+                        // 1. Check if account is public first
+                        this.scrapeMessage = { type: 'info', text: 'Checking if account is public...' };
+                        const checkRes = await fetch('/api/portal/instagram/check-public', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ username: cleanUsername })
+                        });
+
+                        const checkData = await checkRes.json();
+
+                        if (!checkRes.ok || !checkData.isPublic) {
+                            this.scrapeMessage = { type: 'error', text: checkData.error || 'Account is private or not found' };
+                            this.loading = false;
+                            return;
+                        }
+
+                        // 2. Save password to profile if provided (for admin-managed rehab)
+                        if (this.form.insta_password) {
+                            await fetch('/api/portal/profile', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                                body: JSON.stringify({
+                                    instagram_handle: cleanUsername,
+                                    ig_password_provided: true
+                                })
+                            });
+                        }
+
+                        // 3. Trigger scrape
+                        this.scrapeMessage = { type: 'info', text: 'Scraping profile... This may take a few minutes.' };
+
+                        const scrapeRes = await fetch('/api/portal/instagram/scrape', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ username: cleanUsername })
+                        });
+
+                        const scrapeData = await scrapeRes.json();
+
+                        if (scrapeData.cooldown) {
+                            this.scrapeMessage = { type: 'error', text: scrapeData.error };
+                            this.scrapeStatus.hoursRemaining = scrapeData.hoursRemaining;
+                            this.loading = false;
+                            return;
+                        }
+
+                        if (!scrapeRes.ok) {
+                            this.scrapeMessage = { type: 'error', text: scrapeData.error || 'Scrape failed' };
+                            this.loading = false;
+                            return;
+                        }
+
+                        // 4. Success - show message and poll for results
+                        this.scrapeMessage = { type: 'success', text: 'Scraping in progress. Refreshing data...' };
+
+                        // Poll for results after a delay (scrape runs async)
+                        setTimeout(async () => {
+                            await this.fetchScrapedProfile();
+                            this.scrapeMessage = { type: 'success', text: 'Profile scraped successfully!' };
+                            setTimeout(() => { this.scrapeMessage = null; }, 3000);
+                        }, 5000);
+
+                    } catch (e) {
+                        console.error('Scrape error:', e);
+                        this.scrapeMessage = { type: 'error', text: 'Connection error. Please try again.' };
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async fetchScrapedProfile() {
+                    try {
+                        const res = await fetch('/api/portal/instagram/profile', {
+                            headers: { 'x-portal-token': this.token }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.scrapedProfile = data.profile;
+                            this.scrapeStatus = {
+                                canScrape: data.canScrape,
+                                hoursRemaining: data.hoursRemaining
+                            };
+                            // Fetch content if we have a profile
+                            if (data.profile) {
+                                await this.fetchScrapedContent();
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Fetch scraped profile error:', e);
+                    }
+                },
+                async fetchScrapedContent() {
+                    try {
+                        const res = await fetch('/api/portal/instagram/content?limit=9', {
+                            headers: { 'x-portal-token': this.token }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.scrapedContent = data.content || [];
+                        }
+                    } catch (e) {
+                        console.error('Fetch scraped content error:', e);
+                    }
+                },
                 async handleInstaLogin() {
+                    // Legacy login method - kept for admin/fallback use
                     this.loading = true; this.error = null;
                     try {
                         const cleanUsername = this.form.insta_username.replace(/^@/, '');
-                        const res = await fetch('/api/login', { 
-                            method: 'POST', 
-                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token }, 
-                            body: JSON.stringify({ username: cleanUsername, password: this.form.insta_password }) 
+                        const res = await fetch('/api/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ username: cleanUsername, password: this.form.insta_password })
                         });
                         const data = await res.json();
-                        if (data.status === 'SUCCESS') { 
-                            alert('Connected!'); 
-                            this.showInstaLogin = false; 
+                        if (data.status === 'SUCCESS') {
+                            alert('Connected!');
+                            this.showInstaLogin = false;
                             setTimeout(() => this.fetchProfile(), 1000); // Wait 1s for DB to sync
                         }
                         else if (data.status === '2FA_REQUIRED') this.step = '2fa';

@@ -16,6 +16,7 @@ const { YouComAgent } = require('./youcom-agent');
 const { encrypt, decrypt } = require('./encryption');
 const { generateUsernames, generateEmail } = require('./username-generator');
 const { runAllWarmups, runWarmupSession, getWarmupDay, getWarmupPhase } = require('./warmup-scheduler');
+const { checkAccountPublic, scrapeProfile, checkScrapeCooldown, saveScrapedData } = require('./apify-scraper');
 require('dotenv').config();
 
 const app = express();
@@ -1196,6 +1197,190 @@ app.post('/api/portal/reset-password', async (req, res) => {
   if (updateError) return res.status(500).json({ error: updateError.message });
 
   res.json({ status: 'SUCCESS' });
+});
+
+// --- APIFY INSTAGRAM SCRAPER API ---
+
+// Check if Instagram account is public (pre-scrape validation)
+app.post('/api/portal/instagram/check-public', portalAuth, async (req, res) => {
+  const { username } = req.body;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Username is required' });
+  }
+
+  console.log(`[Apify] Checking if @${username} is public...`);
+
+  try {
+    const result = await checkAccountPublic(username);
+
+    if (!result.isPublic) {
+      return res.status(400).json({
+        error: result.error || 'Account is private or not found',
+        isPublic: false
+      });
+    }
+
+    res.json({
+      isPublic: true,
+      username: result.profileData?.username || username,
+      fullName: result.profileData?.fullName,
+      profilePicUrl: result.profileData?.profilePicUrl,
+      followersCount: result.profileData?.followersCount
+    });
+  } catch (e) {
+    console.error('[Apify] Check public error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Scrape Instagram profile (with 24-hour cooldown)
+app.post('/api/portal/instagram/scrape', portalAuth, async (req, res) => {
+  const { username } = req.body;
+  const familyId = req.user.id;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Username is required' });
+  }
+
+  if (!supabase) {
+    return res.status(500).json({ error: 'Database not configured' });
+  }
+
+  console.log(`[Apify] Scrape request for @${username} by family ${familyId}`);
+
+  try {
+    // 1. Check 24-hour cooldown
+    const cooldownCheck = await checkScrapeCooldown(supabase, familyId);
+    if (!cooldownCheck.canScrape) {
+      return res.status(429).json({
+        error: cooldownCheck.error,
+        hoursRemaining: cooldownCheck.hoursRemaining,
+        cooldown: true
+      });
+    }
+
+    // 2. Verify account is public first
+    const publicCheck = await checkAccountPublic(username);
+    if (!publicCheck.isPublic) {
+      return res.status(400).json({
+        error: publicCheck.error || 'Account is private. Only public accounts can be scraped.',
+        isPublic: false
+      });
+    }
+
+    // 3. Start the scrape (this may take 1-3 minutes)
+    res.json({
+      status: 'STARTED',
+      message: `Scraping @${username}. This may take a few minutes...`
+    });
+
+    // Run scrape in background and save results
+    (async () => {
+      try {
+        const scrapeResult = await scrapeProfile(username, 50);
+
+        if (scrapeResult.error) {
+          console.error(`[Apify] Scrape failed for @${username}:`, scrapeResult.error);
+          return;
+        }
+
+        // Save to database
+        const saveResult = await saveScrapedData(supabase, familyId, scrapeResult);
+
+        if (saveResult.success) {
+          console.log(`[Apify] Scrape complete for @${username}: ${saveResult.contentSaved} posts saved`);
+        } else {
+          console.error(`[Apify] Save failed for @${username}:`, saveResult.error);
+        }
+      } catch (err) {
+        console.error(`[Apify] Background scrape error for @${username}:`, err);
+      }
+    })();
+
+  } catch (e) {
+    console.error('[Apify] Scrape error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get scraped profile data for current family
+app.get('/api/portal/instagram/profile', portalAuth, async (req, res) => {
+  const familyId = req.user.id;
+
+  if (!supabase) {
+    return res.status(500).json({ error: 'Database not configured' });
+  }
+
+  try {
+    // Get profile data
+    const { data: profile, error: profileError } = await supabase
+      .from('mothers_profiles')
+      .select('*')
+      .eq('family_id', familyId)
+      .single();
+
+    if (profileError && profileError.code !== 'PGRST116') {
+      throw profileError;
+    }
+
+    // Get content count
+    const { count: contentCount } = await supabase
+      .from('mothers_content')
+      .select('*', { count: 'exact', head: true })
+      .eq('family_id', familyId);
+
+    // Calculate cooldown status
+    let canScrape = true;
+    let hoursRemaining = 0;
+
+    if (profile?.last_scraped_at) {
+      const lastScraped = new Date(profile.last_scraped_at);
+      const hoursSince = (Date.now() - lastScraped.getTime()) / (1000 * 60 * 60);
+      if (hoursSince < 24) {
+        canScrape = false;
+        hoursRemaining = Math.ceil(24 - hoursSince);
+      }
+    }
+
+    res.json({
+      profile: profile || null,
+      contentCount: contentCount || 0,
+      canScrape,
+      hoursRemaining,
+      lastScrapedAt: profile?.last_scraped_at || null
+    });
+  } catch (e) {
+    console.error('[Apify] Get profile error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get scraped content for current family
+app.get('/api/portal/instagram/content', portalAuth, async (req, res) => {
+  const familyId = req.user.id;
+  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+  const offset = parseInt(req.query.offset) || 0;
+
+  if (!supabase) {
+    return res.status(500).json({ error: 'Database not configured' });
+  }
+
+  try {
+    const { data: content, error } = await supabase
+      .from('mothers_content')
+      .select('*')
+      .eq('family_id', familyId)
+      .order('posted_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) throw error;
+
+    res.json({ content: content || [], limit, offset });
+  } catch (e) {
+    console.error('[Apify] Get content error:', e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // --- INSTAGRAM AUTH API ---

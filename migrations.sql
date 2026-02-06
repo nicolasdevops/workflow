@@ -510,3 +510,105 @@ FROM families
 ORDER BY bestbehavior_enabled DESC, commenting_enabled DESC, id;
 
 -- Usage: SELECT * FROM automation_overview;
+
+-- ============================================================================
+-- MIGRATION 6: Apify Instagram Scraper Tables
+-- Purpose: Store scraped profile data from mothers' original Instagram accounts
+-- Date: 2026-02-06
+-- ============================================================================
+
+-- Add flag to families table indicating profile has been scraped
+ALTER TABLE families
+ADD COLUMN IF NOT EXISTS ig_profile_scraped BOOLEAN DEFAULT FALSE;
+
+COMMENT ON COLUMN families.ig_profile_scraped IS 'TRUE if profile has been scraped via Apify';
+
+-- Table: mothers_profiles - Stores scraped profile data from original IG accounts
+CREATE TABLE IF NOT EXISTS mothers_profiles (
+    id SERIAL PRIMARY KEY,
+    family_id INTEGER UNIQUE REFERENCES families(id) ON DELETE CASCADE,
+    instagram_username TEXT NOT NULL,
+    full_name TEXT,
+    biography TEXT,
+    profile_pic_url TEXT,
+    followers_count INTEGER DEFAULT 0,
+    following_count INTEGER DEFAULT 0,
+    posts_count INTEGER DEFAULT 0,
+    is_verified BOOLEAN DEFAULT FALSE,
+    external_url TEXT,
+    fundraiser_links JSONB DEFAULT '[]'::JSONB, -- Array of extracted fundraiser URLs
+    last_scraped_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Indexes for efficient queries
+CREATE INDEX IF NOT EXISTS idx_mothers_profiles_family ON mothers_profiles(family_id);
+CREATE INDEX IF NOT EXISTS idx_mothers_profiles_username ON mothers_profiles(instagram_username);
+CREATE INDEX IF NOT EXISTS idx_mothers_profiles_scraped_at ON mothers_profiles(last_scraped_at);
+
+-- Comments
+COMMENT ON TABLE mothers_profiles IS 'Scraped Instagram profile data from families original accounts (via Apify)';
+COMMENT ON COLUMN mothers_profiles.fundraiser_links IS 'Array of detected fundraiser URLs (GoFundMe, PayPal, etc.)';
+COMMENT ON COLUMN mothers_profiles.last_scraped_at IS '24-hour cooldown enforced between scrapes';
+
+-- Table: mothers_content - Stores scraped posts/reels/content
+CREATE TABLE IF NOT EXISTS mothers_content (
+    id SERIAL PRIMARY KEY,
+    family_id INTEGER REFERENCES families(id) ON DELETE CASCADE,
+    instagram_id TEXT, -- Instagram's internal ID for the post
+    short_code TEXT NOT NULL, -- URL slug (e.g., CaBC123)
+    content_type TEXT DEFAULT 'post', -- post, reel, video, carousel
+    caption TEXT,
+    display_url TEXT, -- Image/thumbnail URL
+    video_url TEXT, -- Video URL if applicable
+    likes_count INTEGER DEFAULT 0,
+    comments_count INTEGER DEFAULT 0,
+    posted_at TIMESTAMP,
+    location_name TEXT,
+    hashtags JSONB DEFAULT '[]'::JSONB,
+    mentions JSONB DEFAULT '[]'::JSONB,
+    is_video BOOLEAN DEFAULT FALSE,
+    scraped_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(family_id, short_code)
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_mothers_content_family ON mothers_content(family_id);
+CREATE INDEX IF NOT EXISTS idx_mothers_content_posted ON mothers_content(posted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_mothers_content_type ON mothers_content(content_type);
+
+-- Comments
+COMMENT ON TABLE mothers_content IS 'Scraped Instagram content (posts, reels, videos) from families original accounts';
+COMMENT ON COLUMN mothers_content.short_code IS 'Instagram URL slug - unique identifier for post';
+COMMENT ON COLUMN mothers_content.display_url IS 'Direct URL to image/thumbnail (may expire)';
+
+-- View: Profile scrape status
+CREATE OR REPLACE VIEW profile_scrape_status AS
+SELECT
+    f.id AS family_id,
+    f.name AS family_name,
+    f.instagram_handle AS original_account,
+    f.ig_profile_scraped,
+    mp.full_name AS scraped_name,
+    mp.followers_count,
+    mp.posts_count,
+    mp.last_scraped_at,
+    CASE
+        WHEN mp.last_scraped_at IS NULL THEN 'never_scraped'
+        WHEN mp.last_scraped_at < NOW() - INTERVAL '24 hours' THEN 'ready_to_scrape'
+        ELSE 'cooling_down'
+    END AS scrape_status,
+    CASE
+        WHEN mp.last_scraped_at IS NULL THEN 0
+        ELSE EXTRACT(HOURS FROM (NOW() - mp.last_scraped_at))
+    END AS hours_since_scrape,
+    COALESCE(jsonb_array_length(mp.fundraiser_links), 0) AS fundraiser_links_count,
+    (SELECT COUNT(*) FROM mothers_content mc WHERE mc.family_id = f.id) AS content_count
+FROM families f
+LEFT JOIN mothers_profiles mp ON f.id = mp.family_id
+WHERE f.instagram_handle IS NOT NULL
+ORDER BY mp.last_scraped_at DESC NULLS LAST;
+
+-- Usage: SELECT * FROM profile_scrape_status;
