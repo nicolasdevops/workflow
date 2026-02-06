@@ -413,3 +413,36 @@ WHERE ig_username IS NOT NULL
 ORDER BY ig_account_created_at DESC NULLS LAST;
 
 -- Usage: SELECT * FROM warmup_status;
+
+-- ============================================================================
+-- MIGRATION 5: Automation Control Switch
+-- Purpose: Admin-controlled flag to enable/disable automation per family
+-- Date: 2026-02-06
+-- ============================================================================
+
+-- Add automation control field (default OFF for safety)
+ALTER TABLE families
+ADD COLUMN IF NOT EXISTS automation_enabled BOOLEAN DEFAULT FALSE;
+
+-- Add comment for documentation
+COMMENT ON COLUMN families.automation_enabled IS 'Admin switch to enable automation. FALSE by default. Must be explicitly enabled before warm-up or comment posting runs.';
+
+-- View: Automation status overview
+CREATE OR REPLACE VIEW automation_overview AS
+SELECT
+    id,
+    name,
+    instagram_handle AS original_account,
+    ig_username AS synthetic_account,
+    ig_account_status,
+    automation_enabled,
+    CASE
+        WHEN automation_enabled = FALSE THEN 'DISABLED'
+        WHEN ig_account_status = 'active' THEN 'COMMENT_POSTING'
+        WHEN ig_account_status IN ('created', 'warming_up') THEN 'WARM_UP'
+        ELSE 'PENDING_SETUP'
+    END AS automation_mode
+FROM families
+ORDER BY automation_enabled DESC, id;
+
+-- Usage: SELECT * FROM automation_overview;

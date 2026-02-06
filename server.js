@@ -443,6 +443,86 @@ app.post('/api/admin/warmup/run-all', basicAuth, async (req, res) => {
   });
 });
 
+// --- AUTOMATION CONTROL ROUTES ---
+
+// Toggle automation for a family (master switch)
+app.post('/api/admin/automation/:familyId', basicAuth, async (req, res) => {
+  const { familyId } = req.params;
+  const { enabled } = req.body;
+
+  if (typeof enabled !== 'boolean') {
+    return res.status(400).json({ error: 'enabled must be a boolean (true/false)' });
+  }
+
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  try {
+    const { data: family, error: fetchError } = await supabase
+      .from('families')
+      .select('name, ig_username, instagram_handle')
+      .eq('id', familyId)
+      .single();
+
+    if (fetchError || !family) {
+      return res.status(404).json({ error: 'Family not found' });
+    }
+
+    const { error } = await supabase
+      .from('families')
+      .update({ automation_enabled: enabled })
+      .eq('id', familyId);
+
+    if (error) throw error;
+
+    const account = family.ig_username || family.instagram_handle || 'no account';
+    console.log(`Automation ${enabled ? 'ENABLED' : 'DISABLED'} for family ${familyId} (@${account})`);
+
+    res.json({
+      status: 'SUCCESS',
+      family_id: familyId,
+      family_name: family.name,
+      automation_enabled: enabled,
+      message: `Automation ${enabled ? 'enabled' : 'disabled'} for ${family.name}`
+    });
+  } catch (e) {
+    console.error('Toggle automation error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get automation status for all families
+app.get('/api/admin/automation/status', basicAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  try {
+    const { data, error } = await supabase
+      .from('families')
+      .select('id, name, instagram_handle, ig_username, ig_account_status, automation_enabled')
+      .order('automation_enabled', { ascending: false })
+      .order('id', { ascending: true });
+
+    if (error) throw error;
+
+    const status = data.map(family => ({
+      id: family.id,
+      name: family.name,
+      original_account: family.instagram_handle,
+      synthetic_account: family.ig_username,
+      ig_status: family.ig_account_status,
+      automation_enabled: family.automation_enabled || false,
+      automation_mode: !family.automation_enabled ? 'DISABLED' :
+        family.ig_account_status === 'active' ? 'COMMENT_POSTING' :
+        ['created', 'warming_up'].includes(family.ig_account_status) ? 'WARM_UP' :
+        'PENDING_SETUP'
+    }));
+
+    res.json(status);
+  } catch (e) {
+    console.error('Automation status error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // API: Trigger Automation (Manual Run)
 app.post('/api/trigger', basicAuth, async (req, res) => {
   const { username } = req.body;
@@ -585,6 +665,12 @@ setInterval(async () => {
 
     // 2. Iterate through EACH family sequentially
     for (const family of families) {
+      // SAFETY: Skip if automation not explicitly enabled by admin
+      if (!family.automation_enabled) {
+        console.log(`Skipping ${family.name || family.id}: automation_enabled = false`);
+        continue;
+      }
+
       // Skip users who haven't connected Instagram yet
       if (!family.instagram_handle || !family.cookies) continue;
 
