@@ -82,30 +82,38 @@ ORDER BY instagram_handle;
 -- Date: 2026-01-27
 -- ============================================================================
 
--- Create proxy_cities lookup table with 7 rotation cities
+-- Create proxy_cities lookup table for rotation
 CREATE TABLE IF NOT EXISTS proxy_cities (
     id SERIAL PRIMARY KEY,
     city_name TEXT UNIQUE NOT NULL,
-    city_key TEXT UNIQUE NOT NULL, -- Lowercase key for Decodo (e.g., 'beirut')
-    country_code TEXT NOT NULL,    -- ISO 2-letter code (e.g., 'lb')
-    timezone TEXT NOT NULL,         -- IANA timezone (e.g., 'Asia/Beirut')
+    city_key TEXT UNIQUE NOT NULL, -- Lowercase key for Decodo (e.g., 'doha')
+    country_code TEXT NOT NULL,    -- ISO 2-letter code (e.g., 'qa')
+    timezone TEXT NOT NULL,         -- IANA timezone (e.g., 'Asia/Qatar')
     latitude NUMERIC(10, 7) NOT NULL,
     longitude NUMERIC(10, 7) NOT NULL,
     network_provider TEXT,          -- Optional: ISP name for reference
-    rotation_order INTEGER UNIQUE NOT NULL -- Order in rotation (1-7)
+    rotation_order INTEGER UNIQUE NOT NULL -- Order in rotation (1-8)
 );
 
--- Insert the 7 rotation cities
+-- Clear old cities and insert new rotation list (8 cities)
+-- Note: This list may be updated in the future
+TRUNCATE proxy_cities RESTART IDENTITY CASCADE;
+
 INSERT INTO proxy_cities (city_name, city_key, country_code, timezone, latitude, longitude, network_provider, rotation_order)
 VALUES
-    ('Beirut', 'beirut', 'lb', 'Asia/Beirut', 33.8886, 35.4955, 'Alfa/Touch', 1),
-    ('Sarajevo', 'sarajevo', 'ba', 'Europe/Sarajevo', 43.8563, 18.4131, 'BH Telecom', 2),
-    ('Paris', 'paris', 'fr', 'Europe/Paris', 48.8566, 2.3522, 'Orange/SFR', 3),
-    ('Chicago', 'chicago', 'us', 'America/Chicago', 41.8781, -87.6298, 'AT&T/Verizon', 4),
-    ('San Francisco', 'sanfrancisco', 'us', 'America/Los_Angeles', 37.7749, -122.4194, 'AT&T/T-Mobile', 5),
-    ('Montreal', 'montreal', 'ca', 'America/Montreal', 45.5017, -73.5673, 'Videotron/Bell', 6),
-    ('Quebec City', 'quebec', 'ca', 'America/Toronto', 46.8139, -71.2080, 'Videotron/Bell', 7)
-ON CONFLICT (city_key) DO NOTHING;
+    ('Doha', 'doha', 'qa', 'Asia/Qatar', 25.2854, 51.5310, 'Ooredoo/Vodafone', 1),
+    ('Miami', 'miami', 'us', 'America/New_York', 25.7617, -80.1918, 'AT&T/T-Mobile', 2),
+    ('Toronto', 'toronto', 'ca', 'America/Toronto', 43.6532, -79.3832, 'Rogers/Bell', 3),
+    ('Barcelona', 'barcelona', 'es', 'Europe/Madrid', 41.3851, 2.1734, 'Movistar/Orange', 4),
+    ('Helsinki', 'helsinki', 'fi', 'Europe/Helsinki', 60.1699, 24.9384, 'Elisa/DNA', 5),
+    ('Oslo', 'oslo', 'no', 'Europe/Oslo', 59.9139, 10.7522, 'Telenor/Telia', 6),
+    ('Copenhagen', 'copenhagen', 'dk', 'Europe/Copenhagen', 55.6761, 12.5683, 'TDC/Telia', 7),
+    ('Sarajevo', 'sarajevo', 'ba', 'Europe/Sarajevo', 43.8563, 18.4131, 'BH Telecom', 8)
+ON CONFLICT (city_key) DO UPDATE SET
+    rotation_order = EXCLUDED.rotation_order,
+    timezone = EXCLUDED.timezone,
+    latitude = EXCLUDED.latitude,
+    longitude = EXCLUDED.longitude;
 
 -- Function: Get next city in rotation
 -- Returns city data for the next family in round-robin order
@@ -126,8 +134,8 @@ BEGIN
     FROM families
     WHERE proxy_city IS NOT NULL;
 
-    -- Calculate next rotation index (modulo 7 for 7 cities)
-    next_rotation_index = (total_families % 7) + 1;
+    -- Calculate next rotation index (modulo 8 for 8 cities)
+    next_rotation_index = (total_families % 8) + 1;
 
     -- Return city data for this rotation position
     RETURN QUERY
@@ -142,7 +150,36 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function: Auto-assign city to a specific family
+-- Function: Auto-assign city to a specific family by ID
+-- Usage: SELECT assign_proxy_city_by_id(1);
+CREATE OR REPLACE FUNCTION assign_proxy_city_by_id(family_id_param INTEGER)
+RETURNS TEXT AS $$
+DECLARE
+    city_data RECORD;
+    assigned_city TEXT;
+    family_name_val TEXT;
+BEGIN
+    -- Get next city in rotation
+    SELECT * INTO city_data FROM get_next_proxy_city();
+
+    -- Update family with city data
+    UPDATE families
+    SET
+        proxy_city = city_data.city_key,
+        proxy_country = city_data.country_code,
+        timezone = city_data.timezone,
+        geo_latitude = city_data.latitude,
+        geo_longitude = city_data.longitude
+    WHERE id = family_id_param
+    RETURNING name INTO family_name_val;
+
+    assigned_city := city_data.city_key;
+
+    RETURN 'Assigned family ' || COALESCE(family_name_val, family_id_param::TEXT) || ' to ' || assigned_city;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Legacy function: Auto-assign city by instagram_handle (for backwards compatibility)
 -- Usage: SELECT assign_proxy_city('sarah_gaza_voice');
 CREATE OR REPLACE FUNCTION assign_proxy_city(family_handle TEXT)
 RETURNS TEXT AS $$
@@ -176,19 +213,20 @@ DECLARE
     family_record RECORD;
 BEGIN
     FOR family_record IN
-        SELECT instagram_handle
+        SELECT id
         FROM families
-        WHERE instagram_handle IS NOT NULL
-        AND (proxy_city IS NULL OR proxy_city = 'montreal') -- Update null or default only
+        WHERE (proxy_city IS NULL OR proxy_city = 'montreal') -- Update null or default only
         ORDER BY id
     LOOP
-        PERFORM assign_proxy_city(family_record.instagram_handle);
+        PERFORM assign_proxy_city_by_id(family_record.id);
     END LOOP;
 END $$;
 
--- Verify rotation assignments
+-- Verify rotation assignments (uses only columns available at this point)
 SELECT
-    f.instagram_handle,
+    f.id,
+    f.name,
+    f.instagram_handle AS account,
     f.proxy_city,
     f.proxy_country,
     f.timezone,
@@ -196,12 +234,12 @@ SELECT
     pc.network_provider
 FROM families f
 LEFT JOIN proxy_cities pc ON f.proxy_city = pc.city_key
-WHERE f.instagram_handle IS NOT NULL
-ORDER BY pc.rotation_order, f.instagram_handle;
+ORDER BY pc.rotation_order, f.id;
 
 -- Manual assignment examples (if needed)
--- SELECT assign_proxy_city('sarah_gaza_voice');  -- Assigns next city in rotation
--- SELECT assign_proxy_city('ahmed_gaza_stories'); -- Assigns next city
+-- SELECT assign_proxy_city_by_id(1);              -- Preferred: Assign by family ID
+-- SELECT assign_proxy_city_by_id(2);              -- Works for all families
+-- SELECT assign_proxy_city('sarah_gaza_voice');   -- Legacy: By instagram_handle (if set)
 
 -- To override and manually set a specific city:
 -- UPDATE families
@@ -243,7 +281,7 @@ CREATE INDEX IF NOT EXISTS idx_families_ig_status ON families(ig_account_status)
 -- View accounts pending creation
 SELECT
     id,
-    family_name,
+    name,
     ig_email,
     ig_username,
     ig_account_status,
@@ -255,7 +293,7 @@ ORDER BY id;
 -- View all created accounts
 SELECT
     id,
-    family_name,
+    name,
     ig_email,
     ig_username,
     ig_account_created_at,
@@ -264,6 +302,19 @@ SELECT
 FROM families
 WHERE ig_account_status IN ('created', 'verified', 'active')
 ORDER BY ig_account_created_at DESC;
+
+-- Full verification with all account types (now that ig_username exists)
+SELECT
+    f.id,
+    f.name,
+    f.instagram_handle AS original_account,
+    f.ig_username AS synthetic_account,
+    f.proxy_city,
+    f.proxy_country,
+    pc.rotation_order
+FROM families f
+LEFT JOIN proxy_cities pc ON f.proxy_city = pc.city_key
+ORDER BY f.id;
 
 -- Example: Mark account as created
 -- UPDATE families
@@ -415,17 +466,26 @@ ORDER BY ig_account_created_at DESC NULLS LAST;
 -- Usage: SELECT * FROM warmup_status;
 
 -- ============================================================================
--- MIGRATION 5: Automation Control Switch
--- Purpose: Admin-controlled flag to enable/disable automation per family
+-- MIGRATION 5: Granular Automation Control Switches
+-- Purpose: Admin-controlled flags for different automation types
 -- Date: 2026-02-06
 -- ============================================================================
 
--- Add automation control field (default OFF for safety)
+-- Add 4 granular automation control fields (all default OFF for safety)
 ALTER TABLE families
-ADD COLUMN IF NOT EXISTS automation_enabled BOOLEAN DEFAULT FALSE;
+ADD COLUMN IF NOT EXISTS bestbehavior_enabled BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS commenting_enabled BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS contentposting_enabled BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS dm_enabled BOOLEAN DEFAULT FALSE;
 
--- Add comment for documentation
-COMMENT ON COLUMN families.automation_enabled IS 'Admin switch to enable automation. FALSE by default. Must be explicitly enabled before warm-up or comment posting runs.';
+-- Remove old single switch if it exists (optional - keep for backwards compat)
+-- ALTER TABLE families DROP COLUMN IF EXISTS automation_enabled;
+
+-- Add comments for documentation
+COMMENT ON COLUMN families.bestbehavior_enabled IS 'Controls warm-up and account rehabilitation scheduler. FALSE by default.';
+COMMENT ON COLUMN families.commenting_enabled IS 'Controls hourly comment posting on pro-Gaza accounts. FALSE by default.';
+COMMENT ON COLUMN families.contentposting_enabled IS 'Controls content posting scheduler (TBA). FALSE by default.';
+COMMENT ON COLUMN families.dm_enabled IS 'Controls direct messaging automation (TBA). FALSE by default.';
 
 -- View: Automation status overview
 CREATE OR REPLACE VIEW automation_overview AS
@@ -435,14 +495,18 @@ SELECT
     instagram_handle AS original_account,
     ig_username AS synthetic_account,
     ig_account_status,
-    automation_enabled,
+    bestbehavior_enabled,
+    commenting_enabled,
+    contentposting_enabled,
+    dm_enabled,
     CASE
-        WHEN automation_enabled = FALSE THEN 'DISABLED'
-        WHEN ig_account_status = 'active' THEN 'COMMENT_POSTING'
-        WHEN ig_account_status IN ('created', 'warming_up') THEN 'WARM_UP'
-        ELSE 'PENDING_SETUP'
-    END AS automation_mode
+        WHEN bestbehavior_enabled = TRUE AND ig_account_status IN ('created', 'warming_up') THEN 'WARMING_UP'
+        WHEN commenting_enabled = TRUE AND ig_account_status = 'active' THEN 'COMMENTING'
+        WHEN contentposting_enabled = TRUE THEN 'CONTENT_POSTING'
+        WHEN dm_enabled = TRUE THEN 'DM_ACTIVE'
+        ELSE 'ALL_DISABLED'
+    END AS primary_mode
 FROM families
-ORDER BY automation_enabled DESC, id;
+ORDER BY bestbehavior_enabled DESC, commenting_enabled DESC, id;
 
 -- Usage: SELECT * FROM automation_overview;

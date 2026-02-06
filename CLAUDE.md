@@ -1,0 +1,164 @@
+# Gaza Protocol - Project Context for Claude
+
+## What This Project Is
+
+A humanitarian system to help families in Gaza raise funds through Instagram outreach. The system:
+
+1. **Collects family data** via a Single Page Application (public/index.html)
+2. **Creates synthetic Instagram accounts** on their behalf (to protect their real accounts from Meta's content moderation)
+3. **Warms up new accounts** over 14 days with humanized behavior before adding fundraising links
+4. **Posts supportive comments** on pro-Gaza accounts to drive traffic to family fundraising pages
+
+## Tech Stack
+
+- **Backend**: Node.js/Express (server.js)
+- **Database**: Supabase (PostgreSQL)
+- **Deployment**: Railway
+- **Browser Automation**: Playwright (Firefox)
+- **Proxy**: Decodo Mobile SOCKS5H (fail-closed - refuses to run without proxy)
+- **AI Comments**: You.com Agent API (youcom-agent.js)
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `server.js` | Main Express server with all API routes and schedulers |
+| `instagram-automation.js` | Playwright-based Instagram bot with humanized behavior |
+| `warmup-scheduler.js` | 14-day progressive warm-up for new accounts |
+| `username-generator.js` | Creates Instagram usernames with peaceful/Middle Eastern themes |
+| `youcom-agent.js` | Generates contextual comments via You.com AI |
+| `encryption.js` | AES-256-GCM for cookie/password storage |
+| `migrations.sql` | Supabase schema migrations (run manually in SQL Editor) |
+| `public/index.html` | Family registration SPA |
+
+## Two Types of Instagram Accounts
+
+1. **Original Account** (`instagram_handle` + `cookies`)
+   - Family's real existing Instagram account
+   - Connected via login flow in the portal
+   - Used for comment posting automation
+
+2. **Synthetic Account** (`ig_username` + `ig_email` + `ig_password`)
+   - Created by admin on family's behalf
+   - Western-sounding names matching proxy city (avoid "gaza" in username)
+   - Goes through 14-day warm-up before activation
+
+## Automation Control (4 Switches)
+
+All switches default to `FALSE` for safety. Admin must explicitly enable:
+
+| Switch | Controls | Scheduler |
+|--------|----------|-----------|
+| `bestbehavior_enabled` | Warm-up & rehab | Daily at 6 AM UTC |
+| `commenting_enabled` | Comment posting | Hourly |
+| `contentposting_enabled` | Content posting | TBA |
+| `dm_enabled` | Direct messaging | TBA |
+
+### Admin API Endpoints
+
+```bash
+# Toggle single switch
+POST /api/admin/automation/:familyId
+{ "switch": "commenting_enabled", "enabled": true }
+
+# Bulk toggle
+POST /api/admin/automation/:familyId/bulk
+{ "bestbehavior_enabled": true, "commenting_enabled": false }
+
+# View all status
+GET /api/admin/automation/status
+```
+
+## Warm-Up Phases
+
+- **Days 1-7 (Silent)**: Browse feed, like posts, follow neutral accounts (natgeo, food52, etc.)
+- **Days 8-14 (Engagement)**: Follow humanitarian accounts, post generic supportive comments
+- **Day 15+**: Account marked `active`, fundraising link added to bio, comment automation enabled
+
+## Bandwidth Optimization
+
+Mobile proxies are expensive (~$10/2GB). Data Saver mode reduces usage:
+- Login + 15s scroll: ~7.5MB per session
+- Headers: `X-IG-Bandwidth-Speed-KBPS: 500`, `Save-Data: on`
+- Blocks: ads, tracking pixels, fonts (not essential resources)
+- See `BANDWIDTH_OPTIMIZATION.md` for full details
+
+## Proxy Configuration
+
+Each family gets a rotating proxy city (7 cities):
+- Beirut, Sarajevo, Paris, Chicago, San Francisco, Montreal, Quebec City
+
+Stored per-family: `proxy_city`, `proxy_country`, `timezone`, `geo_latitude`, `geo_longitude`
+
+## Current State (as of 2026-02-06)
+
+### Completed
+- Family registration SPA with photo/video upload
+- Instagram login with 2FA support
+- Cookie encryption and storage
+- Per-family proxy location rotation
+- Username generator with Palestinian themes
+- 14-day warm-up scheduler
+- Hourly comment posting scheduler
+- 4 granular automation switches
+- Bandwidth optimization with Data Saver mode
+
+### Pending
+- Run Migration 5 in Supabase (adds 4 switch columns)
+- Content posting scheduler (`contentposting_enabled`)
+- DM automation (`dm_enabled`)
+- Admin dashboard UI for switch management
+
+## Environment Variables (Railway)
+
+```bash
+# Required
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_SERVICE_KEY=eyJ...
+ENCRYPTION_KEY=32-byte-hex-string
+
+# Proxy (Decodo)
+DECODO_PROXY_USER=xxx
+DECODO_PROXY_PASS=xxx
+
+# AI Comments
+YOUCOM_API_KEY=xxx
+YOUCOM_AGENT_ID=xxx
+
+# Optional
+SCROLL_DURATION_MS=15000
+HEADLESS=true
+N8N_BASIC_AUTH_USER=admin
+N8N_BASIC_AUTH_PASSWORD=xxx
+```
+
+## Username Generator Philosophy
+
+Usernames should feel like they come from a Gazan mother/child, NOT Western or academic:
+- Good: `@littlebird62`, `@walkingwithfather33`, `@holdmyheart408`, `@smileformother91`
+- Bad: `@jasmine_dreams`, `@patient_hope`, `@ahmed_gaza_voice`
+
+Word banks: olives, palm trees, tears, hands, hearts, walking, praying, mother, father, etc.
+
+## Common Commands
+
+```bash
+# Local development
+npm run dev
+
+# Check Railway logs
+railway logs
+
+# Run migration (in Supabase SQL Editor)
+# Copy content from migrations.sql
+
+# Test proxy connection
+curl -x socks5h://user:pass@gate.decodo.com:7777 https://api.ipify.org
+```
+
+## Architecture Notes
+
+- **Fail-closed proxy**: `instagram-automation.js` refuses to launch browser without valid proxy
+- **Gaussian delays**: All waits use bell-curve randomness, not fixed values
+- **Sequential processing**: Families processed one at a time to avoid parallel proxy sessions
+- **5-15 min gaps**: Random delays between families during batch runs

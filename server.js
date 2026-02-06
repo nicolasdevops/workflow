@@ -445,10 +445,21 @@ app.post('/api/admin/warmup/run-all', basicAuth, async (req, res) => {
 
 // --- AUTOMATION CONTROL ROUTES ---
 
-// Toggle automation for a family (master switch)
+// Valid switch names
+const AUTOMATION_SWITCHES = ['bestbehavior_enabled', 'commenting_enabled', 'contentposting_enabled', 'dm_enabled'];
+
+// Toggle a specific automation switch for a family
+// POST /api/admin/automation/:familyId { switch: 'bestbehavior_enabled', enabled: true }
 app.post('/api/admin/automation/:familyId', basicAuth, async (req, res) => {
   const { familyId } = req.params;
-  const { enabled } = req.body;
+  const { switch: switchName, enabled } = req.body;
+
+  // Validate switch name
+  if (!switchName || !AUTOMATION_SWITCHES.includes(switchName)) {
+    return res.status(400).json({
+      error: `Invalid switch. Must be one of: ${AUTOMATION_SWITCHES.join(', ')}`
+    });
+  }
 
   if (typeof enabled !== 'boolean') {
     return res.status(400).json({ error: 'enabled must be a boolean (true/false)' });
@@ -467,25 +478,81 @@ app.post('/api/admin/automation/:familyId', basicAuth, async (req, res) => {
       return res.status(404).json({ error: 'Family not found' });
     }
 
+    // Build dynamic update
+    const updateData = { [switchName]: enabled };
+
     const { error } = await supabase
       .from('families')
-      .update({ automation_enabled: enabled })
+      .update(updateData)
       .eq('id', familyId);
 
     if (error) throw error;
 
     const account = family.ig_username || family.instagram_handle || 'no account';
-    console.log(`Automation ${enabled ? 'ENABLED' : 'DISABLED'} for family ${familyId} (@${account})`);
+    console.log(`${switchName} ${enabled ? 'ENABLED' : 'DISABLED'} for family ${familyId} (@${account})`);
 
     res.json({
       status: 'SUCCESS',
       family_id: familyId,
       family_name: family.name,
-      automation_enabled: enabled,
-      message: `Automation ${enabled ? 'enabled' : 'disabled'} for ${family.name}`
+      switch: switchName,
+      enabled: enabled,
+      message: `${switchName} ${enabled ? 'enabled' : 'disabled'} for ${family.name}`
     });
   } catch (e) {
     console.error('Toggle automation error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Bulk toggle all switches for a family
+// POST /api/admin/automation/:familyId/bulk { bestbehavior_enabled: true, commenting_enabled: false, ... }
+app.post('/api/admin/automation/:familyId/bulk', basicAuth, async (req, res) => {
+  const { familyId } = req.params;
+
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  try {
+    const { data: family, error: fetchError } = await supabase
+      .from('families')
+      .select('name, ig_username, instagram_handle')
+      .eq('id', familyId)
+      .single();
+
+    if (fetchError || !family) {
+      return res.status(404).json({ error: 'Family not found' });
+    }
+
+    // Filter only valid switches from request body
+    const updateData = {};
+    for (const switchName of AUTOMATION_SWITCHES) {
+      if (typeof req.body[switchName] === 'boolean') {
+        updateData[switchName] = req.body[switchName];
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No valid switches provided' });
+    }
+
+    const { error } = await supabase
+      .from('families')
+      .update(updateData)
+      .eq('id', familyId);
+
+    if (error) throw error;
+
+    const account = family.ig_username || family.instagram_handle || 'no account';
+    console.log(`Bulk update for family ${familyId} (@${account}):`, updateData);
+
+    res.json({
+      status: 'SUCCESS',
+      family_id: familyId,
+      family_name: family.name,
+      updated_switches: updateData
+    });
+  } catch (e) {
+    console.error('Bulk toggle error:', e);
     res.status(500).json({ error: e.message });
   }
 });
@@ -497,8 +564,7 @@ app.get('/api/admin/automation/status', basicAuth, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('families')
-      .select('id, name, instagram_handle, ig_username, ig_account_status, automation_enabled')
-      .order('automation_enabled', { ascending: false })
+      .select('id, name, instagram_handle, ig_username, ig_account_status, bestbehavior_enabled, commenting_enabled, contentposting_enabled, dm_enabled')
       .order('id', { ascending: true });
 
     if (error) throw error;
@@ -509,11 +575,18 @@ app.get('/api/admin/automation/status', basicAuth, async (req, res) => {
       original_account: family.instagram_handle,
       synthetic_account: family.ig_username,
       ig_status: family.ig_account_status,
-      automation_enabled: family.automation_enabled || false,
-      automation_mode: !family.automation_enabled ? 'DISABLED' :
-        family.ig_account_status === 'active' ? 'COMMENT_POSTING' :
-        ['created', 'warming_up'].includes(family.ig_account_status) ? 'WARM_UP' :
-        'PENDING_SETUP'
+      switches: {
+        bestbehavior_enabled: family.bestbehavior_enabled || false,
+        commenting_enabled: family.commenting_enabled || false,
+        contentposting_enabled: family.contentposting_enabled || false,
+        dm_enabled: family.dm_enabled || false
+      },
+      active_modes: [
+        family.bestbehavior_enabled && ['created', 'warming_up'].includes(family.ig_account_status) ? 'WARM_UP' : null,
+        family.commenting_enabled && family.ig_account_status === 'active' ? 'COMMENTING' : null,
+        family.contentposting_enabled ? 'CONTENT_POSTING' : null,
+        family.dm_enabled ? 'DM' : null
+      ].filter(Boolean)
     }));
 
     res.json(status);
@@ -665,9 +738,9 @@ setInterval(async () => {
 
     // 2. Iterate through EACH family sequentially
     for (const family of families) {
-      // SAFETY: Skip if automation not explicitly enabled by admin
-      if (!family.automation_enabled) {
-        console.log(`Skipping ${family.name || family.id}: automation_enabled = false`);
+      // SAFETY: Skip if commenting not explicitly enabled by admin
+      if (!family.commenting_enabled) {
+        console.log(`Skipping ${family.name || family.id}: commenting_enabled = false`);
         continue;
       }
 

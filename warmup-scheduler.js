@@ -520,11 +520,11 @@ async function runAllWarmups(supabase) {
   console.log('\n🔥 WARM-UP SCHEDULER: Starting daily warm-up run...');
 
   // Get all families with created accounts that aren't fully active yet
-  // SAFETY: Only run for families where automation_enabled = true
+  // SAFETY: Only run for families where bestbehavior_enabled = true
   const { data: families, error } = await supabase
     .from('families')
     .select('*')
-    .eq('automation_enabled', true)
+    .eq('bestbehavior_enabled', true)
     .in('ig_account_status', ['created', 'warming_up'])
     .not('ig_account_created_at', 'is', null);
 
