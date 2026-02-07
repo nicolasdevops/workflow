@@ -1383,9 +1383,9 @@ app.get('/api/portal/instagram/profile', portalAuth, async (req, res) => {
     if (profile?.last_scraped_at) {
       const lastScraped = new Date(profile.last_scraped_at);
       const hoursSince = (Date.now() - lastScraped.getTime()) / (1000 * 60 * 60);
-      if (hoursSince < 24) {
+      if (hoursSince < 3) {
         canScrape = false;
-        hoursRemaining = Math.ceil(24 - hoursSince);
+        hoursRemaining = Math.ceil(3 - hoursSince);
       }
     }
 

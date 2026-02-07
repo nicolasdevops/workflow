@@ -400,7 +400,7 @@
                             <p class="text-xs font-bold text-green-700 mb-1">Detected Fundraiser Links:</p>
                             <a v-for="link in scrapedProfile.fundraiser_links" :key="link" :href="link" target="_blank" class="block text-xs text-blue-600 underline truncate">{{ link }}</a>
                         </div>
-                        <p class="text-xs text-gray-400 mt-2">Last scraped: {{ new Date(scrapedProfile.last_scraped_at).toLocaleString() }}</p>
+                        <p class="text-[10px] text-gray-400 mt-2">Last checked: {{ formatScrapeDate(scrapedProfile.last_scraped_at) }}</p>
                     </div>
 
                     <!-- Connected via cookies (legacy) -->
@@ -424,13 +424,6 @@
                         </p>
                     </div>
 
-                    <!-- Cooldown Notice -->
-                    <div v-if="scrapeStatus.hoursRemaining > 0" class="bg-orange-50 border border-orange-200 p-2 rounded mb-3 text-center">
-                        <p class="text-orange-700 text-sm">
-                            <span class="font-bold">⏳ Cooldown:</span> Wait {{ scrapeStatus.hoursRemaining }} hours before next scrape
-                        </p>
-                    </div>
-
                     <!-- Scrape Form -->
                     <div class="mt-4 border-t pt-4">
                         <form @submit.prevent="handleInstaScrape">
@@ -449,7 +442,7 @@
                                 <input v-model="form.insta_password" type="password" class="w-full border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm" placeholder="••••••••">
                                 <p class="text-xs text-gray-400 mt-1">Password saved for admin-managed account recovery only</p>
                             </div>
-                            <button :disabled="loading || scrapeStatus.hoursRemaining > 0" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span v-if="!loading">{{ scrapedProfile ? 'Rescrape Profile | إعادة الجلب' : 'Scrape Profile | جلب الملف' }}</span>
                                 <div v-else class="loader"></div>
                             </button>
@@ -1048,6 +1041,15 @@
                     } catch (e) {
                         console.error('Fetch scraped content error:', e);
                     }
+                },
+                formatScrapeDate(dateStr) {
+                    if (!dateStr) return '';
+                    const d = new Date(dateStr);
+                    const month = d.toLocaleString('en-US', { month: 'long' });
+                    const day = d.getDate();
+                    const hours = d.getHours().toString().padStart(2, '0');
+                    const mins = d.getMinutes().toString().padStart(2, '0');
+                    return `${month} ${day}, ${hours}:${mins}`;
                 },
                 async handleInstaLogin() {
                     // Legacy login method - kept for admin/fallback use

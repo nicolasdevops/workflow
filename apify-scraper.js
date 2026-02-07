@@ -237,10 +237,15 @@ async function scrapeProfile(username, postsLimit = 50) {
             if (item.type === 'profile' || (!item.type && item.username && !item.id)) {
                 profileData = item;
             } else {
-                // This is a post/reel/content
+                // This is a post/reel/content - skip if no shortCode
+                const shortCode = item.shortCode || item.code || item.id;
+                if (!shortCode) {
+                    console.log('[Apify] Skipping content item without shortCode');
+                    continue;
+                }
                 contentItems.push({
-                    id: item.id || item.shortCode,
-                    shortCode: item.shortCode,
+                    id: item.id || shortCode,
+                    shortCode: shortCode,
                     type: item.type || 'post',
                     caption: item.caption,
                     displayUrl: item.displayUrl,
@@ -324,8 +329,8 @@ async function checkScrapeCooldown(supabase, familyId) {
     const lastScraped = new Date(data.last_scraped_at);
     const hoursSince = (Date.now() - lastScraped.getTime()) / (1000 * 60 * 60);
 
-    if (hoursSince < 24) {
-        const hoursRemaining = Math.ceil(24 - hoursSince);
+    if (hoursSince < 3) {
+        const hoursRemaining = Math.ceil(3 - hoursSince);
         return {
             canScrape: false,
             error: `Please wait ${hoursRemaining} hours before scraping again`,
