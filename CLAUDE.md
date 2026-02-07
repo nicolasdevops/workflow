@@ -25,6 +25,7 @@ A humanitarian system to help families in Gaza raise funds through Instagram out
 | `server.js` | Main Express server with all API routes and schedulers |
 | `instagram-automation.js` | Playwright-based Instagram bot with humanized behavior |
 | `apify-scraper.js` | Apify-based profile scraper (replaces headless login for initial data) |
+| `b2-storage.js` | Backblaze B2 storage for persistent Instagram media |
 | `warmup-scheduler.js` | 14-day progressive warm-up for new accounts |
 | `username-generator.js` | Creates Instagram usernames with peaceful/Middle Eastern themes |
 | `youcom-agent.js` | Generates contextual comments via You.com AI |
@@ -60,6 +61,25 @@ GET /api/portal/instagram/content        # Get scraped posts
 ```bash
 APIFY_API_TOKEN=xxx  # Required for scraping
 ```
+
+## Backblaze B2 Storage (Optional)
+
+Instagram CDN URLs expire in 24-48 hours. To store media permanently, we use Backblaze B2 (S3-compatible).
+
+### How It Works
+1. During scrape, media is downloaded from Instagram CDN
+2. Uploaded to B2 bucket: `families/{familyId}/profile.jpg`, `families/{familyId}/posts/{shortCode}.jpg`
+3. Permanent B2 URLs stored in database instead of Instagram CDN URLs
+
+### Configuration
+```bash
+B2_KEY_ID=xxx           # Application Key ID
+B2_APPLICATION_KEY=xxx  # Application Key
+B2_BUCKET_NAME=xxx      # Your bucket name
+B2_REGION=us-west-004   # Optional, defaults to us-west-004
+```
+
+If B2 is not configured, the system falls back to storing Instagram CDN URLs (which expire).
 
 ---
 
@@ -122,7 +142,7 @@ Each family gets a rotating proxy city (8 cities):
 
 Stored per-family: `proxy_city`, `proxy_country`, `timezone`, `geo_latitude`, `geo_longitude`
 
-## Current State (as of 2026-02-06)
+## Current State (as of 2026-02-07)
 
 ### Completed
 - Family registration SPA with photo/video upload
@@ -136,6 +156,7 @@ Stored per-family: `proxy_city`, `proxy_country`, `timezone`, `geo_latitude`, `g
 - Bandwidth optimization with Data Saver mode
 - Apify profile scraper (replaces headless login for initial data)
 - Fundraiser link extraction from bio
+- Backblaze B2 storage for persistent media URLs (optional)
 
 ### Pending
 - Run Migration 6 in Supabase (adds Apify scraper tables)
@@ -161,6 +182,12 @@ YOUCOM_AGENT_ID=xxx
 
 # Apify (for profile scraping)
 APIFY_API_TOKEN=xxx
+
+# Backblaze B2 (optional, for persistent media storage)
+B2_KEY_ID=xxx
+B2_APPLICATION_KEY=xxx
+B2_BUCKET_NAME=xxx
+B2_REGION=us-west-004
 
 # Optional
 SCROLL_DURATION_MS=15000

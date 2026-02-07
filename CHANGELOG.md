@@ -1,8 +1,40 @@
 # Changelog
 
+## 2026-02-07 - Backblaze B2 Storage Integration
+
+### Changes
+- **New B2 storage module** (`b2-storage.js`):
+  - Uses B2's S3-compatible API via AWS SDK
+  - Downloads media from Instagram CDN during scrape
+  - Uploads to B2 for permanent storage
+  - Organized paths: `families/{familyId}/profile.jpg`, `families/{familyId}/posts/{shortCode}.jpg`
+  - Falls back to Instagram CDN URLs if B2 not configured
+
+- **Updated apify-scraper.js**:
+  - Integrates B2 upload into `saveScrapedData()` function
+  - Uploads profile pic, post images, and videos to B2
+  - Stores permanent B2 URLs in database instead of expiring CDN URLs
+
+- **Required environment variables**:
+  - `B2_KEY_ID` - Application Key ID
+  - `B2_APPLICATION_KEY` - Application Key
+  - `B2_BUCKET_NAME` - Your bucket name
+  - `B2_REGION` - Optional, defaults to `us-west-004`
+
+### Files Added
+- `b2-storage.js`
+
+### Files Modified
+- `package.json` (added `@aws-sdk/client-s3`)
+- `apify-scraper.js` (B2 integration)
+- `server.js` (B2 initialization)
+- `CLAUDE.md` (documentation)
+
+---
+
 ## 2026-02-06 - Apify Instagram Scraper Integration
 
-**Commit:** (pending)
+**Commit:** 6f0ca61
 
 ### Changes
 - **New Apify scraper module** (`apify-scraper.js`):

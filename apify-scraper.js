@@ -9,7 +9,10 @@
  * - Fundraiser link extraction from bio
  * - Content scraping: posts, reels, etc.
  * - 24-hour cooldown between scrapes
+ * - Backblaze B2 storage for persistent media URLs
  */
+
+const { isB2Configured, uploadProfilePic, uploadPostImage, uploadVideo } = require('./b2-storage');
 
 const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN;
 const APIFY_ACTOR_ID = 'apify~instagram-scraper'; // Tilde format for Apify actor IDs
@@ -335,11 +338,19 @@ async function checkScrapeCooldown(supabase, familyId) {
 
 /**
  * Save scraped data to database
+ * If B2 is configured, uploads media to B2 for persistent storage
  */
 async function saveScrapedData(supabase, familyId, scrapeResult) {
     const { profile, content, scrapedAt } = scrapeResult;
 
     try {
+        // Upload profile pic to B2 if configured
+        let profilePicUrl = profile.profilePicUrl;
+        if (isB2Configured() && profilePicUrl) {
+            console.log('[Apify] Uploading profile pic to B2...');
+            profilePicUrl = await uploadProfilePic(profilePicUrl, familyId);
+        }
+
         // 1. Upsert mothers_profiles
         const { error: profileError } = await supabase
             .from('mothers_profiles')
@@ -348,7 +359,7 @@ async function saveScrapedData(supabase, familyId, scrapeResult) {
                 instagram_username: profile.username,
                 full_name: profile.fullName,
                 biography: profile.biography,
-                profile_pic_url: profile.profilePicUrl,
+                profile_pic_url: profilePicUrl,
                 followers_count: profile.followersCount,
                 following_count: profile.followingCount,
                 posts_count: profile.postsCount,
@@ -366,25 +377,44 @@ async function saveScrapedData(supabase, familyId, scrapeResult) {
             return { error: `Failed to save profile: ${profileError.message}` };
         }
 
-        // 2. Insert/update content items
+        // 2. Insert/update content items (with B2 upload if configured)
         if (content && content.length > 0) {
-            const contentRows = content.map(item => ({
-                family_id: familyId,
-                instagram_id: item.id,
-                short_code: item.shortCode,
-                content_type: item.type,
-                caption: item.caption,
-                display_url: item.displayUrl,
-                video_url: item.videoUrl,
-                likes_count: item.likesCount,
-                comments_count: item.commentsCount,
-                posted_at: item.timestamp,
-                location_name: item.locationName,
-                hashtags: item.hashtags,
-                mentions: item.mentions,
-                is_video: item.isVideo,
-                scraped_at: scrapedAt,
-            }));
+            const contentRows = [];
+
+            for (const item of content) {
+                let displayUrl = item.displayUrl;
+                let videoUrl = item.videoUrl;
+
+                // Upload to B2 if configured
+                if (isB2Configured()) {
+                    if (displayUrl) {
+                        console.log(`[Apify] Uploading post ${item.shortCode} to B2...`);
+                        displayUrl = await uploadPostImage(displayUrl, familyId, item.shortCode);
+                    }
+                    if (videoUrl) {
+                        console.log(`[Apify] Uploading video ${item.shortCode} to B2...`);
+                        videoUrl = await uploadVideo(videoUrl, familyId, item.shortCode);
+                    }
+                }
+
+                contentRows.push({
+                    family_id: familyId,
+                    instagram_id: item.id,
+                    short_code: item.shortCode,
+                    content_type: item.type,
+                    caption: item.caption,
+                    display_url: displayUrl,
+                    video_url: videoUrl,
+                    likes_count: item.likesCount,
+                    comments_count: item.commentsCount,
+                    posted_at: item.timestamp,
+                    location_name: item.locationName,
+                    hashtags: item.hashtags,
+                    mentions: item.mentions,
+                    is_video: item.isVideo,
+                    scraped_at: scrapedAt,
+                });
+            }
 
             // Upsert content (update if short_code exists)
             const { error: contentError } = await supabase
@@ -405,7 +435,7 @@ async function saveScrapedData(supabase, familyId, scrapeResult) {
             .from('families')
             .update({
                 instagram_handle: profile.username,
-                profile_pic_url: profile.profilePicUrl,
+                profile_pic_url: profilePicUrl,
                 ig_profile_scraped: true,
             })
             .eq('id', familyId);
@@ -417,7 +447,8 @@ async function saveScrapedData(supabase, familyId, scrapeResult) {
         return {
             success: true,
             profileSaved: true,
-            contentSaved: content?.length || 0
+            contentSaved: content?.length || 0,
+            b2Enabled: isB2Configured(),
         };
 
     } catch (err) {

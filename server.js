@@ -17,6 +17,7 @@ const { encrypt, decrypt } = require('./encryption');
 const { generateUsernames, generateEmail } = require('./username-generator');
 const { runAllWarmups, runWarmupSession, getWarmupDay, getWarmupPhase } = require('./warmup-scheduler');
 const { checkAccountPublic, scrapeProfile, checkScrapeCooldown, saveScrapedData } = require('./apify-scraper');
+const { initB2Client, isB2Configured } = require('./b2-storage');
 require('dotenv').config();
 
 const app = express();
@@ -36,6 +37,14 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
     console.error('❌ Supabase initialization failed:', e.message);
     console.error('   Check your SUPABASE_URL in .env');
   }
+}
+
+// Initialize Backblaze B2 (if env vars are present)
+if (isB2Configured()) {
+  initB2Client();
+  console.log('✅ Backblaze B2 storage initialized');
+} else {
+  console.log('ℹ️  Backblaze B2 not configured - using Instagram CDN URLs (they expire in 24-48hrs)');
 }
 
 // Store active sessions in memory (in production, use Redis)
