@@ -1402,6 +1402,63 @@ app.get('/api/portal/instagram/profile', portalAuth, async (req, res) => {
   }
 });
 
+// Unlink Instagram account (reset to virgin state)
+app.post('/api/portal/instagram/unlink', portalAuth, async (req, res) => {
+  const familyId = req.user.id;
+
+  if (!supabase) {
+    return res.status(500).json({ error: 'Database not configured' });
+  }
+
+  console.log(`[Unlink] Unlinking Instagram for family ${familyId}`);
+
+  try {
+    // 1. Delete scraped content
+    const { error: contentError } = await supabase
+      .from('mothers_content')
+      .delete()
+      .eq('family_id', familyId);
+
+    if (contentError) {
+      console.log('[Unlink] Content delete warning:', contentError.message);
+    }
+
+    // 2. Delete scraped profile
+    const { error: profileError } = await supabase
+      .from('mothers_profiles')
+      .delete()
+      .eq('family_id', familyId);
+
+    if (profileError) {
+      console.log('[Unlink] Profile delete warning:', profileError.message);
+    }
+
+    // 3. Reset family record
+    const { error: familyError } = await supabase
+      .from('families')
+      .update({
+        instagram_handle: null,
+        ig_profile_scraped: false,
+        profile_pic_url: null
+      })
+      .eq('id', familyId);
+
+    if (familyError) {
+      throw familyError;
+    }
+
+    console.log(`[Unlink] Successfully unlinked Instagram for family ${familyId}`);
+
+    res.json({
+      status: 'SUCCESS',
+      message: 'Instagram account unlinked successfully'
+    });
+  } catch (e) {
+    console.error('[Unlink] Error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Get scraped content for current family
 app.get('/api/portal/instagram/content', portalAuth, async (req, res) => {
   const familyId = req.user.id;

@@ -377,13 +377,17 @@
                 <!-- Tab: Instagram (Apify Scraper Flow) -->
                 <div v-if="tab === 'instagram'">
                     <!-- Scraped Profile Display -->
-                    <div v-if="scrapedProfile" class="bg-green-50 border border-green-100 p-3 rounded-lg mb-3">
+                    <div v-if="scrapedProfile" class="bg-[#3274B5]/10 border border-[#3274B5]/30 p-3 rounded-lg mb-3 relative">
+                        <!-- Unlink X Button -->
+                        <button @click="unlinkInstagram" class="absolute top-2 right-2 text-[#3274B5] hover:text-red-500 transition p-1 rounded-full hover:bg-red-50" title="Unlink Instagram | إلغاء الربط">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
                         <div class="flex items-start gap-3">
-                            <img v-if="scrapedProfile.profile_pic_url" :src="scrapedProfile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-green-300 object-cover">
+                            <img v-if="scrapedProfile.profile_pic_url" :src="scrapedProfile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover">
                             <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
                             <div class="flex-1">
-                                <div class="flex items-center gap-2 text-green-700 font-bold mb-1">
-                                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <div class="flex items-center gap-2 text-[#3274B5] font-bold mb-1">
+                                    <div class="w-2 h-2 bg-[#3274B5] rounded-full animate-pulse"></div>
                                     <span class="text-sm tracking-wide">SCRAPED</span>
                                     <span class="text-lg">تم الجلب</span>
                                 </div>
@@ -395,9 +399,9 @@
                                 </div>
                             </div>
                         </div>
-                        <p v-if="scrapedProfile.biography" class="text-sm text-gray-700 mt-2 border-t border-green-200 pt-2">{{ scrapedProfile.biography }}</p>
-                        <div v-if="scrapedProfile.fundraiser_links && scrapedProfile.fundraiser_links.length > 0" class="mt-2 pt-2 border-t border-green-200">
-                            <p class="text-xs font-bold text-green-700 mb-1">Detected Fundraiser Links:</p>
+                        <p v-if="scrapedProfile.biography" class="text-sm text-gray-700 mt-2 border-t border-[#3274B5]/30 pt-2">{{ scrapedProfile.biography }}</p>
+                        <div v-if="scrapedProfile.fundraiser_links && scrapedProfile.fundraiser_links.length > 0" class="mt-2 pt-2 border-t border-[#3274B5]/30">
+                            <p class="text-xs font-bold text-[#3274B5] mb-1">Detected Fundraiser Links:</p>
                             <a v-for="link in scrapedProfile.fundraiser_links" :key="link" :href="link" target="_blank" class="block text-xs text-blue-600 underline truncate">{{ link }}</a>
                         </div>
                         <p class="text-[10px] text-gray-400 mt-2">Last checked: {{ formatScrapeDate(scrapedProfile.last_scraped_at) }}</p>
@@ -1050,6 +1054,47 @@
                     const hours = d.getHours().toString().padStart(2, '0');
                     const mins = d.getMinutes().toString().padStart(2, '0');
                     return `${month} ${day}, ${hours}:${mins}`;
+                },
+                async unlinkInstagram() {
+                    if (!confirm('Unlink this Instagram account? This will remove scraped profile and content data.\n\nإلغاء ربط هذا الحساب؟ سيتم حذف بيانات الملف الشخصي والمحتوى.')) {
+                        return;
+                    }
+
+                    this.loading = true;
+                    try {
+                        const res = await fetch('/api/portal/instagram/unlink', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token }
+                        });
+
+                        const data = await res.json();
+
+                        if (!res.ok) {
+                            throw new Error(data.error || 'Unlink failed');
+                        }
+
+                        // Reset local state
+                        this.scrapedProfile = null;
+                        this.scrapedContent = [];
+                        this.scrapeStatus = { canScrape: true, hoursRemaining: 0 };
+                        this.form.insta_username = '';
+                        this.form.insta_password = '';
+
+                        // Clear profile pic from profile
+                        if (this.profile) {
+                            this.profile.instagram_handle = null;
+                            this.profile.profile_pic_url = null;
+                        }
+
+                        this.scrapeMessage = { type: 'success', text: 'Instagram account unlinked successfully' };
+                        setTimeout(() => { this.scrapeMessage = null; }, 3000);
+
+                    } catch (e) {
+                        console.error('Unlink error:', e);
+                        this.error = e.message;
+                    } finally {
+                        this.loading = false;
+                    }
                 },
                 async handleInstaLogin() {
                     // Legacy login method - kept for admin/fallback use
