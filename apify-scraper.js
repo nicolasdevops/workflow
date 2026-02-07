@@ -12,7 +12,7 @@
  */
 
 const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN;
-const APIFY_ACTOR_ID = 'apify/instagram-scraper';
+const APIFY_ACTOR_ID = 'apify~instagram-scraper'; // Tilde format for Apify actor IDs
 
 // Regex patterns for fundraiser links
 const FUNDRAISER_PATTERNS = [
