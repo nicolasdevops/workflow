@@ -612,3 +612,15 @@ WHERE f.instagram_handle IS NOT NULL
 ORDER BY mp.last_scraped_at DESC NULLS LAST;
 
 -- Usage: SELECT * FROM profile_scrape_status;
+
+-- ============================================================================
+-- MIGRATION 7: Backblaze B2 Storage Support
+-- Purpose: Add b2_url column for family media uploads stored in B2
+-- Date: 2026-02-07
+-- ============================================================================
+
+-- Add B2 URL column to media_uploads table
+ALTER TABLE media_uploads
+ADD COLUMN IF NOT EXISTS b2_url TEXT;
+
+COMMENT ON COLUMN media_uploads.b2_url IS 'Backblaze B2 URL if file stored in B2 (null = Supabase storage)';

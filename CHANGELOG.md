@@ -15,11 +15,20 @@
   - Uploads profile pic, post images, and videos to B2
   - Stores permanent B2 URLs in database instead of expiring CDN URLs
 
+- **Family media uploads now use B2**:
+  - No file size limits (vs Supabase 50MB limit)
+  - No storage limits (vs Supabase 1GB limit)
+  - Free egress via Cloudflare CDN
+  - Upload, list, and delete endpoints updated to support B2
+
 - **Required environment variables**:
   - `B2_KEY_ID` - Application Key ID
   - `B2_APPLICATION_KEY` - Application Key
   - `B2_BUCKET_NAME` - Your bucket name
   - `B2_REGION` - Optional, defaults to `us-west-004`
+
+- **Database** (Migration 7):
+  - Added `b2_url` column to `media_uploads` table
 
 ### Files Added
 - `b2-storage.js`
@@ -27,7 +36,8 @@
 ### Files Modified
 - `package.json` (added `@aws-sdk/client-s3`)
 - `apify-scraper.js` (B2 integration)
-- `server.js` (B2 initialization)
+- `server.js` (B2 for family uploads)
+- `migrations.sql` (Migration 7)
 - `CLAUDE.md` (documentation)
 
 ---

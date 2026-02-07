@@ -201,6 +201,32 @@ async function uploadVideo(url, familyId, shortCode) {
 }
 
 /**
+ * Upload family media (photos/videos uploaded by families)
+ * @param {Buffer} buffer - File data
+ * @param {string} familyId - Family ID
+ * @param {string} fileName - Original filename
+ * @param {string} contentType - MIME type
+ * @returns {object} { url, key } or throws error
+ */
+async function uploadFamilyMedia(buffer, familyId, fileName, contentType) {
+    if (!isB2Configured()) {
+        throw new Error('B2 storage not configured');
+    }
+
+    // Generate unique key
+    const ext = fileName.split('.').pop()?.toLowerCase() || 'bin';
+    const timestamp = Date.now();
+    const key = `families/${familyId}/uploads/${timestamp}.${ext}`;
+
+    console.log(`[B2] Uploading family media: ${key} (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
+
+    const b2Url = await uploadToB2(buffer, key, contentType);
+
+    console.log(`[B2] Family media uploaded: ${b2Url}`);
+    return { url: b2Url, key };
+}
+
+/**
  * Delete file from B2
  */
 async function deleteFromB2(key) {
@@ -227,6 +253,7 @@ module.exports = {
     uploadProfilePic,
     uploadPostImage,
     uploadVideo,
+    uploadFamilyMedia,
     deleteFromB2,
     downloadToBuffer,
 };

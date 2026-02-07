@@ -64,22 +64,26 @@ APIFY_API_TOKEN=xxx  # Required for scraping
 
 ## Backblaze B2 Storage (Optional)
 
-Instagram CDN URLs expire in 24-48 hours. To store media permanently, we use Backblaze B2 (S3-compatible).
+B2 provides unlimited storage with no file size limits. Free egress via Cloudflare CDN.
+
+### What Uses B2
+1. **Instagram scraped media**: Profile pics, post images, videos from Apify scrapes
+2. **Family uploads**: Photos/videos uploaded by families (removes Supabase 50MB/1GB limits)
 
 ### How It Works
-1. During scrape, media is downloaded from Instagram CDN
-2. Uploaded to B2 bucket: `families/{familyId}/profile.jpg`, `families/{familyId}/posts/{shortCode}.jpg`
-3. Permanent B2 URLs stored in database instead of Instagram CDN URLs
+- Scraped media: `families/{familyId}/profile.jpg`, `families/{familyId}/posts/{shortCode}.jpg`
+- Family uploads: `families/{familyId}/uploads/{timestamp}.{ext}`
+- URLs stored in database, served directly (no signing needed)
 
 ### Configuration
 ```bash
 B2_KEY_ID=xxx           # Application Key ID
 B2_APPLICATION_KEY=xxx  # Application Key
 B2_BUCKET_NAME=xxx      # Your bucket name
-B2_REGION=us-west-004   # Optional, defaults to us-west-004
+B2_REGION=us-west-004   # Found in bucket endpoint URL (e.g., s3.us-west-004.backblazeb2.com)
 ```
 
-If B2 is not configured, the system falls back to storing Instagram CDN URLs (which expire).
+If B2 is not configured, falls back to Supabase storage (with limits).
 
 ---
 
