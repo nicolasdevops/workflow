@@ -228,47 +228,73 @@ async function scrapeProfile(username, postsLimit = 50) {
         // Parse the results
         const posts = result.data;
 
+        // Debug: Log first item structure to understand Apify response format
+        if (posts.length > 0) {
+            console.log('[Apify] First item keys:', Object.keys(posts[0]));
+            console.log('[Apify] First item sample:', JSON.stringify(posts[0], null, 2).substring(0, 500));
+        }
+
         // Extract profile from first post's owner data (or look for profile-type item)
         let profileData = null;
         const contentItems = [];
 
         for (const item of posts) {
-            // Check if this is profile data
-            if (item.type === 'profile' || (!item.type && item.username && !item.id)) {
+            // Check if this is profile data (various formats Apify might return)
+            if (item.type === 'profile' || item.type === 'user' ||
+                (!item.type && item.username && !item.shortCode && !item.url)) {
                 profileData = item;
+                console.log('[Apify] Found profile data item');
             } else {
-                // This is a post/reel/content - skip if no shortCode
-                const shortCode = item.shortCode || item.code || item.id;
+                // This is a post/reel/content
+                // Try multiple field names for shortCode
+                const shortCode = item.shortCode || item.shortcode || item.code ||
+                                  (item.url && item.url.match(/\/p\/([^\/]+)/)?.[1]) ||
+                                  (item.url && item.url.match(/\/reel\/([^\/]+)/)?.[1]) ||
+                                  item.id;
+
                 if (!shortCode) {
-                    console.log('[Apify] Skipping content item without shortCode');
+                    console.log('[Apify] Skipping item without shortCode, keys:', Object.keys(item).join(', '));
                     continue;
                 }
+
+                // Try multiple field names for display URL
+                const displayUrl = item.displayUrl || item.display_url || item.imageUrl ||
+                                   item.thumbnailUrl || item.thumbnail_url || item.image;
+
                 contentItems.push({
                     id: item.id || shortCode,
                     shortCode: shortCode,
-                    type: item.type || 'post',
-                    caption: item.caption,
-                    displayUrl: item.displayUrl,
-                    videoUrl: item.videoUrl,
-                    likesCount: item.likesCount,
-                    commentsCount: item.commentsCount,
-                    timestamp: item.timestamp,
-                    locationName: item.locationName,
+                    type: item.type || item.productType || 'post',
+                    caption: item.caption || item.text || '',
+                    displayUrl: displayUrl,
+                    videoUrl: item.videoUrl || item.video_url,
+                    likesCount: item.likesCount || item.likes || item.likeCount || 0,
+                    commentsCount: item.commentsCount || item.comments || item.commentCount || 0,
+                    timestamp: item.timestamp || item.taken_at || item.takenAt,
+                    locationName: item.locationName || item.location?.name,
                     hashtags: item.hashtags || [],
                     mentions: item.mentions || [],
-                    isVideo: item.isVideo || false,
+                    isVideo: item.isVideo || item.is_video || item.type === 'video' || false,
                 });
 
-                // Try to get profile from ownerUsername data
-                if (!profileData && item.ownerUsername) {
-                    profileData = {
-                        username: item.ownerUsername,
-                        fullName: item.ownerFullName,
-                        profilePicUrl: item.profilePicUrl,
-                    };
+                // Try to get profile from post owner data (multiple field names)
+                if (!profileData) {
+                    const ownerUsername = item.ownerUsername || item.owner?.username || item.user?.username;
+                    if (ownerUsername) {
+                        profileData = {
+                            username: ownerUsername,
+                            fullName: item.ownerFullName || item.owner?.fullName || item.user?.full_name,
+                            profilePicUrl: item.profilePicUrl || item.owner?.profilePicUrl || item.user?.profile_pic_url,
+                            followersCount: item.owner?.followersCount || item.user?.follower_count,
+                            biography: item.owner?.biography || item.user?.biography,
+                        };
+                        console.log('[Apify] Extracted profile from post owner:', ownerUsername);
+                    }
                 }
             }
         }
+
+        console.log(`[Apify] Parsed ${contentItems.length} content items, profileData: ${!!profileData}`);
 
         // If we still don't have profile data, fetch it separately
         if (!profileData) {
