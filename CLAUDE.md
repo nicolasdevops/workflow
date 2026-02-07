@@ -32,6 +32,7 @@ A humanitarian system to help families in Gaza raise funds through Instagram out
 | `encryption.js` | AES-256-GCM for cookie/password storage |
 | `migrations.sql` | Supabase schema migrations (run manually in SQL Editor) |
 | `public/index.html` | Family registration SPA |
+| `public/admin.html` | Admin dashboard SPA |
 
 ## Apify Instagram Scraper
 
@@ -84,6 +85,26 @@ B2_REGION=us-west-004   # Found in bucket endpoint URL (e.g., s3.us-west-004.bac
 ```
 
 If B2 is not configured, falls back to Supabase storage (with limits).
+
+## Admin Dashboard
+
+Located at `/admin.html`, provides visibility into:
+- All families with registration/connection status
+- Media uploads (B2 vs Supabase storage)
+- Profile scrape status and cooldowns
+- Automation switch status (4 dots per family)
+
+### Authentication
+Uses `N8N_BASIC_AUTH_USER` and `N8N_BASIC_AUTH_PASSWORD` env vars.
+
+### API Endpoints
+```bash
+POST /api/admin/login      # Returns session token
+GET /api/admin/families    # All families with status
+GET /api/admin/media       # Recent media uploads
+GET /api/admin/scrapes     # Scrape status from profile_scrape_status view
+GET /api/admin/stats       # Dashboard counts
+```
 
 ---
 
@@ -161,12 +182,12 @@ Stored per-family: `proxy_city`, `proxy_country`, `timezone`, `geo_latitude`, `g
 - Apify profile scraper (replaces headless login for initial data)
 - Fundraiser link extraction from bio
 - Backblaze B2 storage for persistent media URLs (optional)
+- Admin dashboard UI (public/admin.html)
 
 ### Pending
-- Run Migration 6 in Supabase (adds Apify scraper tables)
+- Run Migration 6 and 7 in Supabase
 - Content posting scheduler (`contentposting_enabled`)
 - DM automation (`dm_enabled`)
-- Admin dashboard UI for switch management
 
 ## Environment Variables (Railway)
 

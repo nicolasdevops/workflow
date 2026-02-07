@@ -1596,6 +1596,170 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// --- ADMIN API ---
+
+// Admin credentials from env (reuse N8N basic auth)
+const ADMIN_USER = process.env.N8N_BASIC_AUTH_USER || 'admin';
+const ADMIN_PASS = process.env.N8N_BASIC_AUTH_PASSWORD || '';
+
+// Store admin sessions
+const adminSessions = new Map();
+
+// Generate simple admin token
+function generateAdminToken() {
+  return 'admin_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+// Admin auth middleware
+function adminAuth(req, res, next) {
+  const token = req.headers['x-admin-token'];
+  if (!token || !adminSessions.has(token)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}
+
+// Admin login
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body;
+
+  if (!ADMIN_PASS) {
+    return res.status(500).json({ error: 'Admin not configured. Set N8N_BASIC_AUTH_PASSWORD.' });
+  }
+
+  if (username === ADMIN_USER && password === ADMIN_PASS) {
+    const token = generateAdminToken();
+    adminSessions.set(token, { username, createdAt: new Date() });
+    // Clean up old tokens (keep max 10)
+    if (adminSessions.size > 10) {
+      const oldest = adminSessions.keys().next().value;
+      adminSessions.delete(oldest);
+    }
+    return res.json({ token });
+  }
+
+  res.status(401).json({ error: 'Invalid credentials' });
+});
+
+// Admin: Get all families
+app.get('/api/admin/families', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+  try {
+    const { data, error } = await supabase
+      .from('families')
+      .select('id, name, email, instagram_handle, proxy_city, ig_account_status, cookies, bestbehavior_enabled, commenting_enabled, contentposting_enabled, dm_enabled, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Mask cookies - just indicate if present
+    const sanitized = data.map(f => ({
+      ...f,
+      cookies: f.cookies ? true : false
+    }));
+
+    res.json(sanitized);
+  } catch (e) {
+    console.error('[Admin] Families error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Admin: Get recent media uploads
+app.get('/api/admin/media', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+  try {
+    // Get media with family name
+    const { data, error } = await supabase
+      .from('media_uploads')
+      .select(`
+        id, family_id, file_path, b2_url, description, created_at,
+        families (name, email)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (error) throw error;
+
+    // Format response with URLs
+    const formatted = data.map(m => ({
+      id: m.id,
+      family_id: m.family_id,
+      family_name: m.families?.name || m.families?.email,
+      file_path: m.file_path,
+      b2_url: m.b2_url,
+      url: m.b2_url || null, // B2 URLs are public; Supabase would need signed URL
+      description: m.description,
+      created_at: m.created_at
+    }));
+
+    res.json(formatted);
+  } catch (e) {
+    console.error('[Admin] Media error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Admin: Get scrape status (using view)
+app.get('/api/admin/scrapes', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+  try {
+    const { data, error } = await supabase
+      .from('profile_scrape_status')
+      .select('*')
+      .order('last_scraped_at', { ascending: false, nullsFirst: false });
+
+    if (error) throw error;
+
+    res.json(data || []);
+  } catch (e) {
+    console.error('[Admin] Scrapes error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Admin: Get dashboard stats
+app.get('/api/admin/stats', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+  try {
+    // Total families
+    const { count: totalFamilies } = await supabase
+      .from('families')
+      .select('*', { count: 'exact', head: true });
+
+    // IG connected (has cookies or scraped profile)
+    const { count: igConnected } = await supabase
+      .from('families')
+      .select('*', { count: 'exact', head: true })
+      .or('cookies.neq.null,ig_profile_scraped.eq.true');
+
+    // Total media uploads
+    const { count: totalMedia } = await supabase
+      .from('media_uploads')
+      .select('*', { count: 'exact', head: true });
+
+    // Active automation (any of the 4 switches enabled)
+    const { count: automationActive } = await supabase
+      .from('families')
+      .select('*', { count: 'exact', head: true })
+      .or('bestbehavior_enabled.eq.true,commenting_enabled.eq.true,contentposting_enabled.eq.true,dm_enabled.eq.true');
+
+    res.json({
+      totalFamilies: totalFamilies || 0,
+      igConnected: igConnected || 0,
+      totalMedia: totalMedia || 0,
+      automationActive: automationActive || 0
+    });
+  } catch (e) {
+    console.error('[Admin] Stats error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // API: 2FA
 app.post('/api/2fa', async (req, res) => {
   const { username, code } = req.body;

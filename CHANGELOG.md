@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-02-07 - Admin Dashboard
+
+### Changes
+- **New admin dashboard** (`public/admin.html`):
+  - Vue.js 3 SPA with Tailwind CSS
+  - Login via `N8N_BASIC_AUTH_USER` / `N8N_BASIC_AUTH_PASSWORD`
+  - Families tab: all families with status, proxy city, automation switches
+  - Media tab: recent uploads with B2/Supabase indicator
+  - Scrapes tab: profile scrape status from `profile_scrape_status` view
+  - Stats cards: Total families, IG connected, media uploads, active automation
+
+- **New admin API endpoints** (`server.js`):
+  - `POST /api/admin/login` - returns session token
+  - `GET /api/admin/families` - all families with masked cookies
+  - `GET /api/admin/media` - recent media with family names
+  - `GET /api/admin/scrapes` - scrape status view
+  - `GET /api/admin/stats` - dashboard counts
+
+### Files Added
+- `public/admin.html`
+
+### Files Modified
+- `server.js` (admin endpoints)
+- `CLAUDE.md` (documentation)
+
+---
+
 ## 2026-02-07 - Backblaze B2 Storage Integration
 
 ### Changes
