@@ -97,8 +97,8 @@ async function checkAccountPublic(username) {
             return { isPublic: false, error: 'Failed to start Apify run' };
         }
 
-        // Wait for run to complete (with timeout)
-        const result = await waitForApifyRun(runId, 60000);
+        // Wait for run to complete (with timeout - 90s for profile check)
+        const result = await waitForApifyRun(runId, 90000);
 
         if (result.error) {
             return { isPublic: false, error: result.error };
@@ -134,28 +134,41 @@ async function checkAccountPublic(username) {
  */
 async function waitForApifyRun(runId, timeoutMs = 120000) {
     const startTime = Date.now();
-    const pollInterval = 3000;
+    const pollInterval = 5000; // Poll every 5 seconds
+    let pollCount = 0;
+
+    console.log(`[Apify] Waiting for run ${runId} (timeout: ${timeoutMs/1000}s)`);
 
     while (Date.now() - startTime < timeoutMs) {
+        pollCount++;
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+
         try {
             const statusRes = await fetch(
                 `https://api.apify.com/v2/actor-runs/${runId}?token=${APIFY_API_TOKEN}`
             );
 
             if (!statusRes.ok) {
+                const errText = await statusRes.text();
+                console.error(`[Apify] Run status check failed: ${statusRes.status} - ${errText}`);
                 return { error: `Failed to check run status: ${statusRes.status}` };
             }
 
             const statusData = await statusRes.json();
             const status = statusData.data?.status;
+            const statusMessage = statusData.data?.statusMessage || '';
+
+            console.log(`[Apify] Poll #${pollCount} (${elapsed}s): status=${status} ${statusMessage ? `(${statusMessage})` : ''}`);
 
             if (status === 'SUCCEEDED') {
                 // Fetch results from dataset
                 const datasetId = statusData.data?.defaultDatasetId;
                 if (!datasetId) {
+                    console.error('[Apify] Run succeeded but no dataset found');
                     return { error: 'No dataset found' };
                 }
 
+                console.log(`[Apify] Run succeeded, fetching dataset ${datasetId}`);
                 const dataRes = await fetch(
                     `https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_API_TOKEN}`
                 );
@@ -165,22 +178,26 @@ async function waitForApifyRun(runId, timeoutMs = 120000) {
                 }
 
                 const data = await dataRes.json();
+                console.log(`[Apify] Got ${data.length} items from dataset`);
                 return { data };
             }
 
             if (status === 'FAILED' || status === 'ABORTED' || status === 'TIMED-OUT') {
-                return { error: `Apify run ${status.toLowerCase()}` };
+                console.error(`[Apify] Run ended with status: ${status} - ${statusMessage}`);
+                return { error: `Apify run ${status.toLowerCase()}: ${statusMessage || 'no details'}` };
             }
 
-            // Still running, wait and poll again
+            // Still running (READY, RUNNING), wait and poll again
             await new Promise(r => setTimeout(r, pollInterval));
 
         } catch (err) {
+            console.error(`[Apify] Poll error:`, err);
             return { error: err.message };
         }
     }
 
-    return { error: 'Timeout waiting for Apify run to complete' };
+    console.error(`[Apify] Run ${runId} timed out after ${timeoutMs/1000}s (${pollCount} polls)`);
+    return { error: `Timeout after ${timeoutMs/1000}s waiting for Apify run to complete` };
 }
 
 /**
@@ -224,10 +241,10 @@ async function scrapeProfile(username, postsLimit = 50) {
             return { error: 'Failed to start Apify scrape run' };
         }
 
-        console.log(`[Apify] Run started: ${runId}`);
+        console.log(`[Apify] Run started: ${runId}, scraping up to ${postsLimit} posts...`);
 
-        // Wait for completion
-        const result = await waitForApifyRun(runId, 180000); // 3 min timeout for full scrape
+        // Wait for completion - 5 min timeout for full scrape (large profiles take time)
+        const result = await waitForApifyRun(runId, 300000);
 
         if (result.error) {
             return { error: result.error };

@@ -1307,13 +1307,16 @@ app.post('/api/portal/instagram/scrape', portalAuth, async (req, res) => {
     }
 
     // 2. Verify account is public first
+    console.log(`[Apify] Checking if @${username} is public...`);
     const publicCheck = await checkAccountPublic(username);
     if (!publicCheck.isPublic) {
+      console.log(`[Apify] Public check failed for @${username}: ${publicCheck.error}`);
       return res.status(400).json({
         error: publicCheck.error || 'Account is private. Only public accounts can be scraped.',
         isPublic: false
       });
     }
+    console.log(`[Apify] @${username} is public, starting full scrape...`);
 
     // 3. Start the scrape (this may take 1-3 minutes)
     res.json({
