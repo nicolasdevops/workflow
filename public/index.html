@@ -616,7 +616,7 @@
                     newMember: { name: '', age: '', gender: 'Male', condition: '' },
                     scrapedProfile: null,
                     scrapedContent: [],
-                    scrapeStatus: { canScrape: true, hoursRemaining: 0 },
+                    scrapeStatus: { canScrape: true, minutesRemaining: 0 },
                     scrapeMessage: null,
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
@@ -984,7 +984,7 @@
 
                         if (scrapeData.cooldown) {
                             this.scrapeMessage = { type: 'error', text: scrapeData.error };
-                            this.scrapeStatus.hoursRemaining = scrapeData.hoursRemaining;
+                            this.scrapeStatus.minutesRemaining = scrapeData.minutesRemaining;
                             this.loading = false;
                             return;
                         }
@@ -1022,7 +1022,7 @@
                             this.scrapedProfile = data.profile;
                             this.scrapeStatus = {
                                 canScrape: data.canScrape,
-                                hoursRemaining: data.hoursRemaining
+                                minutesRemaining: data.minutesRemaining
                             };
                             // Fetch content if we have a profile
                             if (data.profile) {

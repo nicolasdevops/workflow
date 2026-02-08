@@ -1301,7 +1301,7 @@ app.post('/api/portal/instagram/scrape', portalAuth, async (req, res) => {
     if (!cooldownCheck.canScrape) {
       return res.status(429).json({
         error: cooldownCheck.error,
-        hoursRemaining: cooldownCheck.hoursRemaining,
+        minutesRemaining: cooldownCheck.minutesRemaining,
         cooldown: true
       });
     }

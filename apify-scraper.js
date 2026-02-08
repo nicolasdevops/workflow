@@ -385,11 +385,15 @@ async function scrapeProfile(username, postsLimit = 50) {
 }
 
 /**
- * Check 24-hour cooldown for a family
+ * Check cooldown for a family (2 minutes for testing, change to 24 hours for production)
  * @param {object} supabase - Supabase client
  * @param {string} familyId - Family UUID
  */
 async function checkScrapeCooldown(supabase, familyId) {
+    const COOLDOWN_MINUTES = 2; // Change to 1440 (24 hours) for production
+
+    console.log(`[Apify] Checking cooldown for family ${familyId}`);
+
     const { data, error } = await supabase
         .from('mothers_profiles')
         .select('last_scraped_at')
@@ -397,22 +401,26 @@ async function checkScrapeCooldown(supabase, familyId) {
         .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = not found
+        console.log(`[Apify] Cooldown check error: ${error.message}`);
         return { canScrape: false, error: error.message };
     }
 
     if (!data || !data.last_scraped_at) {
+        console.log(`[Apify] No previous scrape found, can scrape`);
         return { canScrape: true };
     }
 
-    const lastScraped = new Date(data.last_scraped_at);
-    const hoursSince = (Date.now() - lastScraped.getTime()) / (1000 * 60 * 60);
+    console.log(`[Apify] Last scraped at: ${data.last_scraped_at}`);
 
-    if (hoursSince < 3) {
-        const hoursRemaining = Math.ceil(3 - hoursSince);
+    const lastScraped = new Date(data.last_scraped_at);
+    const minutesSince = (Date.now() - lastScraped.getTime()) / (1000 * 60);
+
+    if (minutesSince < COOLDOWN_MINUTES) {
+        const minutesRemaining = Math.ceil(COOLDOWN_MINUTES - minutesSince);
         return {
             canScrape: false,
-            error: `Please wait ${hoursRemaining} hours before scraping again`,
-            hoursRemaining
+            error: `Please wait ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''} before scraping again`,
+            minutesRemaining
         };
     }
 
