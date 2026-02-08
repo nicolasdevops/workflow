@@ -103,6 +103,13 @@ async function checkAccountPublic(username) {
         // Check if we got profile data
         if (result.data && result.data.length > 0) {
             const profile = result.data[0];
+
+            // Check if Apify returned an error response
+            if (profile.error) {
+                console.log(`[Apify] Check public returned error: ${profile.error} - ${profile.errorDescription || ''}`);
+                return { isPublic: false, error: profile.errorDescription || profile.error || 'Account may be private or not found' };
+            }
+
             // If isPrivate is true, account is private
             if (profile.isPrivate || profile.private) {
                 return { isPublic: false, error: 'Account is private. Only public accounts can be scraped.' };
@@ -232,6 +239,16 @@ async function scrapeProfile(username, postsLimit = 50) {
         if (posts.length > 0) {
             console.log('[Apify] First item keys:', Object.keys(posts[0]));
             console.log('[Apify] First item sample:', JSON.stringify(posts[0], null, 2).substring(0, 500));
+        }
+
+        // Check if Apify returned an error response (e.g., private account, no items)
+        if (posts.length > 0 && posts[0].error) {
+            const errorItem = posts[0];
+            console.log(`[Apify] Scraper returned error: ${errorItem.error} - ${errorItem.errorDescription || ''}`);
+            return {
+                error: errorItem.errorDescription || errorItem.error || 'Account may be private or has no public content',
+                isPrivateOrEmpty: true
+            };
         }
 
         // Extract profile from first post's owner data (or look for profile-type item)
