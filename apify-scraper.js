@@ -118,6 +118,11 @@ async function checkAccountPublic(username) {
             if (profile.isPrivate || profile.private) {
                 return { isPublic: false, error: 'Account is private. Only public accounts can be scraped.' };
             }
+
+            // Log profile fields for debugging
+            console.log('[Apify] Profile details keys:', Object.keys(profile).join(', '));
+            console.log(`[Apify] Profile stats: followers=${profile.followersCount}, posts=${profile.postsCount || profile.mediaCount}`);
+
             return { isPublic: true, profileData: profile };
         }
 
@@ -335,11 +340,19 @@ async function scrapeProfile(username, postsLimit = 50) {
 
         console.log(`[Apify] Parsed ${contentItems.length} content items, profileData: ${!!profileData}`);
 
-        // If we still don't have profile data, fetch it separately
-        if (!profileData) {
+        // If we don't have complete profile data (with stats), fetch it separately
+        // Posts API returns owner data but without follower counts
+        const hasStats = profileData?.followersCount || profileData?.postsCount;
+        if (!profileData || !hasStats) {
+            console.log('[Apify] Fetching full profile details (posts API lacks stats)...');
             const profileResult = await checkAccountPublic(cleanUsername);
             if (profileResult.profileData) {
-                profileData = profileResult.profileData;
+                // Merge with existing data (keep what we have, add missing fields)
+                profileData = {
+                    ...profileData,
+                    ...profileResult.profileData,
+                };
+                console.log(`[Apify] Got full profile: ${profileData.followersCount} followers, ${profileData.postsCount} posts`);
             }
         }
 
