@@ -16,7 +16,8 @@ const { isB2Configured, uploadProfilePic, uploadPostImage, uploadVideo } = requi
 
 const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN;
 // Use instagram-api-scraper which accepts directUrls
-const APIFY_ACTOR_ID = 'apify/instagram-api-scraper';
+// Note: Tilde (~) is required in URL path, not slash (/)
+const APIFY_ACTOR_ID = 'apify~instagram-api-scraper';
 
 // Regex patterns for fundraiser links
 const FUNDRAISER_PATTERNS = [
