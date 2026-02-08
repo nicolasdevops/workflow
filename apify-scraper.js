@@ -15,7 +15,8 @@
 const { isB2Configured, uploadProfilePic, uploadPostImage, uploadVideo } = require('./b2-storage');
 
 const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN;
-const APIFY_ACTOR_ID = 'apify~instagram-scraper'; // Tilde format for Apify actor IDs
+// Use instagram-api-scraper which accepts directUrls
+const APIFY_ACTOR_ID = 'apify/instagram-api-scraper';
 
 // Regex patterns for fundraiser links
 const FUNDRAISER_PATTERNS = [
@@ -69,15 +70,17 @@ async function checkAccountPublic(username) {
 
     try {
         // Run a minimal scrape to check if profile is public
+        // Use directUrls with full Instagram URL format
+        const profileUrl = `https://www.instagram.com/${cleanUsername}/`;
+        console.log(`[Apify] Checking profile URL: ${profileUrl}`);
+
         const response = await fetch(`https://api.apify.com/v2/acts/${APIFY_ACTOR_ID}/runs?token=${APIFY_API_TOKEN}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                usernames: [cleanUsername],
+                directUrls: [profileUrl],
                 resultsType: 'details',
                 resultsLimit: 1,
-                searchType: 'user',
-                searchLimit: 1,
             })
         });
 
@@ -194,16 +197,17 @@ async function scrapeProfile(username, postsLimit = 50) {
     try {
         console.log(`[Apify] Starting scrape for @${cleanUsername}`);
 
+        // Use directUrls with full Instagram URL format
+        const profileUrl = `https://www.instagram.com/${cleanUsername}/`;
+
         // Start full profile scrape
         const response = await fetch(`https://api.apify.com/v2/acts/${APIFY_ACTOR_ID}/runs?token=${APIFY_API_TOKEN}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                usernames: [cleanUsername],
+                directUrls: [profileUrl],
                 resultsType: 'posts',
                 resultsLimit: postsLimit,
-                searchType: 'user',
-                addParentData: true, // Include profile data with posts
             })
         });
 
