@@ -389,6 +389,7 @@
                                 <div class="flex items-center gap-2 text-[#3274B5] font-bold mb-1">
                                     <div class="w-2 h-2 bg-[#3274B5] rounded-full animate-pulse"></div>
                                     <span class="text-sm tracking-wide">SCRAPED</span>
+                                    <span class="text-sm">|</span>
                                     <span class="text-lg">تم الجلب</span>
                                 </div>
                                 <p class="text-base font-mono text-gray-800">@{{ scrapedProfile.instagram_username }}</p>
@@ -398,11 +399,6 @@
                                     <span>{{ scrapedProfile.posts_count || 0 }} posts</span>
                                 </div>
                             </div>
-                        </div>
-                        <p v-if="scrapedProfile.biography" class="text-sm text-gray-700 mt-2 border-t border-[#3274B5]/30 pt-2">{{ scrapedProfile.biography }}</p>
-                        <div v-if="scrapedProfile.fundraiser_links && scrapedProfile.fundraiser_links.length > 0" class="mt-2 pt-2 border-t border-[#3274B5]/30">
-                            <p class="text-xs font-bold text-[#3274B5] mb-1">Detected Fundraiser Links:</p>
-                            <a v-for="link in scrapedProfile.fundraiser_links" :key="link" :href="link" target="_blank" class="block text-xs text-blue-600 underline truncate">{{ link }}</a>
                         </div>
                         <p class="text-[10px] text-gray-400 mt-2">Last checked: {{ formatScrapeDate(scrapedProfile.last_scraped_at) }}</p>
                     </div>
@@ -439,7 +435,7 @@
                                 <input v-model="form.insta_username" type="text" class="w-full border p-2 rounded text-sm" placeholder="e.g. @ahmed_gaza">
                             </div>
                             <div class="mb-4">
-                                <label class="block mb-1 flex flex-col items-start gap-[4px] text-[#3274B5]">
+                                <label class="block mb-1 flex flex-col items-start gap-[5px] text-[#3274B5]">
                                     <span class="text-base font-bold leading-none">كلمة السر (اختياري)</span>
                                     <span class="text-xs font-normal leading-none">Password (Optional)</span>
                                 </label>

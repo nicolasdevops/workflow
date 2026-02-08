@@ -360,13 +360,17 @@ async function scrapeProfile(username, postsLimit = 50) {
         const bio = profileData?.biography || profileData?.bio || '';
         const fundraiserLinks = extractFundraiserLinks(bio);
 
+        // Debug: log profile pic URL
+        const profilePicUrl = profileData?.profilePicUrl || profileData?.profilePicUrlHD || '';
+        console.log(`[Apify] Profile pic URL: ${profilePicUrl ? profilePicUrl.substring(0, 80) + '...' : 'EMPTY'}`);
+
         return {
             success: true,
             profile: {
                 username: profileData?.username || cleanUsername,
                 fullName: profileData?.fullName || profileData?.full_name || '',
                 biography: bio,
-                profilePicUrl: profileData?.profilePicUrl || profileData?.profilePicUrlHD || '',
+                profilePicUrl,
                 followersCount: profileData?.followersCount || profileData?.followers || 0,
                 followingCount: profileData?.followingCount || profileData?.following || 0,
                 postsCount: profileData?.postsCount || profileData?.mediaCount || 0,
@@ -434,12 +438,17 @@ async function checkScrapeCooldown(supabase, familyId) {
 async function saveScrapedData(supabase, familyId, scrapeResult) {
     const { profile, content, scrapedAt } = scrapeResult;
 
+    console.log(`[Apify] saveScrapedData: profilePicUrl=${profile.profilePicUrl ? 'YES' : 'NO'}, B2=${isB2Configured()}`);
+
     try {
         // Upload profile pic to B2 if configured
         let profilePicUrl = profile.profilePicUrl;
         if (isB2Configured() && profilePicUrl) {
             console.log('[Apify] Uploading profile pic to B2...');
             profilePicUrl = await uploadProfilePic(profilePicUrl, familyId);
+            console.log(`[Apify] Profile pic uploaded: ${profilePicUrl ? profilePicUrl.substring(0, 60) + '...' : 'FAILED'}`);
+        } else if (!profilePicUrl) {
+            console.log('[Apify] No profile pic URL to upload');
         }
 
         // 1. Upsert mothers_profiles
