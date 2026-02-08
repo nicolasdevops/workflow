@@ -1393,7 +1393,7 @@ app.get('/api/portal/instagram/profile', portalAuth, async (req, res) => {
       }
     }
 
-    console.log(`[Profile API] Returning profile for family ${familyId}: pic_url=${profile?.profile_pic_url ? 'YES' : 'NO'}`);
+    console.log(`[Profile API] Returning profile for family ${familyId}: pic_url=${profile?.profile_pic_url || 'NONE'}`);
     res.json({
       profile: profile || null,
       contentCount: contentCount || 0,
