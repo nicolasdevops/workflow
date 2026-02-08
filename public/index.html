@@ -991,15 +991,38 @@
                             return;
                         }
 
-                        // 4. Success - show message and poll for results
-                        this.scrapeMessage = { type: 'success', text: 'Scraping in progress. Refreshing data...' };
+                        // 4. Success - poll for results until profile pic is available
+                        this.scrapeMessage = { type: 'success', text: 'Scraping in progress... This may take 2-3 minutes.' };
 
-                        // Poll for results after a delay (scrape runs async)
-                        setTimeout(async () => {
+                        // Poll every 5 seconds until profile pic appears (max 3 minutes)
+                        const pollInterval = 5000;
+                        const maxPolls = 36; // 3 minutes
+                        let pollCount = 0;
+
+                        const pollForResults = async () => {
+                            pollCount++;
                             await this.fetchScrapedProfile();
-                            this.scrapeMessage = { type: 'success', text: 'Profile scraped successfully!' };
-                            setTimeout(() => { this.scrapeMessage = null; }, 3000);
-                        }, 5000);
+
+                            // Check if profile pic is now available
+                            if (this.scrapedProfile?.profile_pic_url) {
+                                this.scrapeMessage = { type: 'success', text: 'Profile scraped successfully!' };
+                                setTimeout(() => { this.scrapeMessage = null; }, 3000);
+                                return;
+                            }
+
+                            // Keep polling if not at max
+                            if (pollCount < maxPolls) {
+                                this.scrapeMessage = { type: 'success', text: `Scraping in progress... (${pollCount * 5}s)` };
+                                setTimeout(pollForResults, pollInterval);
+                            } else {
+                                // Timeout - show what we have
+                                this.scrapeMessage = { type: 'warning', text: 'Scrape may still be in progress. Refresh to see updates.' };
+                                setTimeout(() => { this.scrapeMessage = null; }, 5000);
+                            }
+                        };
+
+                        // Start polling after initial delay
+                        setTimeout(pollForResults, pollInterval);
 
                     } catch (e) {
                         console.error('Scrape error:', e);

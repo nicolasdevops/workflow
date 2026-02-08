@@ -1379,24 +1379,26 @@ app.get('/api/portal/instagram/profile', portalAuth, async (req, res) => {
       .select('*', { count: 'exact', head: true })
       .eq('family_id', familyId);
 
-    // Calculate cooldown status
+    // Calculate cooldown status (2 minutes for testing, change to 1440 for production)
+    const COOLDOWN_MINUTES = 2;
     let canScrape = true;
-    let hoursRemaining = 0;
+    let minutesRemaining = 0;
 
     if (profile?.last_scraped_at) {
       const lastScraped = new Date(profile.last_scraped_at);
-      const hoursSince = (Date.now() - lastScraped.getTime()) / (1000 * 60 * 60);
-      if (hoursSince < 3) {
+      const minutesSince = (Date.now() - lastScraped.getTime()) / (1000 * 60);
+      if (minutesSince < COOLDOWN_MINUTES) {
         canScrape = false;
-        hoursRemaining = Math.ceil(3 - hoursSince);
+        minutesRemaining = Math.ceil(COOLDOWN_MINUTES - minutesSince);
       }
     }
 
+    console.log(`[Profile API] Returning profile for family ${familyId}: pic_url=${profile?.profile_pic_url ? 'YES' : 'NO'}`);
     res.json({
       profile: profile || null,
       contentCount: contentCount || 0,
       canScrape,
-      hoursRemaining,
+      minutesRemaining,
       lastScrapedAt: profile?.last_scraped_at || null
     });
   } catch (e) {
