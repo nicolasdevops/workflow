@@ -447,7 +447,7 @@
                                 <div v-else class="loader"></div>
                             </button>
                         </form>
-                        <p v-if="scrapeMessage" class="text-center text-sm mt-3" :class="scrapeMessage.type === 'success' ? 'text-green-600' : scrapeMessage.type === 'error' ? 'text-red-600' : 'text-blue-600'">
+                        <p v-if="scrapeMessage" class="text-center text-base mt-3" :class="scrapeMessage.type === 'success' ? 'text-green-600' : scrapeMessage.type === 'error' ? 'text-red-600' : 'text-blue-600'">
                             {{ scrapeMessage.text }}
                         </p>
                     </div>
@@ -940,7 +940,7 @@
 
                     try {
                         // 1. Check if account is public first
-                        this.scrapeMessage = { type: 'info', text: 'Checking if account is public...' };
+                        this.scrapeMessage = { type: 'info', text: 'عم نتحقق إذا الحساب عام... | Checking if account is public...' };
                         const checkRes = await fetch('/api/portal/instagram/check-public', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
@@ -968,7 +968,7 @@
                         }
 
                         // 3. Trigger scrape
-                        this.scrapeMessage = { type: 'info', text: 'Scraping profile... This may take a few minutes.' };
+                        this.scrapeMessage = { type: 'info', text: 'عم نجلب الملف... ممكن ياخد كم دقيقة | Scraping profile...' };
 
                         const scrapeRes = await fetch('/api/portal/instagram/scrape', {
                             method: 'POST',
@@ -992,7 +992,7 @@
                         }
 
                         // 4. Success - poll for results until profile pic is available
-                        this.scrapeMessage = { type: 'success', text: 'Scraping in progress... This may take 2-3 minutes.' };
+                        this.scrapeMessage = { type: 'success', text: 'جاري الجلب... ممكن ياخد 2-3 دقايق | Scraping in progress...' };
 
                         // Poll every 5 seconds until profile pic appears (max 3 minutes)
                         const pollInterval = 5000;
@@ -1005,18 +1005,18 @@
 
                             // Check if profile pic is now available
                             if (this.scrapedProfile?.profile_pic_url) {
-                                this.scrapeMessage = { type: 'success', text: 'Profile scraped successfully!' };
+                                this.scrapeMessage = { type: 'success', text: 'تم جلب الملف بنجاح! | Profile scraped!' };
                                 setTimeout(() => { this.scrapeMessage = null; }, 3000);
                                 return;
                             }
 
                             // Keep polling if not at max
                             if (pollCount < maxPolls) {
-                                this.scrapeMessage = { type: 'success', text: `Scraping in progress... (${pollCount * 5}s)` };
+                                this.scrapeMessage = { type: 'success', text: `جاري الجلب... (${pollCount * 5}s) | Scraping...` };
                                 setTimeout(pollForResults, pollInterval);
                             } else {
                                 // Timeout - show what we have
-                                this.scrapeMessage = { type: 'warning', text: 'Scrape may still be in progress. Refresh to see updates.' };
+                                this.scrapeMessage = { type: 'warning', text: 'الجلب ممكن لسا شغال. حدث الصفحة | Refresh to see updates' };
                                 setTimeout(() => { this.scrapeMessage = null; }, 5000);
                             }
                         };
@@ -1026,7 +1026,7 @@
 
                     } catch (e) {
                         console.error('Scrape error:', e);
-                        this.scrapeMessage = { type: 'error', text: 'Connection error. Please try again.' };
+                        this.scrapeMessage = { type: 'error', text: 'خطأ بالاتصال. حاول مرة ثانية | Connection error' };
                     } finally {
                         this.loading = false;
                     }

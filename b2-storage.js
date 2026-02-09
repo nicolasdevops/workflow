@@ -131,7 +131,10 @@ async function uploadToB2(buffer, key, contentType) {
     await client.send(command);
 
     // Return the friendly B2 URL
-    return `https://f004.backblazeb2.com/file/${B2_BUCKET_NAME}/${key}`;
+    // Extract cluster number from region (e.g., us-west-004 -> 004)
+    const clusterMatch = B2_REGION.match(/(\d+)$/);
+    const cluster = clusterMatch ? clusterMatch[1] : '004';
+    return `https://f${cluster}.backblazeb2.com/file/${B2_BUCKET_NAME}/${key}`;
 }
 
 /**
