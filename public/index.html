@@ -655,11 +655,10 @@
                     if (savedTab) this.tab = savedTab;
                     
                     this.fetchProfile();
-                    
+                    this.fetchScrapedProfile(); // Always load scraped Instagram data
+
                     // If restoring directly to media tab, fetch media immediately
                     if (this.tab === 'media') this.fetchMedia();
-                    // If restoring to instagram tab, fetch scraped profile
-                    if (this.tab === 'instagram') this.fetchScrapedProfile();
                 }
 
                 // Check for reset token in URL
@@ -706,6 +705,7 @@
                         this.form.insta_username = data.user.handle || ''; // Pre-fill if exists
                         this.step = 'dashboard';
                         this.fetchProfile(); // Get full details
+                        this.fetchScrapedProfile(); // Load scraped Instagram data
                     } catch (e) { this.error = e.message; } finally { this.loading = false; }
                 },
                 async handlePortalRegister() {
