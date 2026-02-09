@@ -388,19 +388,17 @@
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 text-[#3274B5] font-bold mb-1">
                                     <div class="w-2 h-2 bg-[#3274B5] rounded-full animate-pulse"></div>
-                                    <span class="text-sm tracking-wide">SCRAPED</span>
-                                    <span class="text-sm">|</span>
-                                    <span class="text-lg">تم الجلب</span>
+                                    <span class="text-base">تم الجلب</span>
                                 </div>
-                                <p class="text-base font-mono text-gray-800">@{{ scrapedProfile.instagram_username }}</p>
-                                <p v-if="scrapedProfile.full_name" class="text-sm text-gray-600">{{ scrapedProfile.full_name }}</p>
+                                <p class="text-sm font-mono text-gray-800">@{{ scrapedProfile.instagram_username }}</p>
+                                <p v-if="scrapedProfile.full_name" class="text-xs text-gray-600">{{ scrapedProfile.full_name }}</p>
                                 <div class="flex gap-3 text-xs text-gray-500 mt-1">
                                     <span>{{ scrapedProfile.followers_count?.toLocaleString() || 0 }} followers</span>
                                     <span>{{ scrapedProfile.posts_count || 0 }} posts</span>
                                 </div>
                             </div>
                         </div>
-                        <p class="text-[10px] text-gray-400 mt-2">Last checked: {{ formatScrapeDate(scrapedProfile.last_scraped_at) }}</p>
+                        <p class="text-[10px] text-gray-400 mt-[10px]">Last checked: {{ formatScrapeDate(scrapedProfile.last_scraped_at) }}</p>
                     </div>
 
                     <!-- Connected via cookies (legacy) -->
@@ -456,7 +454,7 @@
                     <div v-if="scrapedContent && scrapedContent.length > 0" class="mt-4 border-t pt-4">
                         <h4 class="text-sm font-bold mb-2 flex items-baseline gap-1">
                             <span class="text-base">محتوى مستورد</span>
-                            <span>| Imported Content ({{ scrapedContent.length }})</span>
+                            <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
                         </h4>
                         <div class="grid grid-cols-3 gap-1">
                             <div v-for="item in scrapedContent.slice(0, 9)" :key="item.id" class="aspect-square bg-gray-100 rounded overflow-hidden">
