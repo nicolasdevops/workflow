@@ -184,6 +184,13 @@
                             <span class="whitespace-nowrap" :class="{'text-[#3274B5]': tab === 'media'}">رفع ميديا</span>
                         </div>
                     </button>
+                    <div class="w-px h-[0.7cm] bg-[#3274B5] self-center"></div>
+                    <button @click="tab = 'ai'" class="flex-1 px-1 md:px-4 py-2 font-medium text-gray-600 text-sm md:text-lg flex flex-col items-center transition-all">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-5 h-5" :class="tab === 'ai' ? 'text-[#3274B5]' : 'text-black'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                            <span class="whitespace-nowrap" :class="{'text-[#3274B5]': tab === 'ai'}">ذكاء صنعي</span>
+                        </div>
+                    </button>
                 </div>
 
                 <!-- Tab: Profile -->
@@ -390,7 +397,7 @@
                                     <div class="w-2 h-2 bg-[#3274B5] rounded-full animate-pulse"></div>
                                     <span class="text-base">تم الجلب</span>
                                 </div>
-                                <p class="text-sm font-mono text-gray-800">@{{ scrapedProfile.instagram_username }}</p>
+                                <p class="text-xs text-gray-600">@{{ scrapedProfile.instagram_username }}</p>
                                 <p v-if="scrapedProfile.full_name" class="text-xs text-gray-600">{{ scrapedProfile.full_name }}</p>
                                 <div class="flex gap-3 text-xs text-gray-500 mt-1">
                                     <span>{{ scrapedProfile.followers_count?.toLocaleString() || 0 }} followers</span>
@@ -426,7 +433,7 @@
                     <div class="mt-4 border-t pt-4">
                         <form @submit.prevent="handleInstaScrape">
                             <div class="mb-4">
-                                <label class="block mb-1 flex flex-col items-start gap-[4px] text-[#3274B5]">
+                                <label class="block mb-1 flex flex-col items-start gap-[5px] text-[#3274B5]">
                                     <span class="text-base font-bold leading-none">اسم حساب الانستغرام</span>
                                     <span class="text-xs font-normal leading-none">IG username</span>
                                 </label>
@@ -462,6 +469,18 @@
                                 <div v-else class="w-full h-full flex items-center justify-center text-gray-400 text-xs">No image</div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Tab: AI Generated Content -->
+                <div v-if="tab === 'ai'" class="w-full max-w-[350px] mx-auto">
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+                            <svg class="w-8 h-8 text-[#3274B5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">محتوى ذكاء صنعي</h3>
+                        <p class="text-sm text-gray-500 mb-1">AI Generated Content</p>
+                        <p class="text-xs text-gray-400 mt-4">قريباً | Coming Soon</p>
                     </div>
                 </div>
             </div>
