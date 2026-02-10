@@ -948,7 +948,7 @@ app.post('/api/portal/profile', portalAuth, async (req, res) => {
   const updates = req.body;
   
   // Whitelist allowed fields
-  const allowed = ['housing_type', 'displacement_count', 'children_count', 'children_details', 'medical_conditions', 'facing_cold', 'facing_hunger', 'urgent_need', 'urgent_needs', 'urgent_need_amount'];
+  const allowed = ['housing_type', 'displacement_count', 'children_count', 'children_details', 'medical_conditions', 'facing_cold', 'facing_hunger', 'urgent_need', 'urgent_needs', 'urgent_need_amount', 'palpay_phone', 'palpay_name'];
   const cleanUpdates = {};
   
   Object.keys(updates).forEach(key => {
@@ -1487,6 +1487,52 @@ app.get('/api/portal/instagram/content', portalAuth, async (req, res) => {
     res.json({ content: content || [], limit, offset });
   } catch (e) {
     console.error('[Apify] Get content error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Update scraped content description (for AI context)
+app.post('/api/portal/instagram/content/update', portalAuth, async (req, res) => {
+  const familyId = req.user.id;
+  const { id, description } = req.body;
+
+  if (!supabase) {
+    return res.status(500).json({ error: 'Database not configured' });
+  }
+
+  if (!id) {
+    return res.status(400).json({ error: 'Content ID required' });
+  }
+
+  try {
+    // Verify the content belongs to this family
+    const { data: content, error: fetchError } = await supabase
+      .from('mothers_content')
+      .select('id, family_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !content) {
+      return res.status(404).json({ error: 'Content not found' });
+    }
+
+    if (content.family_id !== familyId) {
+      return res.status(403).json({ error: 'Not authorized to edit this content' });
+    }
+
+    // Update description
+    const { error: updateError } = await supabase
+      .from('mothers_content')
+      .update({ description: description || null })
+      .eq('id', id);
+
+    if (updateError) throw updateError;
+
+    console.log(`[Content] Updated description for content ${id} by family ${familyId}`);
+    res.json({ status: 'SUCCESS' });
+
+  } catch (e) {
+    console.error('[Content] Update error:', e);
     res.status(500).json({ error: e.message });
   }
 });

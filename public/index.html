@@ -322,6 +322,24 @@
                             </div>
                         </div>
 
+                        <!-- PalPay Wallet Section -->
+                        <div class="mb-6 border-t pt-4">
+                            <div class="mb-4">
+                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
+                                    <span class="text-base">رقم محفظة بالباي غزة</span>
+                                    <span>| Gaza PalPay Wallet phone number</span>
+                                </label>
+                                <input v-model="profile.palpay_phone" type="tel" class="w-full border p-2 rounded text-sm h-[30px]" placeholder="e.g. 0599123456">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
+                                    <span class="text-base">الاسم المسجل بالمحفظة</span>
+                                    <span>| Full name as registered on Wallet</span>
+                                </label>
+                                <input v-model="profile.palpay_name" type="text" class="w-full border p-2 rounded text-sm h-[30px]" placeholder="الاسم الكامل">
+                            </div>
+                        </div>
+
                         <button type="submit" class="bg-[#3274B5] text-white px-4 py-1 rounded-full hover:bg-[#285e94] flex items-center justify-center gap-2 mx-auto h-[36px]">
                             <span class="text-base font-bold">حفظ الملف</span>
                             <span class="text-sm opacity-80">|</span>
@@ -364,13 +382,13 @@
                                 </div>
                             </div>
                             
-                            <!-- Delete Button (Bottom Right) -->
-                            <button @click.stop="deleteMedia(file)" class="absolute bottom-1 right-1 bg-red-600 text-white p-1.5 rounded-full hover:bg-red-700 shadow-sm opacity-90 hover:opacity-100 transition z-10">
+                            <!-- Delete Button (Bottom Right) - visible on hover -->
+                            <button @click.stop="deleteMedia(file)" class="absolute bottom-1 right-1 bg-red-600 text-white p-1.5 rounded-full hover:bg-red-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
-                            
-                            <!-- Edit/Info Button (Bottom Left) -->
-                            <button @click.stop="openEditMedia(file)" title="Edit Text Description | تعديل الوصف" class="absolute bottom-1 left-1 bg-green-600 text-white p-1.5 rounded-full hover:bg-green-700 shadow-sm opacity-90 hover:opacity-100 transition z-10">
+
+                            <!-- Edit/Info Button (Bottom Left) - visible on hover -->
+                            <button @click.stop="openEditMedia(file)" title="Edit Text Description | تعديل الوصف" class="absolute bottom-1 left-1 bg-green-600 text-white p-1.5 rounded-full hover:bg-green-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                             </button>
                         </div>
@@ -464,9 +482,30 @@
                             <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
                         </h4>
                         <div class="grid grid-cols-3 gap-1">
-                            <div v-for="item in scrapedContent.slice(0, 9)" :key="item.id" class="aspect-square bg-gray-100 rounded overflow-hidden">
-                                <img v-if="item.display_url" :src="item.display_url" class="w-full h-full object-cover">
-                                <div v-else class="w-full h-full flex items-center justify-center text-gray-400 text-xs">No image</div>
+                            <div v-for="item in scrapedContent.slice(0, 9)" :key="item.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
+                                <!-- Clickable Area for Preview -->
+                                <div @click="openScrapedPreview(item)" class="w-full h-full cursor-pointer">
+                                    <template v-if="item.is_video">
+                                        <img v-if="item.display_url" :src="item.display_url" class="w-full h-full object-cover">
+                                        <div class="absolute top-1 right-1 bg-black/60 rounded-full p-1 pointer-events-none">
+                                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
+                                        </div>
+                                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div class="bg-black/30 rounded-full p-2">
+                                                <svg class="w-8 h-8 text-white opacity-80" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template v-else>
+                                        <img v-if="item.display_url" :src="item.display_url" class="w-full h-full object-cover">
+                                        <div v-else class="w-full h-full flex items-center justify-center text-gray-400 text-xs">No image</div>
+                                    </template>
+                                </div>
+
+                                <!-- Edit Button (Bottom Left) - visible on hover -->
+                                <button @click.stop="openEditScraped(item)" title="Edit Text Description | تعديل الوصف" class="absolute bottom-1 left-1 bg-green-600 text-white p-1.5 rounded-full hover:bg-green-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -589,6 +628,47 @@
                 </div>
             </div>
 
+            <!-- Edit Scraped Content Description Modal -->
+            <div v-if="editingScraped" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl p-4 max-w-lg w-full" @click.stop>
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="font-bold text-lg flex items-center gap-2">
+                            <span class="text-[#3274B5]">وصف للذكاء الصنعي</span>
+                            <span>| AI Description</span>
+                        </h3>
+                        <button @click="editingScraped = null" class="text-gray-500 hover:text-red-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+
+                    <!-- Thumbnail preview -->
+                    <div class="flex gap-3 mb-4">
+                        <div class="w-20 h-20 flex-shrink-0 bg-gray-100 rounded overflow-hidden border">
+                            <img v-if="editingScraped.display_url" :src="editingScraped.display_url" class="w-full h-full object-cover">
+                        </div>
+                        <div v-if="editingScraped.caption" class="flex-1 text-xs text-gray-500 overflow-hidden line-clamp-3">
+                            {{ editingScraped.caption }}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold mb-1 flex items-baseline gap-1 text-[#3274B5]">
+                            <span class="text-sm">اكتب وصفًا إضافيًا</span>
+                            <span class="text-xs font-normal text-gray-500">| Add context for AI</span>
+                        </label>
+                        <textarea v-model="editingScraped.description" class="w-full border rounded p-2 text-sm h-32 resize-none focus:ring-2 focus:ring-[#3274B5] focus:outline-none" placeholder="أي تفاصيل إضافية عن الصورة/الفيديو... | Any additional context..."></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+                        <button @click="editingScraped = null" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded text-xs">Cancel</button>
+                        <button @click="saveScrapedDescription" class="w-auto px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px]">
+                            <span>Save | </span>
+                            <span class="text-base">حفظ</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Error Message -->
             <div v-if="error" class="mt-4 p-3 bg-red-50 text-red-700 text-sm rounded border border-red-200">
                 {{ error }}
@@ -625,6 +705,7 @@
                     mediaStaging: [],
                     isMediaEditorOpen: false,
                     editingFile: null,
+                    editingScraped: null,
                     newUrgentNeed: '',
                     newMember: { name: '', age: '', gender: 'Male', condition: '' },
                     scrapedProfile: null,
@@ -877,6 +958,62 @@
 
                     } catch (e) {
                         console.error('Save description error:', e);
+                        alert('Failed to save description: ' + e.message);
+                    }
+                },
+                openScrapedPreview(item) {
+                    // Normalize scraped item to work with existing lightbox
+                    this.previewFile = {
+                        url: item.is_video && item.video_url ? item.video_url : item.display_url,
+                        metadata: {
+                            mimetype: item.is_video ? 'video/mp4' : 'image/jpeg'
+                        }
+                    };
+                },
+                openEditScraped(item) {
+                    this.editingScraped = {
+                        id: item.id,
+                        short_code: item.short_code,
+                        caption: item.caption || '',
+                        description: item.description || '',
+                        display_url: item.display_url,
+                        is_video: item.is_video
+                    };
+                },
+                async saveScrapedDescription() {
+                    if (!this.editingScraped || !this.editingScraped.id) {
+                        alert('Error: Missing content ID');
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch('/api/portal/instagram/content/update', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-portal-token': this.token
+                            },
+                            body: JSON.stringify({
+                                id: this.editingScraped.id,
+                                description: this.editingScraped.description
+                            })
+                        });
+
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            throw new Error(errData.error || 'Update failed');
+                        }
+
+                        // Update local state
+                        const index = this.scrapedContent.findIndex(c => c.id === this.editingScraped.id);
+                        if (index !== -1) {
+                            this.scrapedContent[index].description = this.editingScraped.description;
+                        }
+                        alert('Description saved!');
+                        this.editingScraped = null;
+
+                    } catch (e) {
+                        console.error('Save scraped description error:', e);
                         alert('Failed to save description: ' + e.message);
                     }
                 },

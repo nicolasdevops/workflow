@@ -624,3 +624,41 @@ ALTER TABLE media_uploads
 ADD COLUMN IF NOT EXISTS b2_url TEXT;
 
 COMMENT ON COLUMN media_uploads.b2_url IS 'Backblaze B2 URL if file stored in B2 (null = Supabase storage)';
+
+-- ============================================================================
+-- MIGRATION 8: PalPay Wallet Information
+-- Purpose: Store Gaza PalPay wallet details for families
+-- Date: 2026-02-10
+-- ============================================================================
+
+-- Add PalPay wallet columns
+ALTER TABLE families
+ADD COLUMN IF NOT EXISTS palpay_phone TEXT,
+ADD COLUMN IF NOT EXISTS palpay_name TEXT;
+
+-- Add comments for documentation
+COMMENT ON COLUMN families.palpay_phone IS 'Gaza PalPay wallet phone number (e.g., 0599123456)';
+COMMENT ON COLUMN families.palpay_name IS 'Full name as registered on PalPay wallet';
+
+-- View: Families with PalPay info
+SELECT
+    id,
+    name,
+    palpay_phone,
+    palpay_name,
+    urgent_need_amount
+FROM families
+WHERE palpay_phone IS NOT NULL
+ORDER BY id;
+
+-- ============================================================================
+-- MIGRATION 9: Content Description for AI Context
+-- Purpose: Add description field to scraped content for AI generation context
+-- Date: 2026-02-10
+-- ============================================================================
+
+-- Add description column to mothers_content for AI context
+ALTER TABLE mothers_content
+ADD COLUMN IF NOT EXISTS description TEXT;
+
+COMMENT ON COLUMN mothers_content.description IS 'User-provided description/context for AI content generation';
