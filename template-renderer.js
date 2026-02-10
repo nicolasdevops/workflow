@@ -3,7 +3,20 @@
  *
  * Renders comment templates with family profile data.
  * Handles replacement fields like [AGE], [X], [OLDER], [NUMBER].
+ *
+ * Supports pipe syntax for explicit defaults: [AGE|5], [X|3], etc.
+ * When no pipe default is provided, sensible fallbacks are used.
  */
+
+// Default values when family data is missing (sensible fallbacks)
+const FIELD_DEFAULTS = {
+    AGE: 5,       // Middle childhood age
+    OLDER: 10,    // Older child age
+    YOUNGER: 2,   // Toddler age
+    X: 3,         // Average family size
+    NUMBER: 3,    // Same as X
+    'X-1': 2,     // X minus 1
+};
 
 /**
  * Render a comment template with family profile data
@@ -16,37 +29,95 @@ function renderTemplate(templateText, familyProfile) {
 
     let text = templateText;
 
-    // Get family data with defaults
+    // Get family data
     const childrenCount = familyProfile.children_count || 0;
     const childrenAges = parseChildrenAges(familyProfile.children_ages || []);
+    const hasChildrenData = childrenCount > 0;
+    const hasAgeData = childrenAges.length > 0;
 
+    // Calculate derived values
+    const oldestAge = hasAgeData ? Math.max(...childrenAges) : null;
+    const youngestAge = hasAgeData ? Math.min(...childrenAges) : null;
+
+    // First pass: Handle pipe syntax [FIELD|default] - explicit defaults override
+    text = text.replace(/\[(\w+(?:-\d+)?)\|(\d+)\]/g, (match, field, explicitDefault) => {
+        const defaultVal = parseInt(explicitDefault, 10);
+        return resolveField(field, defaultVal, {
+            childrenCount,
+            childrenAges,
+            hasChildrenData,
+            hasAgeData,
+            oldestAge,
+            youngestAge,
+        });
+    });
+
+    // Second pass: Handle standard syntax [FIELD] - uses sensible defaults
     // [X] - Children count
-    text = text.replace(/\[X\]/g, String(childrenCount));
+    text = text.replace(/\[X\]/g, () => {
+        return hasChildrenData ? String(childrenCount) : String(FIELD_DEFAULTS.X);
+    });
 
     // [X-1] - Children count minus 1
-    text = text.replace(/\[X-1\]/g, String(Math.max(0, childrenCount - 1)));
+    text = text.replace(/\[X-1\]/g, () => {
+        if (hasChildrenData) {
+            return String(Math.max(0, childrenCount - 1));
+        }
+        return String(FIELD_DEFAULTS['X-1']);
+    });
 
     // [NUMBER] - Same as children count
-    text = text.replace(/\[NUMBER\]/g, String(childrenCount));
+    text = text.replace(/\[NUMBER\]/g, () => {
+        return hasChildrenData ? String(childrenCount) : String(FIELD_DEFAULTS.NUMBER);
+    });
 
     // [AGE] - Random child's age (pick different ones for multiple occurrences)
     let ageIndex = 0;
     text = text.replace(/\[AGE\]/g, () => {
-        if (childrenAges.length === 0) return '5'; // Default
+        if (!hasAgeData) return String(FIELD_DEFAULTS.AGE);
         const age = childrenAges[ageIndex % childrenAges.length];
         ageIndex++;
         return String(age);
     });
 
     // [OLDER] - Oldest child's age
-    const oldestAge = childrenAges.length > 0 ? Math.max(...childrenAges) : 10;
-    text = text.replace(/\[OLDER\]/g, String(oldestAge));
+    text = text.replace(/\[OLDER\]/g, () => {
+        return hasAgeData ? String(oldestAge) : String(FIELD_DEFAULTS.OLDER);
+    });
 
-    // [YOUNGER] - Youngest child's age (if needed)
-    const youngestAge = childrenAges.length > 0 ? Math.min(...childrenAges) : 2;
-    text = text.replace(/\[YOUNGER\]/g, String(youngestAge));
+    // [YOUNGER] - Youngest child's age
+    text = text.replace(/\[YOUNGER\]/g, () => {
+        return hasAgeData ? String(youngestAge) : String(FIELD_DEFAULTS.YOUNGER);
+    });
 
     return text;
+}
+
+/**
+ * Resolve a field with an explicit default value (from pipe syntax)
+ * @param {string} field - Field name (AGE, X, OLDER, etc.)
+ * @param {number} explicitDefault - The default specified in [FIELD|default]
+ * @param {object} data - Computed family data
+ * @returns {string} Resolved value
+ */
+function resolveField(field, explicitDefault, data) {
+    const { childrenCount, childrenAges, hasChildrenData, hasAgeData, oldestAge, youngestAge } = data;
+
+    switch (field.toUpperCase()) {
+        case 'AGE':
+            return hasAgeData ? String(childrenAges[0]) : String(explicitDefault);
+        case 'OLDER':
+            return hasAgeData ? String(oldestAge) : String(explicitDefault);
+        case 'YOUNGER':
+            return hasAgeData ? String(youngestAge) : String(explicitDefault);
+        case 'X':
+        case 'NUMBER':
+            return hasChildrenData ? String(childrenCount) : String(explicitDefault);
+        case 'X-1':
+            return hasChildrenData ? String(Math.max(0, childrenCount - 1)) : String(explicitDefault);
+        default:
+            return String(explicitDefault);
+    }
 }
 
 /**
