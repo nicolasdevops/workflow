@@ -662,3 +662,278 @@ ALTER TABLE mothers_content
 ADD COLUMN IF NOT EXISTS description TEXT;
 
 COMMENT ON COLUMN mothers_content.description IS 'User-provided description/context for AI content generation';
+
+-- ============================================================================
+-- MIGRATION 10: Instagram Commenting Algorithm
+-- Purpose: Target accounts, comment templates, scheduling, and tracking
+-- Date: 2026-02-10
+-- ============================================================================
+
+-- 1. Target accounts table (42 pro-Gaza accounts to comment on)
+CREATE TABLE IF NOT EXISTS target_accounts (
+    id SERIAL PRIMARY KEY,
+    handle VARCHAR(100) UNIQUE NOT NULL,
+    followers_count INTEGER DEFAULT 0,
+    category VARCHAR(50),  -- humanitarian, news, activist, celebrity
+    language VARCHAR(10) DEFAULT 'en',
+    quality_score NUMERIC(5,2) DEFAULT 50.0,
+    total_comments_posted INTEGER DEFAULT 0,
+    total_likes_on_comments INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    last_post_url TEXT,
+    last_post_checked_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_target_accounts_active ON target_accounts(is_active, quality_score DESC);
+CREATE INDEX IF NOT EXISTS idx_target_accounts_category ON target_accounts(category);
+
+COMMENT ON TABLE target_accounts IS 'Pro-Gaza Instagram accounts to post comments on';
+
+-- 2. Comment templates table (56 curated comments)
+CREATE TABLE IF NOT EXISTS comment_templates (
+    id SERIAL PRIMARY KEY,
+    template_text TEXT NOT NULL,
+    has_fields BOOLEAN DEFAULT FALSE,  -- True if contains [AGE], [X], etc.
+    field_requirements JSONB,  -- e.g. {"children_count": true}
+    usage_count INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_comment_templates_active ON comment_templates(is_active);
+
+COMMENT ON TABLE comment_templates IS 'Curated comment templates for posting';
+COMMENT ON COLUMN comment_templates.has_fields IS 'True if template contains replacement fields like [AGE], [X]';
+
+-- 3. Comment schedule table (day-specific posting times)
+CREATE TABLE IF NOT EXISTS comment_schedule (
+    id SERIAL PRIMARY KEY,
+    day_of_week INTEGER NOT NULL,  -- 0=Sun, 1=Mon, 2=Tue, etc.
+    time_slot TIME NOT NULL,
+    timezone TEXT DEFAULT 'America/New_York',
+    is_active BOOLEAN DEFAULT TRUE,
+    UNIQUE(day_of_week, time_slot)
+);
+
+COMMENT ON TABLE comment_schedule IS 'Day-specific posting times for comments';
+
+-- 4. Posted comments log (tracking with engagement)
+CREATE TABLE IF NOT EXISTS posted_comments (
+    id SERIAL PRIMARY KEY,
+    family_id UUID REFERENCES families(id) ON DELETE CASCADE,
+    target_account_id INTEGER REFERENCES target_accounts(id),
+    template_id INTEGER REFERENCES comment_templates(id),
+    post_url TEXT NOT NULL,
+    post_shortcode TEXT,
+    rendered_comment TEXT NOT NULL,
+    posted_at TIMESTAMP DEFAULT NOW(),
+    likes_count INTEGER DEFAULT 0,
+    replies_count INTEGER DEFAULT 0,
+    last_engagement_check TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'posted',  -- posted, deleted, hidden, failed
+    error_message TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_posted_comments_family ON posted_comments(family_id, posted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posted_comments_post ON posted_comments(post_url);
+CREATE INDEX IF NOT EXISTS idx_posted_comments_template_post ON posted_comments(post_url, template_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_posted_comments_no_duplicate_template ON posted_comments(post_url, template_id) WHERE status = 'posted';
+
+COMMENT ON TABLE posted_comments IS 'Log of all comments posted with engagement tracking';
+
+-- Seed 42 target accounts
+INSERT INTO target_accounts (handle, followers_count, category, language) VALUES
+    ('eye.on.palestine', 13700000, 'news', 'en'),
+    ('unicef', 11300000, 'humanitarian', 'en'),
+    ('GlobalSumudFlotilla', 3000000, 'activist', 'en'),
+    ('wearthepeace', 2200000, 'activist', 'en'),
+    ('palestine.pixel', 1500000, 'news', 'en'),
+    ('landpalestine', 1700000, 'news', 'en'),
+    ('gazafreedomflotilla', 2100000, 'activist', 'en'),
+    ('europe.palestine.network', 850000, 'activist', 'en'),
+    ('translating_falasteen', 584000, 'news', 'en'),
+    ('humantiproject', 555000, 'humanitarian', 'en'),
+    ('letstalkpalestine', 1000000, 'news', 'en'),
+    ('palestinianvideos', 931000, 'news', 'en'),
+    ('wonderful_palestine', 349000, 'news', 'en'),
+    ('palestinesolidarityuk', 367000, 'activist', 'en'),
+    ('james_unicef', 365000, 'humanitarian', 'en'),
+    ('worldfoodprogramme', 1100000, 'humanitarian', 'en'),
+    ('unrwa', 497000, 'humanitarian', 'en'),
+    ('wissamgaza', 2400000, 'news', 'ar'),
+    ('ThousandMadleensToGaza', 156000, 'activist', 'en'),
+    ('unicef_mena', 143000, 'humanitarian', 'ar'),
+    ('gretathunberg', 16600000, 'celebrity', 'en'),
+    ('ajplus', 1900000, 'news', 'en'),
+    ('middleeastmonitor', 494000, 'news', 'en'),
+    ('doctorswithoutborders', 1200000, 'humanitarian', 'en'),
+    ('palestinianyouthmovement', 811000, 'activist', 'en'),
+    ('israelscrimes', 102000, 'activist', 'en'),
+    ('amnesty', 1200000, 'humanitarian', 'en'),
+    ('theintercept', 297000, 'news', 'en'),
+    ('aljazeera', 11600000, 'news', 'en'),
+    ('hiddenpalestine.archive', 18800, 'news', 'en'),
+    ('pal_freepalestine', 72200, 'activist', 'en'),
+    ('nouraerakat', 388000, 'activist', 'en'),
+    ('palestinesolidaritymvmt', 27500, 'activist', 'en'),
+    ('nowinpalestine', 155000, 'news', 'en'),
+    ('hinds.call', 190000, 'activist', 'en'),
+    ('everydaypalestinee2', 379000, 'news', 'en'),
+    ('untoldpalestine', 165000, 'news', 'en'),
+    ('gaza24live', 80800, 'news', 'ar'),
+    ('actionmtl', 19800, 'activist', 'fr'),
+    ('palfest', 107000, 'activist', 'en'),
+    ('gameover.israel', 18200, 'activist', 'en'),
+    ('trackaipac', 137000, 'activist', 'en')
+ON CONFLICT (handle) DO UPDATE SET
+    followers_count = EXCLUDED.followers_count,
+    category = EXCLUDED.category,
+    language = EXCLUDED.language;
+
+-- Seed schedule (NA East Coast times)
+INSERT INTO comment_schedule (day_of_week, time_slot) VALUES
+    -- Monday
+    (1, '07:30'), (1, '11:30'), (1, '20:00'),
+    -- Tuesday
+    (2, '09:00'), (2, '13:00'), (2, '19:30'),
+    -- Wednesday
+    (3, '08:00'), (3, '12:30'), (3, '21:00'),
+    -- Thursday
+    (4, '10:00'), (4, '14:00'), (4, '20:00'),
+    -- Friday
+    (5, '07:45'), (5, '11:00'), (5, '17:00'),
+    -- Saturday
+    (6, '10:00'), (6, '14:00'), (6, '18:30'),
+    -- Sunday
+    (0, '09:30'), (0, '12:00'), (0, '19:45')
+ON CONFLICT (day_of_week, time_slot) DO NOTHING;
+
+-- View: Engagement quality report
+CREATE OR REPLACE VIEW engagement_quality_report AS
+SELECT
+    ta.id AS target_account_id,
+    ta.handle,
+    ta.category,
+    ta.followers_count,
+    ta.quality_score,
+    COUNT(pc.id) AS total_comments,
+    COALESCE(SUM(pc.likes_count), 0) AS total_likes,
+    COALESCE(SUM(pc.replies_count), 0) AS total_replies,
+    COALESCE(AVG(pc.likes_count), 0) AS avg_likes_per_comment,
+    ta.last_post_checked_at
+FROM target_accounts ta
+LEFT JOIN posted_comments pc ON pc.target_account_id = ta.id AND pc.status = 'posted'
+GROUP BY ta.id, ta.handle, ta.category, ta.followers_count, ta.quality_score, ta.last_post_checked_at
+ORDER BY ta.quality_score DESC;
+
+-- Seed 56 comment templates
+-- Static templates (no replacement fields)
+INSERT INTO comment_templates (template_text, has_fields, field_requirements) VALUES
+    ('My daughter counted the rice grains in our last meal. 47. She divided them among her siblings. 8 each. She kept 7 for herself. She said the youngest needs more to grow. She''s 9. I don''t know when she learned mathematics of hunger', FALSE, NULL),
+    ('Last night my son drew our old house from memory. Perfect details. The kitchen where I made his birthday cake. The tree he climbed. Then he drew it again. This time on fire. "So I remember both," he said. He''s 6.', FALSE, NULL),
+    ('My 11-year-old daughter started her period yesterday. In a tent. In winter. No privacy. No supplies. She apologized for becoming a woman at the wrong time. I had nothing to give her but torn fabric and silence.', FALSE, NULL),
+    ('Today my children played "restaurant." They served invisible food on broken plates. Took turns being the customer who could afford to eat. The winner was whoever could describe the food best without crying. Nobody won.', FALSE, NULL),
+    ('My son sleeps holding his baby sister''s hand. Not from love. From fear. If the tent collapses in the night, he doesn''t want to lose her in the dark. He practiced finding her by touch. Eyes closed. Counting seconds.', FALSE, NULL),
+    ('The doctor wrote three prescriptions yesterday. For three of my children. Then he looked at me. We both knew. The pharmacy has the medicine. Behind glass. Like their futures. $30, $25, $40. He wrote them anyway. Hope on paper.', FALSE, NULL),
+    ('My 5-year-old asked why we don''t turn on the lights anymore. I said we''re saving electricity. She said "for what?" I couldn''t answer. She said "it''s okay mama, I see better in the dark now anyway." She does.', FALSE, NULL),
+    ('This morning my daughter gave her bread to her brother. He gave it to the baby. The baby can''t eat bread yet. We all watched it get soft in her tiny hands. Nobody took it back. Hunger has its own honor.', FALSE, NULL),
+    ('Found my son writing numbers on the tent wall. Not random. Dates. Every time someone leaves and doesn''t come back. He said he''s keeping count so God doesn''t have to. 47 dates. He ran out of wall.', FALSE, NULL),
+    ('My daughter learned to braid her sister''s hair in complete darkness. By touch. She said bombs teach you to love without needing light. Yesterday she braided my hair too. First time since October. We pretended morning would come.', FALSE, NULL),
+    ('My 4-year-old built a hospital from rubble yesterday. Put her doll inside. Said the doll has what daddy had. I asked what medicine the doll needs. She said "the kind that exists." Then she buried it. Said sometimes that''s the medicine.', FALSE, NULL),
+    ('Found my son teaching himself to write with charcoal on concrete. Not the alphabet. Times of day. "For when I have a watch," he said. It''s been 6 months since he''s seen a working clock. He still believes in "when." I don''t correct him.', FALSE, NULL),
+    ('The baby learned to sleep through explosions but wakes when her brother coughs. Nature programs survival in ways that break you. She knows which sound means danger now. A cough. In winter. In a tent. Her survival instinct is perfect and useless.', FALSE, NULL),
+    ('My daughter asked why we wash the same dress every day. I said it''s her favorite. She said no, it''s her only. Asked if she minded. She said "I mind that you lie about it." She''s 8. The dress has 47 carefully mended holes. She counts them like stars.', FALSE, NULL),
+    ('Today would have been my son''s 10th birthday. His siblings made a cake from mud. Sang the song. Blew out pretend candles. The 5-year-old asked when he''s coming back from heaven for his cake. Nobody answered. She wrapped a piece in paper for later.', FALSE, NULL),
+    ('My son stopped asking for food. Stopped crying. Doctor said it''s the final stage before the body shuts down. I begged him to cry. To ask. To demand. He said "I''m saving my energy to say goodbye properly." He''s 6. He''s planning his last words.', FALSE, NULL),
+    ('The school bag survived the bombing. Nothing else. My daughter carries it everywhere. Empty. Says she''s keeping it ready for when school comes back. Yesterday I found her teaching math to the bag. "So it doesn''t forget its purpose," she said.', FALSE, NULL),
+    ('My diabetic son counts his insulin units like a banker. 14 left. Each one is 3 days if he eats nothing. 5 days if he "sleeps more." He made a chart. Drew hearts next to the days he thinks are worth staying awake for. His sister''s birthday has three hearts.', FALSE, NULL),
+    ('My children play a game called "normal day." They pretend to miss the school bus. Complain about homework. Fight over TV channels that don''t exist. Yesterday the youngest said "I don''t want to play anymore. I forgot how it ends." None of us remember how normal days ended.', FALSE, NULL),
+    ('Last night my daughter held a funeral for her childhood. Said it died at 7 years and 3 months. Made a speech. "It was beautiful while it lasted. It believed in tomorrow." Then she asked me to help bury her toys. Said dead things shouldn''t have to see what comes next.', FALSE, NULL),
+    ('My daughter practices her future wedding dance alone in the tent. No music. Just humming. She''s 10. Yesterday she asked if dead girls can still get married in heaven. I said yes. She looked relieved.', FALSE, NULL),
+    ('My children invented a new prayer. Not for food or safety. For forgetting. "Make us forget ice cream existed. Make us forget our beds. Make us forget." They''re 5 and 7. Memory hurts more than hunger.', FALSE, NULL),
+    ('The bomb took our neighbors at 3:47 AM. My daughter knows the exact time. Not because she has a watch. Because she counts. Every second since. She''s at 97,000. Still counting.', FALSE, NULL),
+    ('My 4-year-old asked if we''re refugees or humans. I said both. She said "No mama, pick one." I couldn''t. She picked for me: "Today we''re humans." I didn''t ask about tomorrow.', FALSE, NULL),
+    ('My son traded his shoes for antibiotics. For his sister. The medicine was expired. We gave it anyway. She lived. Now he measures distances by how much his feet bleed. School is 500 drops away.', FALSE, NULL),
+    ('"Are we practice people?" my daughter asked. "For God to learn what not to do?" She''s 8. I said no, we''re real. She touched her ribs, counting. "These feel like practice bones."', FALSE, NULL),
+    ('My children don''t play "house" anymore. They play "evacuation." Each knows what to grab. The 4-year-old''s job is the baby. Yesterday she practiced carrying him while running. Dropped him twice. Cried both times. Not because she hurt him. Because in real evacuation, twice means dead.', FALSE, NULL),
+    ('Found my daughter''s notebook. She''s keeping a "hunger diary." Day 1: stomach hurts. Day 15: stopped hurting. Day 30: forgot what full means. Day 47: decided hungry is normal. She''s 9. I burned the notebook. She started a new one.', FALSE, NULL),
+    ('"Why do we wash dead people but not live ones?" my son asked. We haven''t bathed properly in weeks. I said the dead deserve dignity. He said "So do we." He''s 6. He won. We used drinking water. Just this once.', FALSE, NULL),
+    ('My daughter made herself a birthday card. From her dead friend. "I know she would remember," she explained. Inside: "Sorry I can''t come. I''m busy being dead. Save me cake." She saved a piece. It molded. She saved that too.', FALSE, NULL),
+    ('My son measured our tent with his body. Four of him wide. Six of him long. "When I grow," he said, "we''ll need a bigger tent." He still believes in when. He still believes in growing. I let him measure twice.', FALSE, NULL),
+    ('My son asked if anger is heavier than sadness. Said he''s too tired to carry both. Needs to pick one. He''s 7. I told him sadness weighs less. He said "Then why does everyone choose anger?" I had no answer.', FALSE, NULL),
+    ('"Do fathers in heaven watch their kids?" my daughter asked. "Like security cameras?" I said yes. She waved at the sky. "Hi Baba. I''m being good. Mama''s tired. Come back." She''s 5. She waves every night.', FALSE, NULL),
+    ('My daughter asked where the judges who stop bad things went. I said they''re still there. She said "No mama, they''re pretending to be asleep so they don''t have to see." Then she buried her toy hammer from better days. Said even pretend justice deserves a grave. She''s 7.', FALSE, NULL),
+    ('"Why do bombs work but prayers don''t?" my daughter asked. I said prayers work differently. She said "Yes, bombs work immediately." She''s 8. She keeps praying anyway. Says maybe God is collecting them all for one big answer.', FALSE, NULL),
+    ('My son divides time differently now. Not days or weeks. "Before everyone died" and "After everyone died." Yesterday he asked which period baby sister was born in. I couldn''t answer. She''s 6 months old. Both answers are true.', FALSE, NULL),
+    ('Found my daughter teaching her doll the new alphabet. A is for Aid that doesn''t come. B is for Bombs that do. C is for Ceasefire that isn''t. She got to Z: Zooming sounds before the explosion. The doll failed the test. "She still believes in A," she explained.', FALSE, NULL),
+    ('My son asked if rich people''s children also drink rain from tarps. I said no. He asked what they drink. I said clean water from taps. He said "Imagine being that lucky." Then added: "But imagine being that guilty." He''s 9.', FALSE, NULL),
+    ('"When we die, do we get our old house back?" my daughter asked. In heaven, I said. "Then I want to die before I forget what it looked like." She''s trying to remember her room. Can''t. She''s 5. Five years old and planning her death for memory''s sake.', FALSE, NULL),
+    ('My children play "Court." They put bombs on trial. Found them guilty. Sentenced them to life in prison. Then laughed. "Bombs don''t go to prison, mama. They go to children." They''re 6 and 8. They know how justice actually works.', FALSE, NULL),
+    ('My son buried a paper that said "International Law" on it. I asked why. "It was already dead. I''m just being polite." He made a speech: "It protected nobody. It saved nobody. But it tried to exist. That''s something." He''s 7. He understands mercy better than judges.', FALSE, NULL),
+    ('Found my daughter teaching math to empty chairs. "My classmates," she explained. "They''re just invisible now, not gone." She takes attendance daily. Marks 29 absent. Won''t accept they''re never coming.', FALSE, NULL),
+    ('The thunder made my son smile yesterday. "It sounds like bombs but nothing falls," he said. "Maybe God is practicing missing." He''s 6. He thinks God needs practice at mercy.', FALSE, NULL),
+    ('My daughter asked what language angels speak. I said all languages. She said "Then why don''t they understand ''help''?" She''s 7. She''s been praying in 3 languages. Still waiting.', FALSE, NULL),
+    ('My daughter made a calendar. Not of days. Of "almosts." Almost died: 47 marks. Almost got food: 12. Almost found shelter: 8. She''s 10. She counts near-misses like treasures.', FALSE, NULL),
+    ('Found my daughters playing "before and after." They take turns remembering things. The one who cries first loses. They always tie. They''re 6 and 8. Memory is their only toy.', FALSE, NULL),
+    ('My son buried his baby tooth with a note: "For the tooth fairy after the war." I didn''t tell him she doesn''t visit war zones. He''s 5. He still believes in after.', FALSE, NULL),
+    ('Seven children. Two can''t walk. Neither can their father. My 10-year-old carries his brother when bombs fall. My 8-year-old feeds her sister every spoonful. Yesterday she asked: "If we lose the apartment, who do we save first?" I couldn''t answer. She already knew.', FALSE, NULL)
+ON CONFLICT DO NOTHING;
+
+-- Templates with replacement fields
+INSERT INTO comment_templates (template_text, has_fields, field_requirements) VALUES
+    ('I have [X] children. This morning I counted [X-1]. For three seconds I couldn''t remember who was missing. Then I did. The brain protects itself in ways that break you later. My [AGE]-year-old said "It''s okay mama, sometimes I forget too." We were talking about her sister. Dead 40 days.', TRUE, '{"children_count": true, "children_ages": true}'::jsonb),
+    ('My [AGE]-year-old can''t walk. Can''t speak. But understands everything. When the bombs fall, his eyes ask questions I can''t answer. Yesterday he grabbed my hand during an explosion. First time in months. Not from love. From knowing. He knows what we don''t say out loud. He''s already said goodbye in his own way.', TRUE, '{"children_ages": true}'::jsonb),
+    ('14 insulin units left. My [AGE]-year-old son did the math: 3 days per unit if he eats nothing. 5 days if he "sleeps more." He marked his sister''s birthday on the calendar. Drew hearts. "I''ll save 2 units for that day, mama. To be awake." She doesn''t know her party depends on his survival math.', TRUE, '{"children_ages": true}'::jsonb),
+    ('The baby is [AGE]. Too young to understand war. Old enough to understand gone. Points at the door waiting for her father. We buried him 71 days ago. She still points. Still waits. My [OLDER]-year-old told her "Baba went to get food." Now she points at empty plates too.', TRUE, '{"children_ages": true}'::jsonb),
+    ('Born with a hole in her heart. [AGE] years old. Needs a nebulizer. In America: $60. In Egypt: $90. In Gaza: $300. My daughter''s heart costs more here because hearts are bad for business during genocide. She breathes 30 times per minute. Normal is 20. I count every extra breath as theft.', TRUE, '{"children_ages": true}'::jsonb),
+    ('My [AGE]-year-old memorized which aid trucks have medicine. Not from hope. From pattern recognition. "The white ones never do. The green sometimes. The red ones used to." She''s creating survival statistics. Yesterday she said "We have 0% chance today mama. All trucks are white." She was right.', TRUE, '{"children_ages": true}'::jsonb),
+    ('[NUMBER] children. [NUMBER] different ways to be hungry. The [AGE]-year-old cries. The [AGE]-year-old goes silent. The [AGE]-year-old makes jokes that aren''t funny. "My stomach is practicing being empty for when I''m dead." We laughed. What else could we do?', TRUE, '{"children_count": true, "children_ages": true}'::jsonb)
+ON CONFLICT DO NOTHING;
+
+-- Function to increment template usage count
+CREATE OR REPLACE FUNCTION increment_template_usage(template_id INTEGER)
+RETURNS void AS $$
+BEGIN
+    UPDATE comment_templates
+    SET usage_count = usage_count + 1
+    WHERE id = template_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update target account quality scores (run daily)
+CREATE OR REPLACE FUNCTION update_target_quality_scores()
+RETURNS void AS $$
+BEGIN
+    UPDATE target_accounts ta
+    SET
+        quality_score = COALESCE(
+            (
+                SELECT
+                    CASE
+                        WHEN COUNT(pc.id) = 0 THEN 50.0
+                        ELSE LEAST(100,
+                            ((COALESCE(SUM(pc.likes_count), 0) + COALESCE(SUM(pc.replies_count), 0) * 3.0) / GREATEST(COUNT(pc.id), 1))
+                            / (LN(GREATEST(ta.followers_count, 1000)) * 0.1)
+                            * 100
+                        )
+                    END
+                FROM posted_comments pc
+                WHERE pc.target_account_id = ta.id
+                  AND pc.posted_at > NOW() - INTERVAL '30 days'
+                  AND pc.status = 'posted'
+            ),
+            50.0
+        ),
+        total_comments_posted = (
+            SELECT COUNT(*) FROM posted_comments pc
+            WHERE pc.target_account_id = ta.id AND pc.status = 'posted'
+        ),
+        total_likes_on_comments = (
+            SELECT COALESCE(SUM(likes_count), 0) FROM posted_comments pc
+            WHERE pc.target_account_id = ta.id AND pc.status = 'posted'
+        )
+    WHERE ta.is_active = TRUE;
+END;
+$$ LANGUAGE plpgsql;

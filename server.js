@@ -18,6 +18,8 @@ const { generateUsernames, generateEmail } = require('./username-generator');
 const { runAllWarmups, runWarmupSession, getWarmupDay, getWarmupPhase } = require('./warmup-scheduler');
 const { checkAccountPublic, scrapeProfile, checkScrapeCooldown, saveScrapedData } = require('./apify-scraper');
 const { initB2Client, isB2Configured, uploadFamilyMedia, deleteFromB2 } = require('./b2-storage');
+const { CommentScheduler } = require('./comment-scheduler');
+const { EngagementTracker } = require('./engagement-tracker');
 require('dotenv').config();
 
 const app = express();
@@ -723,107 +725,57 @@ const TARGET_ACCOUNTS = [
   'call2actionnow'
 ];
 
-// Run check every 60 minutes
-setInterval(async () => {
-  console.log('⏰ Scheduler: Starting hourly check...');
-  
-  if (!supabase) {
-    console.log('Skipping check: Supabase not connected');
-    return;
+// --- COMMENT SCHEDULER ---
+// Uses curated comment templates with day-specific scheduling
+// Target accounts and schedules are stored in database (see Migration 10)
+
+let commentScheduler = null;
+let engagementTracker = null;
+
+// Initialize schedulers after Supabase is ready
+setTimeout(() => {
+  if (supabase) {
+    console.log('[Scheduler] Initializing Comment Scheduler...');
+    commentScheduler = new CommentScheduler(supabase, InstagramAutomation);
+    commentScheduler.start().catch(err => {
+      console.error('[Scheduler] Comment scheduler error:', err.message);
+    });
+
+    console.log('[Scheduler] Initializing Engagement Tracker...');
+    engagementTracker = new EngagementTracker(supabase, InstagramAutomation);
+    engagementTracker.start();
+  } else {
+    console.log('[Scheduler] Supabase not connected, schedulers disabled');
+  }
+}, 5000); // Wait 5s for Supabase connection
+
+// API endpoint to manually trigger a comment round (for testing)
+app.post('/api/admin/scheduler/trigger', basicAuth, async (req, res) => {
+  if (!commentScheduler) {
+    return res.status(500).json({ error: 'Scheduler not initialized' });
   }
 
   try {
-    // 1. Get ALL active families
-    const { data: families } = await supabase
-      .from('families')
-      .select('*')
-      .eq('status', 'active');
-
-    if (!families || families.length === 0) {
-      console.log('No active families available.');
-      return;
-    }
-
-    console.log(`Found ${families.length} active families. Starting rotation...`);
-
-    // 2. Iterate through EACH family sequentially
-    for (const family of families) {
-      // SAFETY: Skip if commenting not explicitly enabled by admin
-      if (!family.commenting_enabled) {
-        console.log(`Skipping ${family.name || family.id}: commenting_enabled = false`);
-        continue;
-      }
-
-      // Skip users who haven't connected Instagram yet
-      if (!family.instagram_handle || !family.cookies) continue;
-
-      console.log(`\n--- Processing family: ${family.instagram_handle} ---`);
-      
-      let cookies;
-      try {
-        let encryptedData = family.cookies;
-        if (typeof encryptedData === 'string') encryptedData = JSON.parse(encryptedData);
-        cookies = JSON.parse(decrypt(encryptedData));
-      } catch (e) {
-        console.error(`Cookie decryption failed for ${family.instagram_handle}:`, e.message);
-        continue;
-      }
-
-      // Prepare per-family location config
-      const locationConfig = {
-        proxy_city: family.proxy_city,
-        proxy_country: family.proxy_country,
-        timezone: family.timezone,
-        geo_latitude: family.geo_latitude,
-        geo_longitude: family.geo_longitude
-      };
-
-      // Pass family instagram handle as sessionId for unique proxy session per family
-      const sessionId = `family-${family.instagram_handle}`;
-      const bot = new InstagramAutomation(cookies, null, { server: 'proxy' }, sessionId, locationConfig);
-      await bot.init();
-      const agent = new YouComAgent();
-
-      // 3. Assign random subset of targets (3 accounts) to this family
-      // This ensures coverage without overloading one account
-      const shuffledTargets = TARGET_ACCOUNTS.sort(() => 0.5 - Math.random());
-      const assignedTargets = shuffledTargets.slice(0, 3);
-
-      for (const target of assignedTargets) {
-        const postInfo = await bot.getLatestPostInfo(target);
-        
-        if (postInfo) {
-          const postTime = new Date(postInfo.timestamp);
-          const now = new Date();
-          const diffHours = (now - postTime) / (1000 * 60 * 60);
-
-          console.log(`@${target} latest post: ${diffHours.toFixed(1)} hours ago`);
-
-          // If post is fresh (< 2 hours), engage
-          if (diffHours < 2) {
-            console.log(`🔥 FRESH POST FOUND on @${target}! Engaging...`);
-            
-            try {
-              const comment = await agent.generateComment(postInfo.caption, family);
-              console.log(`   Generated comment: "${comment}"`);
-              await bot.postComment(postInfo.url, comment);
-            } catch (err) {
-              console.error(`   Failed to post comment: ${err.message}`);
-              await bot.likeRandomPosts(1); // Fallback to like
-            }
-          }
-        }
-        
-        // Pause between checks
-        await new Promise(r => setTimeout(r, 5000));
-      }
-      await bot.close();
-    }
-
+    await commentScheduler.triggerManual();
+    res.json({ status: 'SUCCESS', message: 'Comment round triggered' });
   } catch (e) {
-    console.error('Scheduler Error:', e);
+    res.status(500).json({ error: e.message });
   }
-}, 60 * 60 * 1000); // 60 minutes
+});
+
+// API endpoint to manually trigger engagement check (for testing)
+app.post('/api/admin/engagement/trigger', basicAuth, async (req, res) => {
+  if (!engagementTracker) {
+    return res.status(500).json({ error: 'Engagement tracker not initialized' });
+  }
+
+  try {
+    await engagementTracker.triggerManual();
+    res.json({ status: 'SUCCESS', message: 'Engagement check triggered' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // --- WARM-UP SCHEDULER ---
 // Run warm-up sessions once per day (every 24 hours)
