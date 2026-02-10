@@ -721,7 +721,7 @@ COMMENT ON TABLE comment_schedule IS 'Day-specific posting times for comments';
 -- 4. Posted comments log (tracking with engagement)
 CREATE TABLE IF NOT EXISTS posted_comments (
     id SERIAL PRIMARY KEY,
-    family_id UUID REFERENCES families(id) ON DELETE CASCADE,
+    family_id INTEGER REFERENCES families(id) ON DELETE CASCADE,
     target_account_id INTEGER REFERENCES target_accounts(id),
     template_id INTEGER REFERENCES comment_templates(id),
     post_url TEXT NOT NULL,
