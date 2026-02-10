@@ -201,7 +201,7 @@
                         <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
                         <div>
                             <h3 class="font-bold text-lg">{{ profile.name || profile.family_name || 'Family Profile' }}</h3>
-                            <p class="text-sm text-gray-500">{{ profile.email }}</p>
+                            <p class="text-xs text-gray-500">{{ profile.email }}</p>
                         </div>
                     </div>
 
@@ -304,7 +304,7 @@
 
                             <div class="mb-4 flex gap-2">
                                 <select v-model="newUrgentNeed" class="w-full border py-0 px-2 rounded text-base h-[30px]">
-                                    <option value="" disabled>اختر احتياج... | Select Need</option>
+                                    <option value="" disabled>اختر احتياج...</option>
                                     <option v-for="opt in urgentNeedOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                                 </select>
                                 <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="w-auto px-4 block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed gap-1 h-[30px] whitespace-nowrap">
@@ -327,14 +327,14 @@
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
                                     <span class="text-base">رقم محفظة بالباي غزة</span>
-                                    <span>| Gaza PalPay Wallet phone number</span>
+                                    <span class="text-[10px]">| Gaza PalPay Wallet phone number</span>
                                 </label>
                                 <input v-model="profile.palpay_phone" type="tel" class="w-full border p-2 rounded text-sm h-[30px]" placeholder="e.g. 0599123456">
                             </div>
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
                                     <span class="text-base">الاسم المسجل بالمحفظة</span>
-                                    <span>| Full name as registered on Wallet</span>
+                                    <span class="text-[10px]">| Full name as registered on Wallet</span>
                                 </label>
                                 <input v-model="profile.palpay_name" type="text" class="w-full border p-2 rounded text-sm h-[30px]" placeholder="الاسم الكامل">
                             </div>
