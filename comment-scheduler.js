@@ -74,9 +74,10 @@ class CommentScheduler {
         const options = { timeZone: timezone };
 
         // Get day of week (0 = Sunday, 1 = Monday, etc.)
-        const dayOfWeek = parseInt(
-            now.toLocaleDateString('en-US', { ...options, weekday: 'numeric' })
-        ) - 1; // toLocaleDateString returns 1-7, we need 0-6
+        // Use weekday: 'short' and map to number since 'numeric' is not valid
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dayName = now.toLocaleDateString('en-US', { ...options, weekday: 'short' });
+        const dayOfWeek = dayNames.indexOf(dayName);
 
         // Get current time as HH:MM
         const currentTime = now.toLocaleTimeString('en-US', {
