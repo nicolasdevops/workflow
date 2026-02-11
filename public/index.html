@@ -163,6 +163,12 @@
 
             <!-- Dashboard -->
             <div v-if="step === 'dashboard'">
+                <!-- Admin Impersonation Banner -->
+                <div v-if="isImpersonating" class="bg-purple-600 text-white text-center py-2 px-4 mb-4 rounded-lg max-w-[350px] mx-auto flex items-center justify-between">
+                    <span class="text-sm font-medium">👁️ Viewing as: {{ profile?.name || profile?.email }}</span>
+                    <button @click="signOut" class="text-xs bg-white/20 px-2 py-1 rounded hover:bg-white/30">Exit</button>
+                </div>
+
                 <div class="flex border-b mb-6 w-full max-w-[350px] mx-auto">
                     <button @click="tab = 'profile'" class="flex-1 px-1 md:px-4 py-2 font-medium text-gray-600 text-sm md:text-lg flex flex-col items-center transition-all">
                         <div class="flex flex-col items-center">
@@ -714,7 +720,8 @@
                     authMode: 'login',
                     tab: sessionStorage.getItem('current_tab') || 'profile',
                     resetToken: null,
-                    loading: false, 
+                    isImpersonating: false, // True when admin is viewing as this family
+                    loading: false,
                     isUploading: false,
                     error: null, 
                     token: null,
@@ -766,16 +773,32 @@
                 }
             },
             mounted() {
+                // Check for admin impersonation token in URL first
+                const urlParams = new URLSearchParams(window.location.search);
+                const impersonateToken = urlParams.get('impersonate');
+                if (impersonateToken) {
+                    // Admin is viewing as this family - use impersonation token
+                    this.token = impersonateToken;
+                    this.isImpersonating = true;
+                    sessionStorage.setItem('portal_token', impersonateToken);
+                    this.step = 'dashboard';
+                    this.fetchProfile();
+                    this.fetchScrapedProfile();
+                    // Clean URL (remove impersonate param)
+                    window.history.replaceState({}, document.title, "/");
+                    return;
+                }
+
                 // Check for local token (SessionStorage for tab persistence only)
                 const localToken = sessionStorage.getItem('portal_token');
                 if (localToken) {
                     this.token = localToken;
                     this.step = 'dashboard';
-                    
+
                     // Restore active tab
                     const savedTab = sessionStorage.getItem('current_tab');
                     if (savedTab) this.tab = savedTab;
-                    
+
                     this.fetchProfile();
                     this.fetchScrapedProfile(); // Always load scraped Instagram data
 
@@ -784,10 +807,9 @@
                 }
 
                 // Check for reset token in URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const token = urlParams.get('token');
-                if (token) {
-                    this.resetToken = token;
+                const resetToken = urlParams.get('token');
+                if (resetToken) {
+                    this.resetToken = resetToken;
                     this.step = 'reset_password';
                     // Clean URL
                     window.history.replaceState({}, document.title, "/");

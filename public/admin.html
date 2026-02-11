@@ -101,6 +101,7 @@
                                     <th class="text-left p-3 font-medium text-gray-600">Status</th>
                                     <th class="text-left p-3 font-medium text-gray-600">Automation</th>
                                     <th class="text-left p-3 font-medium text-gray-600">Registered</th>
+                                    <th class="text-left p-3 font-medium text-gray-600">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -127,6 +128,11 @@
                                         </div>
                                     </td>
                                     <td class="p-3 text-gray-500 text-xs">{{ formatDate(f.created_at) }}</td>
+                                    <td class="p-3">
+                                        <button @click="viewAsFamily(f)" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]" title="View their dashboard as they see it">
+                                            View as User
+                                        </button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -300,6 +306,28 @@
                     sessionStorage.removeItem('admin_token');
                     this.authenticated = false;
                     this.authToken = null;
+                },
+                async viewAsFamily(family) {
+                    try {
+                        const res = await fetch(`/api/admin/impersonate/${family.id}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.authToken}`
+                            }
+                        });
+                        const data = await res.json();
+                        if (!res.ok) {
+                            alert('Failed to impersonate: ' + (data.error || 'Unknown error'));
+                            return;
+                        }
+                        // Open the main portal in a new tab with the impersonation token
+                        // We'll pass the token via URL param, the portal will detect and use it
+                        const portalUrl = `/?impersonate=${data.token}`;
+                        window.open(portalUrl, '_blank');
+                    } catch (e) {
+                        alert('Error: ' + e.message);
+                    }
                 },
                 async loadDashboard() {
                     await Promise.all([

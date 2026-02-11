@@ -1806,6 +1806,45 @@ app.get('/api/admin/families', adminAuth, async (req, res) => {
   }
 });
 
+// Admin: Impersonate a family (view their dashboard as they see it)
+app.post('/api/admin/impersonate/:familyId', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+  const { familyId } = req.params;
+
+  try {
+    // Fetch the family's full data
+    const { data: family, error } = await supabase
+      .from('families')
+      .select('*')
+      .eq('id', familyId)
+      .single();
+
+    if (error || !family) {
+      return res.status(404).json({ error: 'Family not found' });
+    }
+
+    // Generate an impersonation token (prefixed for easy identification)
+    const token = 'imp_' + crypto.randomBytes(16).toString('hex');
+
+    // Store in portal sessions (same as regular login)
+    portalSessions.set(token, family);
+
+    console.log(`[Admin] Impersonation token created for family ${family.name || family.id}`);
+
+    res.json({
+      success: true,
+      token,
+      familyName: family.name,
+      familyEmail: family.email
+    });
+
+  } catch (e) {
+    console.error('[Admin] Impersonate error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Admin: Get recent media uploads
 app.get('/api/admin/media', adminAuth, async (req, res) => {
   if (!supabase) return res.status(500).json({ error: 'Database not configured' });
