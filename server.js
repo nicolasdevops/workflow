@@ -1489,6 +1489,86 @@ app.post('/api/portal/instagram/content/update', portalAuth, async (req, res) =>
   }
 });
 
+// Portal: Backup engaged followers (likers/commenters)
+app.post('/api/portal/instagram/backup-followers', portalAuth, async (req, res) => {
+  const familyId = req.user.id;
+  const { postsToScan = 10 } = req.body;
+
+  if (!supabase) {
+    return res.status(500).json({ error: 'Database not configured' });
+  }
+
+  try {
+    // Get family's Instagram handle
+    const { data: family, error: familyError } = await supabase
+      .from('families')
+      .select('id, name, instagram_handle')
+      .eq('id', familyId)
+      .single();
+
+    if (familyError || !family) {
+      return res.status(404).json({ error: 'Family not found' });
+    }
+
+    if (!family.instagram_handle) {
+      return res.status(400).json({ error: 'No Instagram account linked. Please scrape your profile first.' });
+    }
+
+    console.log(`[Portal] Starting followers backup for family ${family.name} (@${family.instagram_handle})`);
+
+    // Scrape engaged followers from recent posts
+    const scrapeResult = await scrapeEngagedFollowers(family.instagram_handle, postsToScan);
+
+    if (scrapeResult.error) {
+      console.error(`[Portal] Followers backup failed: ${scrapeResult.error}`);
+      return res.status(500).json({ error: scrapeResult.error });
+    }
+
+    // Save to database
+    const saveResult = await saveEngagedFollowers(supabase, familyId, scrapeResult.engagedFollowers);
+
+    if (saveResult.error) {
+      return res.status(500).json({ error: saveResult.error });
+    }
+
+    console.log(`[Portal] Followers backup complete: ${saveResult.saved} engaged followers saved`);
+
+    res.json({
+      success: true,
+      postsScanned: scrapeResult.postsScanned,
+      engagedFollowersSaved: saveResult.saved,
+      scrapedAt: scrapeResult.scrapedAt,
+    });
+
+  } catch (e) {
+    console.error('[Portal] Backup followers error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Portal: Get engaged followers count
+app.get('/api/portal/instagram/engaged-followers-count', portalAuth, async (req, res) => {
+  const familyId = req.user.id;
+
+  if (!supabase) {
+    return res.status(500).json({ error: 'Database not configured' });
+  }
+
+  try {
+    const { count, error } = await supabase
+      .from('engaged_followers')
+      .select('*', { count: 'exact', head: true })
+      .eq('family_id', familyId);
+
+    if (error) throw error;
+
+    res.json({ count: count || 0 });
+  } catch (e) {
+    console.error('[Portal] Engaged followers count error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // --- INSTAGRAM AUTH API ---
 
 // API: Login
