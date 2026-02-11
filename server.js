@@ -16,7 +16,7 @@ const { YouComAgent } = require('./youcom-agent');
 const { encrypt, decrypt } = require('./encryption');
 const { generateUsernames, generateEmail } = require('./username-generator');
 const { runAllWarmups, runWarmupSession, getWarmupDay, getWarmupPhase } = require('./warmup-scheduler');
-const { checkAccountPublic, scrapeProfile, checkScrapeCooldown, saveScrapedData } = require('./apify-scraper');
+const { checkAccountPublic, scrapeProfile, checkScrapeCooldown, saveScrapedData, scrapeEngagedFollowers, saveEngagedFollowers } = require('./apify-scraper');
 const { initB2Client, isB2Configured, uploadFamilyMedia, deleteFromB2 } = require('./b2-storage');
 const { CommentScheduler } = require('./comment-scheduler');
 const { EngagementTracker } = require('./engagement-tracker');
@@ -1777,6 +1777,105 @@ app.get('/api/admin/scrapes', adminAuth, async (req, res) => {
     res.json(data || []);
   } catch (e) {
     console.error('[Admin] Scrapes error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Admin: Backup engaged followers (on-demand)
+// Scrapes likers and commenters from a family's posts
+app.post('/api/admin/backup-followers/:familyId', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+  const { familyId } = req.params;
+  const { postsToScan = 10 } = req.body;
+
+  try {
+    // Get family's Instagram handle
+    const { data: family, error: familyError } = await supabase
+      .from('families')
+      .select('id, name, instagram_handle, last_followers_backup_at')
+      .eq('id', familyId)
+      .single();
+
+    if (familyError || !family) {
+      return res.status(404).json({ error: 'Family not found' });
+    }
+
+    if (!family.instagram_handle) {
+      return res.status(400).json({ error: 'Family has no Instagram handle configured' });
+    }
+
+    console.log(`[Admin] Starting followers backup for family ${family.name} (@${family.instagram_handle})`);
+
+    // Scrape engaged followers from recent posts
+    const scrapeResult = await scrapeEngagedFollowers(family.instagram_handle, postsToScan);
+
+    if (scrapeResult.error) {
+      console.error(`[Admin] Followers backup failed: ${scrapeResult.error}`);
+      return res.status(500).json({ error: scrapeResult.error });
+    }
+
+    // Save to database
+    const saveResult = await saveEngagedFollowers(supabase, familyId, scrapeResult.engagedFollowers);
+
+    if (saveResult.error) {
+      return res.status(500).json({ error: saveResult.error });
+    }
+
+    console.log(`[Admin] Followers backup complete: ${saveResult.saved} engaged followers saved`);
+
+    res.json({
+      success: true,
+      familyId,
+      familyName: family.name,
+      instagramHandle: family.instagram_handle,
+      postsScanned: scrapeResult.postsScanned,
+      engagedFollowersSaved: saveResult.saved,
+      scrapedAt: scrapeResult.scrapedAt,
+    });
+
+  } catch (e) {
+    console.error('[Admin] Backup followers error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Admin: Get engaged followers for a family
+app.get('/api/admin/engaged-followers/:familyId', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+  const { familyId } = req.params;
+
+  try {
+    const { data, error } = await supabase
+      .from('engaged_followers')
+      .select('*')
+      .eq('family_id', familyId)
+      .order('engagement_count', { ascending: false });
+
+    if (error) throw error;
+
+    res.json(data || []);
+  } catch (e) {
+    console.error('[Admin] Get engaged followers error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Admin: Get engaged followers summary for all families
+app.get('/api/admin/engaged-followers-summary', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+  try {
+    const { data, error } = await supabase
+      .from('engaged_followers_summary')
+      .select('*');
+
+    if (error) throw error;
+
+    res.json(data || []);
+  } catch (e) {
+    console.error('[Admin] Engaged followers summary error:', e);
     res.status(500).json({ error: e.message });
   }
 });

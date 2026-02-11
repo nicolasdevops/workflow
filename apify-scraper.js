@@ -557,10 +557,318 @@ async function saveScrapedData(supabase, familyId, scrapeResult) {
     }
 }
 
+/**
+ * Scrape likers and commenters from a post
+ * @param {string} postUrl - Full Instagram post URL or shortcode
+ * @param {number} likersLimit - Max likers to fetch (default 100)
+ * @param {number} commentersLimit - Max commenters to fetch (default 50)
+ */
+async function scrapePostEngagement(postUrl, likersLimit = 100, commentersLimit = 50) {
+    if (!APIFY_API_TOKEN) {
+        return { error: 'APIFY_API_TOKEN not configured' };
+    }
+
+    // Extract shortcode if full URL provided
+    let shortcode = postUrl;
+    if (postUrl.includes('instagram.com')) {
+        const match = postUrl.match(/\/(?:p|reel)\/([^\/\?]+)/);
+        if (match) shortcode = match[1];
+    }
+
+    const fullUrl = `https://www.instagram.com/p/${shortcode}/`;
+    console.log(`[Apify] Scraping engagement for post: ${fullUrl}`);
+
+    try {
+        // Use instagram-post-scraper for comments and likes
+        // This actor can fetch post details including likers and comments
+        const response = await fetch(`https://api.apify.com/v2/acts/apify~instagram-comment-scraper/runs?token=${APIFY_API_TOKEN}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                directUrls: [fullUrl],
+                resultsLimit: commentersLimit,
+            })
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error(`[Apify] Comment scraper error: ${response.status} - ${errText}`);
+            // Fall back to posts scraper for likes only
+            return await scrapePostLikers(shortcode, likersLimit);
+        }
+
+        const runData = await response.json();
+        const runId = runData.data?.id;
+
+        if (!runId) {
+            return { error: 'Failed to start comment scrape run' };
+        }
+
+        console.log(`[Apify] Comment scrape run started: ${runId}`);
+        const result = await waitForApifyRun(runId, 180000); // 3 min timeout
+
+        if (result.error) {
+            console.error(`[Apify] Comment scrape failed: ${result.error}`);
+            // Try likers only as fallback
+            return await scrapePostLikers(shortcode, likersLimit);
+        }
+
+        const comments = result.data || [];
+        const commenters = [];
+
+        for (const comment of comments) {
+            if (comment.ownerUsername) {
+                commenters.push({
+                    username: comment.ownerUsername,
+                    fullName: comment.ownerFullName || '',
+                    profilePicUrl: comment.ownerProfilePicUrl || '',
+                    engagementType: 'comment',
+                    postShortcode: shortcode,
+                });
+            }
+        }
+
+        console.log(`[Apify] Found ${commenters.length} commenters`);
+
+        // Also try to get likers
+        const likersResult = await scrapePostLikers(shortcode, likersLimit);
+        const likers = likersResult.likers || [];
+
+        return {
+            success: true,
+            shortcode,
+            commenters,
+            likers,
+            totalEngaged: commenters.length + likers.length,
+        };
+
+    } catch (err) {
+        console.error('[Apify] Post engagement scrape error:', err);
+        return { error: err.message };
+    }
+}
+
+/**
+ * Scrape likers from a post using Instagram Post Scraper
+ * @param {string} shortcode - Post shortcode
+ * @param {number} limit - Max likers to fetch
+ */
+async function scrapePostLikers(shortcode, limit = 100) {
+    try {
+        const fullUrl = `https://www.instagram.com/p/${shortcode}/`;
+
+        // Use instagram-api-scraper with post URL to get post details including some likers
+        const response = await fetch(`https://api.apify.com/v2/acts/${APIFY_ACTOR_ID}/runs?token=${APIFY_API_TOKEN}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                directUrls: [fullUrl],
+                resultsType: 'details',
+                resultsLimit: 1,
+            })
+        });
+
+        if (!response.ok) {
+            return { likers: [], error: 'Failed to fetch post likers' };
+        }
+
+        const runData = await response.json();
+        const runId = runData.data?.id;
+
+        if (!runId) {
+            return { likers: [] };
+        }
+
+        const result = await waitForApifyRun(runId, 120000);
+
+        if (result.error || !result.data || result.data.length === 0) {
+            return { likers: [] };
+        }
+
+        const postData = result.data[0];
+        const likers = [];
+
+        // Extract likers if available (depends on Apify actor capabilities)
+        if (postData.likers && Array.isArray(postData.likers)) {
+            for (const liker of postData.likers.slice(0, limit)) {
+                likers.push({
+                    username: liker.username || liker,
+                    fullName: liker.fullName || liker.full_name || '',
+                    profilePicUrl: liker.profilePicUrl || '',
+                    engagementType: 'like',
+                    postShortcode: shortcode,
+                });
+            }
+        }
+
+        // Also check latestComments for additional engagement data
+        if (postData.latestComments && Array.isArray(postData.latestComments)) {
+            for (const comment of postData.latestComments) {
+                if (comment.ownerUsername) {
+                    likers.push({
+                        username: comment.ownerUsername,
+                        fullName: comment.ownerFullName || '',
+                        profilePicUrl: comment.ownerProfilePicUrl || '',
+                        engagementType: 'comment',
+                        postShortcode: shortcode,
+                    });
+                }
+            }
+        }
+
+        console.log(`[Apify] Found ${likers.length} likers/commenters from post details`);
+        return { likers };
+
+    } catch (err) {
+        console.error('[Apify] Likers scrape error:', err);
+        return { likers: [], error: err.message };
+    }
+}
+
+/**
+ * Scrape engaged followers from multiple posts for a family
+ * @param {string} username - Instagram username
+ * @param {number} postsToScan - Number of recent posts to scan (default 10)
+ */
+async function scrapeEngagedFollowers(username, postsToScan = 10) {
+    console.log(`[Apify] Scraping engaged followers for @${username} (${postsToScan} posts)`);
+
+    // First get recent posts
+    const profileResult = await scrapeProfile(username, postsToScan);
+
+    if (profileResult.error) {
+        return { error: profileResult.error };
+    }
+
+    const posts = profileResult.content || [];
+    console.log(`[Apify] Found ${posts.length} posts to scan for engagement`);
+
+    const allEngaged = new Map(); // username -> engagement data
+
+    for (const post of posts) {
+        console.log(`[Apify] Scanning post ${post.shortCode}...`);
+
+        const engagement = await scrapePostEngagement(
+            post.shortCode,
+            50,  // likers per post
+            30   // commenters per post
+        );
+
+        if (engagement.error) {
+            console.log(`[Apify] Skipping post ${post.shortCode}: ${engagement.error}`);
+            continue;
+        }
+
+        // Merge likers
+        for (const liker of engagement.likers || []) {
+            const existing = allEngaged.get(liker.username);
+            if (existing) {
+                existing.engagementCount++;
+                existing.lastPostShortcode = post.shortCode;
+            } else {
+                allEngaged.set(liker.username, {
+                    ...liker,
+                    engagementCount: 1,
+                    lastPostShortcode: post.shortCode,
+                });
+            }
+        }
+
+        // Merge commenters
+        for (const commenter of engagement.commenters || []) {
+            const existing = allEngaged.get(commenter.username);
+            if (existing) {
+                existing.engagementCount++;
+                existing.lastPostShortcode = post.shortCode;
+                // Upgrade engagement type if they also comment
+                if (existing.engagementType === 'like') {
+                    existing.engagementType = 'comment';
+                }
+            } else {
+                allEngaged.set(commenter.username, {
+                    ...commenter,
+                    engagementCount: 1,
+                    lastPostShortcode: post.shortCode,
+                });
+            }
+        }
+
+        // Small delay between posts
+        await new Promise(r => setTimeout(r, 2000));
+    }
+
+    const engagedFollowers = Array.from(allEngaged.values());
+    console.log(`[Apify] Total unique engaged followers: ${engagedFollowers.length}`);
+
+    return {
+        success: true,
+        engagedFollowers,
+        postsScanned: posts.length,
+        scrapedAt: new Date().toISOString(),
+    };
+}
+
+/**
+ * Save engaged followers to database
+ * @param {object} supabase - Supabase client
+ * @param {number} familyId - Family ID
+ * @param {array} engagedFollowers - Array of engaged follower objects
+ */
+async function saveEngagedFollowers(supabase, familyId, engagedFollowers) {
+    if (!engagedFollowers || engagedFollowers.length === 0) {
+        return { success: true, saved: 0 };
+    }
+
+    console.log(`[Apify] Saving ${engagedFollowers.length} engaged followers for family ${familyId}`);
+
+    try {
+        const now = new Date().toISOString();
+        const rows = engagedFollowers.map(ef => ({
+            family_id: familyId,
+            username: ef.username,
+            full_name: ef.fullName || null,
+            profile_pic_url: ef.profilePicUrl || null,
+            engagement_type: ef.engagementType,
+            post_shortcode: ef.lastPostShortcode || ef.postShortcode,
+            engagement_count: ef.engagementCount || 1,
+            last_seen_at: now,
+        }));
+
+        // Upsert - update if username already exists for this family
+        const { error } = await supabase
+            .from('engaged_followers')
+            .upsert(rows, {
+                onConflict: 'family_id,username',
+                ignoreDuplicates: false,
+            });
+
+        if (error) {
+            console.error('[Apify] Save engaged followers error:', error);
+            return { error: error.message };
+        }
+
+        // Update family's last backup timestamp
+        await supabase
+            .from('families')
+            .update({ last_followers_backup_at: now })
+            .eq('id', familyId);
+
+        console.log(`[Apify] Saved ${rows.length} engaged followers`);
+        return { success: true, saved: rows.length };
+
+    } catch (err) {
+        console.error('[Apify] Save engaged followers error:', err);
+        return { error: err.message };
+    }
+}
+
 module.exports = {
     checkAccountPublic,
     scrapeProfile,
     checkScrapeCooldown,
     saveScrapedData,
     extractFundraiserLinks,
+    scrapePostEngagement,
+    scrapeEngagedFollowers,
+    saveEngagedFollowers,
 };

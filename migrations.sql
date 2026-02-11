@@ -937,3 +937,61 @@ BEGIN
     WHERE ta.is_active = TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================================================
+-- MIGRATION 11: Engaged Followers Backup
+-- Purpose: Store likers/commenters from family posts as backup contacts
+-- Date: 2026-02-11
+-- ============================================================================
+
+-- Table to store engaged followers (likers and commenters on family posts)
+CREATE TABLE IF NOT EXISTS engaged_followers (
+    id SERIAL PRIMARY KEY,
+    family_id INTEGER REFERENCES families(id) ON DELETE CASCADE,
+    username VARCHAR(100) NOT NULL,
+    full_name TEXT,
+    profile_pic_url TEXT,
+    engagement_type VARCHAR(20) NOT NULL,  -- 'like', 'comment'
+    post_shortcode TEXT,                    -- Which post they engaged with
+    engagement_count INTEGER DEFAULT 1,     -- How many times they've engaged
+    first_seen_at TIMESTAMP DEFAULT NOW(),
+    last_seen_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(family_id, username)
+);
+
+-- Indexes for efficient queries
+CREATE INDEX IF NOT EXISTS idx_engaged_followers_family ON engaged_followers(family_id);
+CREATE INDEX IF NOT EXISTS idx_engaged_followers_username ON engaged_followers(username);
+CREATE INDEX IF NOT EXISTS idx_engaged_followers_type ON engaged_followers(engagement_type);
+CREATE INDEX IF NOT EXISTS idx_engaged_followers_last_seen ON engaged_followers(last_seen_at DESC);
+
+-- Comments
+COMMENT ON TABLE engaged_followers IS 'Backup of users who liked/commented on family posts - for re-engagement if account suspended';
+COMMENT ON COLUMN engaged_followers.engagement_type IS 'Type of engagement: like, comment';
+COMMENT ON COLUMN engaged_followers.engagement_count IS 'Total times this user has engaged with family content';
+COMMENT ON COLUMN engaged_followers.post_shortcode IS 'Most recent post they engaged with';
+
+-- Add last_followers_backup timestamp to families table
+ALTER TABLE families
+ADD COLUMN IF NOT EXISTS last_followers_backup_at TIMESTAMP;
+
+COMMENT ON COLUMN families.last_followers_backup_at IS 'Timestamp of last engaged followers backup';
+
+-- View: Engaged followers summary per family
+CREATE OR REPLACE VIEW engaged_followers_summary AS
+SELECT
+    f.id AS family_id,
+    f.name AS family_name,
+    f.instagram_handle,
+    COUNT(ef.id) AS total_engaged_followers,
+    COUNT(CASE WHEN ef.engagement_type = 'like' THEN 1 END) AS likers_count,
+    COUNT(CASE WHEN ef.engagement_type = 'comment' THEN 1 END) AS commenters_count,
+    MAX(ef.last_seen_at) AS most_recent_engagement,
+    f.last_followers_backup_at
+FROM families f
+LEFT JOIN engaged_followers ef ON f.id = ef.family_id
+WHERE f.instagram_handle IS NOT NULL
+GROUP BY f.id, f.name, f.instagram_handle, f.last_followers_backup_at
+ORDER BY total_engaged_followers DESC;
+
+-- Usage: SELECT * FROM engaged_followers_summary;
