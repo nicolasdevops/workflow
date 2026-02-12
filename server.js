@@ -193,7 +193,7 @@ app.get('/f/:familyId', async (req, res) => {
 
 // Admin Routes
 app.get('/admin', basicAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 app.get('/api/families', basicAuth, async (req, res) => {
