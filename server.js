@@ -89,15 +89,33 @@ const downloadImage = (url) => new Promise((resolve, reject) => {
     });
 });
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT || 587,
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Configure Nodemailer
+// Uses standard SMTP variables or defaults to Resend if RESEND_API_KEY is present
+let transporterConfig = {
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT || 587,
+    secure: false,
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+    }
+};
+
+// Override with Resend specific settings if API Key is present (or use standard if manually set)
+if (process.env.RESEND_API_KEY) {
+    console.log('📧 Using Resend for emails');
+    transporterConfig = {
+        host: 'smtp.resend.com',
+        port: 465,
+        secure: true,
+        auth: {
+            user: 'resend',
+            pass: process.env.RESEND_API_KEY
+        }
+    };
+}
+
+const transporter = nodemailer.createTransport(transporterConfig);
 
 app.use(bodyParser.json());
 // Serve static files with caching to improve load speed in low-bandwidth areas
@@ -1841,6 +1859,50 @@ app.post('/api/admin/impersonate/:familyId', adminAuth, async (req, res) => {
 
   } catch (e) {
     console.error('[Admin] Impersonate error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Admin: Delete a family and all associated data
+app.delete('/api/admin/family/:familyId', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+  const { familyId } = req.params;
+
+  try {
+    console.log(`[Admin] Deleting family ${familyId}...`);
+
+    // Delete from dependent tables first (manual cascade)
+    // Note: If foreign keys are set to CASCADE in DB, this is redundant but safe
+    const tables = [
+      'family_members',
+      'media_uploads',
+      'mothers_profiles',
+      'mothers_content',
+      'engaged_followers',
+      'posted_comments',
+      'comment_assignments',
+      'comments_deployed'
+    ];
+
+    for (const table of tables) {
+      const { error } = await supabase.from(table).delete().eq('family_id', familyId);
+      if (error) console.log(`[Admin] Warning deleting from ${table}: ${error.message}`);
+    }
+
+    // Delete the family record itself
+    const { error: familyError } = await supabase
+      .from('families')
+      .delete()
+      .eq('id', familyId);
+
+    if (familyError) throw familyError;
+
+    console.log(`[Admin] Successfully deleted family ${familyId}`);
+    res.json({ success: true, message: 'Family deleted successfully' });
+
+  } catch (e) {
+    console.error('[Admin] Delete family error:', e);
     res.status(500).json({ error: e.message });
   }
 });

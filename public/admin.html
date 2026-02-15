@@ -140,9 +140,14 @@
                                     </td>
                                     <td class="p-3 text-gray-500 text-xs">{{ formatDate(f.created_at) }}</td>
                                     <td class="p-3">
-                                        <button @click="viewAsFamily(f)" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]" title="View their dashboard as they see it">
-                                            View as User
-                                        </button>
+                                        <div class="flex gap-2">
+                                            <button @click="viewAsFamily(f)" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]" title="View their dashboard as they see it">
+                                                View as User
+                                            </button>
+                                            <button @click="deleteFamily(f)" class="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700" title="Delete family account and all data">
+                                                Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -324,7 +329,7 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${this.authToken}`
+                                'x-admin-token': this.authToken
                             }
                         });
                         const data = await res.json();
@@ -338,6 +343,36 @@
                         window.open(portalUrl, '_blank');
                     } catch (e) {
                         alert('Error: ' + e.message);
+                    }
+                },
+                async deleteFamily(family) {
+                    if (!confirm(`Are you sure you want to PERMANENTLY delete the family "${family.name}" (ID: ${family.id})?\n\nThis will remove all associated data including media, comments, and profile information. This cannot be undone.`)) {
+                        return;
+                    }
+                    
+                    this.loading = true;
+                    try {
+                        const res = await fetch(`/api/admin/family/${family.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-admin-token': this.authToken
+                            }
+                        });
+                        const data = await res.json();
+                        
+                        if (!res.ok) {
+                            alert('Failed to delete: ' + (data.error || 'Unknown error'));
+                        } else {
+                            // Success - refresh list
+                            await this.fetchFamilies();
+                            // Also update stats since family count changed
+                            await this.fetchStats();
+                        }
+                    } catch (e) {
+                        alert('Error: ' + e.message);
+                    } finally {
+                        this.loading = false;
                     }
                 },
                 async loadDashboard() {
