@@ -144,8 +144,10 @@
                                             <button @click="viewAsFamily(f)" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]" title="View their dashboard as they see it">
                                                 View as User
                                             </button>
-                                            <button @click="deleteFamily(f)" class="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700" title="Delete family account and all data">
-                                                Delete
+                                            <button @click="deleteFamily(f)" class="text-xs bg-red-100 text-red-600 p-1 rounded hover:bg-red-200 transition" title="Delete family account and all data">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
                                             </button>
                                         </div>
                                     </td>
@@ -153,7 +155,10 @@
                             </tbody>
                         </table>
                     </div>
-                    <div v-if="families.length === 0" class="p-8 text-center text-gray-400">
+                    <div v-if="fetchError" class="p-4 bg-red-50 text-red-700 text-center border-b border-red-100">
+                        {{ fetchError }}
+                    </div>
+                    <div v-else-if="families.length === 0" class="p-8 text-center text-gray-400">
                         No families registered yet.
                     </div>
                 </div>
@@ -271,6 +276,7 @@
                     authenticated: false,
                     loading: false,
                     error: null,
+                    fetchError: null,
                     tab: 'families',
                     credentials: { username: '', password: '' },
                     authToken: null,
@@ -384,15 +390,20 @@
                     ]);
                 },
                 async fetchFamilies() {
+                    this.fetchError = null;
                     try {
                         const res = await fetch('/api/admin/families', {
                             headers: { 'x-admin-token': this.authToken }
                         });
                         if (res.ok) {
                             this.families = await res.json();
+                        } else {
+                            const err = await res.json().catch(() => ({}));
+                            this.fetchError = 'Failed to load families: ' + (err.error || res.statusText);
                         }
                     } catch (e) {
                         console.error('Fetch families error:', e);
+                        this.fetchError = 'Connection error: ' + e.message;
                     }
                 },
                 async fetchMedia() {

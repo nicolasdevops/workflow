@@ -98,11 +98,15 @@ let transporterConfig = {
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
-    }
+    },
+    // Add timeouts to prevent hanging
+    connectionTimeout: 5000, // 5 seconds
+    greetingTimeout: 5000,
+    socketTimeout: 5000
 };
 
-// Override with Resend specific settings if API Key is present (or use standard if manually set)
-const resendKey = process.env.RESEND_API_KEY || 're_fmE8dGZZ_95JpozduZL2Yyk13DphhSjjE'; // Fallback to provided key
+// Override with Resend specific settings if API Key is present
+const resendKey = process.env.RESEND_API_KEY;
 if (resendKey) {
     console.log('📧 Using Resend for emails');
     transporterConfig = {
@@ -112,7 +116,10 @@ if (resendKey) {
         auth: {
             user: 'resend',
             pass: resendKey
-        }
+        },
+        connectionTimeout: 5000, // 5 seconds
+        greetingTimeout: 5000,
+        socketTimeout: 5000
     };
 }
 
@@ -1168,27 +1175,35 @@ app.post('/api/portal/forgot-password', async (req, res) => {
 
         if (updateError) throw updateError;
 
-        // MOCK EMAIL SENDING: Log to console
+        // Generate Reset Link
         const resetLink = `${req.protocol}://${req.get('host')}/?token=${token}`;
         
-        if ((process.env.SMTP_HOST && process.env.SMTP_USER) || process.env.RESEND_API_KEY || 're_fmE8dGZZ_95JpozduZL2Yyk13DphhSjjE') {
-            try {
-                // Use onboarding@resend.dev if using Resend and no custom sender
-                const isResend = !!(process.env.RESEND_API_KEY || 're_fmE8dGZZ_95JpozduZL2Yyk13DphhSjjE');
-                const fromAddress = process.env.SMTP_FROM || (isResend ? 'onboarding@resend.dev' : '"Gaza Protocol" <noreply@example.com>');
+        // EMAIL SENDING LOGIC
+        // Check if email service is configured
+        const isEmailConfigured = (process.env.SMTP_HOST && process.env.SMTP_USER) || process.env.RESEND_API_KEY;
 
-                await transporter.sendMail({
-                    from: fromAddress,
-                    to: email,
-                    subject: 'Password Reset Request',
-                    html: `<p>You requested a password reset.</p><p>Click here to reset: <a href="${resetLink}">${resetLink}</a></p>`,
-                });
-                console.log(`📧 Email sent to ${email}`);
-            } catch (emailError) {
-                console.error('❌ Failed to send email:', emailError);
-                // Don't fail the request if email fails, just log it
-            }
+        if (isEmailConfigured) {
+            // Run email sending asynchronously so we don't block the UI response
+            // This prevents the "stuck" processing icon if email service is slow/down
+            (async () => {
+                try {
+                    const isResend = !!process.env.RESEND_API_KEY;
+                    const fromAddress = process.env.SMTP_FROM || (isResend ? 'onboarding@resend.dev' : '"Gaza Protocol" <noreply@example.com>');
+
+                    console.log(`📧 Attempting to send password reset email to ${email}...`);
+                    await transporter.sendMail({
+                        from: fromAddress,
+                        to: email,
+                        subject: 'Password Reset Request',
+                        html: `<p>You requested a password reset.</p><p>Click here to reset: <a href="${resetLink}">${resetLink}</a></p>`,
+                    });
+                    console.log(`✅ Email sent successfully to ${email}`);
+                } catch (emailError) {
+                    console.error('❌ Failed to send email (check SMTP/Resend config):', emailError.message);
+                }
+            })();
         } else {
+            // Fallback: Log to console for development/testing
             console.log(`\n📧 [EMAIL MOCK] Password Reset Request for ${email}`);
             console.log(`🔗 Link: ${resetLink}\n`);
         }
