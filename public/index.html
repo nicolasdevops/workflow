@@ -248,7 +248,7 @@
                                                             <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm" dir="auto">
                                                                 <div class="flex flex-col">
                                                                     <span>
-                                                                        <span class="font-bold">{{ member.name }}</span>
+                                                                        <span class="font-bold">{{ member.nameDisplay || member.name }}</span>
                                                                         ({{ getRelationshipLabel(member.relationship, member.gender) || 'Member' }}, {{ member.gender === 'Male' ? '♂' : '♀' }}, {{ member.age }})
                                                                     </span>
                                                                     <div class="text-sm text-gray-500 flex gap-2">
@@ -257,7 +257,7 @@
                                                                             <span v-if="member.status === 'Deceased' && member.days_deceased">({{ member.days_deceased }} days)</span>
                                                                             <span v-if="member.status === 'Unknown' && member.days_missing">({{ member.days_missing }} days)</span>
                                                                         </span>
-                                                                        <span v-if="member.condition" class="text-red-600 font-bold">- {{ member.condition }}</span>
+                                                                        <span v-if="member.condition" class="text-red-600 font-bold">- {{ member.conditionDisplay || member.condition }}</span>
                                                                     </div>
                                                                 </div>
                                                                 <button type="button" @click="removeChild(index)" class="text-red-500 hover:text-red-700 font-bold px-2">×</button>
@@ -799,6 +799,7 @@
                     backupLoading: false,
                     backupMessage: null,
                     engagedFollowersCount: 0,
+                    translationCache: {},
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
                         { value: "displacement", label: "🚶 استلمنا أمر إخلاء | Displacement order received" },
@@ -967,6 +968,16 @@
                         if (this.profile.instagram_handle && !this.form.insta_username) {
                             this.form.insta_username = this.profile.instagram_handle;
                         }
+
+                        // Translate existing family members
+                        for (const member of this.profile.children_details) {
+                            if (member.name && !member.nameDisplay) {
+                                member.nameDisplay = await this.getBilingualText(member.name);
+                            }
+                            if (member.condition && !member.conditionDisplay) {
+                                member.conditionDisplay = await this.getBilingualText(member.condition);
+                            }
+                        }
                     } catch (e) {
                         console.error('Fetch profile error', e);
                     }
@@ -981,9 +992,19 @@
                     });
                     alert('Profile saved!');
                 },
-                addMember() {
+                async addMember() {
                     if (!this.profile.children_details) this.profile.children_details = [];
-                    this.profile.children_details.push({ ...this.newMember });
+
+                    // Add translations for name and condition
+                    const memberWithTranslations = { ...this.newMember };
+                    if (memberWithTranslations.name) {
+                        memberWithTranslations.nameDisplay = await this.getBilingualText(memberWithTranslations.name);
+                    }
+                    if (memberWithTranslations.condition) {
+                        memberWithTranslations.conditionDisplay = await this.getBilingualText(memberWithTranslations.condition);
+                    }
+
+                    this.profile.children_details.push(memberWithTranslations);
                     this.newMember = { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '' }; // Reset
                     this.updateProfile();
                 },
@@ -1024,6 +1045,52 @@
                         'Unknown': 'مجهول | Unknown'
                     };
                     return map[status] || status;
+                },
+                async translateText(text, targetLang = 'en') {
+                    if (!text || !text.trim()) return text;
+
+                    // Check cache first
+                    const cacheKey = `${text}_${targetLang}`;
+                    if (this.translationCache[cacheKey]) {
+                        return this.translationCache[cacheKey];
+                    }
+
+                    try {
+                        const res = await fetch('/api/translate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-portal-token': this.token
+                            },
+                            body: JSON.stringify({ text, targetLang })
+                        });
+
+                        if (!res.ok) throw new Error('Translation failed');
+
+                        const data = await res.json();
+                        // Cache the result
+                        this.translationCache[cacheKey] = data.translation;
+                        return data.translation;
+                    } catch (error) {
+                        console.error('Translation error:', error);
+                        return text; // Return original text on error
+                    }
+                },
+                async getBilingualText(text) {
+                    if (!text || !text.trim()) return text;
+
+                    // Detect if text is primarily Arabic (contains Arabic characters)
+                    const isArabic = /[\u0600-\u06FF]/.test(text);
+
+                    if (isArabic) {
+                        // Arabic → English
+                        const translation = await this.translateText(text, 'en');
+                        return `${text}/${translation}`;
+                    } else {
+                        // English → Arabic
+                        const translation = await this.translateText(text, 'ar');
+                        return `${translation}/${text}`;
+                    }
                 },
                 async handleFileUpload(e) {
                     const files = Array.from(e.target.files);

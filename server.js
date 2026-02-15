@@ -20,6 +20,7 @@ const { checkAccountPublic, scrapeProfile, checkScrapeCooldown, saveScrapedData,
 const { initB2Client, isB2Configured, uploadFamilyMedia, deleteFromB2 } = require('./b2-storage');
 const { CommentScheduler } = require('./comment-scheduler');
 const { EngagementTracker } = require('./engagement-tracker');
+const deepl = require('deepl-node');
 require('dotenv').config();
 
 const app = express();
@@ -47,6 +48,17 @@ if (isB2Configured()) {
   console.log('✅ Backblaze B2 storage initialized');
 } else {
   console.log('ℹ️  Backblaze B2 not configured - using Instagram CDN URLs (they expire in 24-48hrs)');
+}
+
+// Initialize DeepL translator (if API key is present)
+let translator = null;
+if (process.env.DEEPL_API_KEY) {
+  try {
+    translator = new deepl.Translator(process.env.DEEPL_API_KEY);
+    console.log('✅ DeepL translator initialized');
+  } catch (e) {
+    console.error('❌ DeepL initialization failed:', e.message);
+  }
 }
 
 // Store active sessions in memory (in production, use Redis)
@@ -847,6 +859,36 @@ setTimeout(() => {
 console.log(`🔥 Warm-up scheduler: First run in ${Math.round(msUntilNextWarmupWindow() / (1000 * 60 * 60))} hours`);
 
 // --- PORTAL API ---
+
+// Translation endpoint (uses DeepL)
+app.post('/api/translate', portalAuth, async (req, res) => {
+  const { text, targetLang } = req.body;
+
+  if (!translator) {
+    return res.status(503).json({ error: 'Translation service not configured' });
+  }
+
+  if (!text || !text.trim()) {
+    return res.json({ translation: text, detectedLang: null });
+  }
+
+  try {
+    // Auto-detect source language and translate
+    const result = await translator.translateText(
+      text,
+      null, // Auto-detect source language
+      targetLang === 'ar' ? 'ar' : 'en-US'
+    );
+
+    res.json({
+      translation: result.text,
+      detectedLang: result.detectedSourceLang
+    });
+  } catch (error) {
+    console.error('Translation error:', error);
+    res.status(500).json({ error: 'Translation failed', original: text });
+  }
+});
 
 // Portal Register
 app.post('/api/portal/register', async (req, res) => {
