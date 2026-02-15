@@ -298,37 +298,32 @@
                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                                         </div>
                                         <select v-model="newMember.relationship" class="border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white">
-                                            <option value="" disabled selected>Relationship | صلة القرابة</option>
-                                            <option value="Son">Son | ابن</option>
-                                            <option value="Daughter">Daughter | ابنة</option>
-                                            <option value="Brother">Brother | أخ</option>
-                                            <option value="Sister">Sister | أخت</option>
-                                            <option value="Father">Father | أب</option>
-                                            <option value="Mother">Mother | أم</option>
-                                            <option value="Cousin">Cousin | ابن/ة عم/خال</option>
-                                            <option value="Nephew">Nephew | ابن أخ/أخت</option>
-                                            <option value="Niece">Niece | بنت أخ/أخت</option>
-                                            <option value="Aunt">Aunt | عمة/خالة</option>
-                                            <option value="Uncle">Uncle | عم/خال</option>
+                                            <option value="" disabled selected>صلة القرابة</option>
+                                            <option value="Son/Daughter">ابن/ابنة | Son/Daughter</option>
+                                            <option value="Husband/Wife">زوج/زوجة | Husband/Wife</option>
+                                            <option value="Brother/Sister">أخ/أخت | Brother/Sister</option>
+                                            <option value="Mother/Father">أم/أب | Mother/Father</option>
+                                            <option value="Nephew/Niece">ابن أخ/بنت أخت | Nephew/Niece</option>
+                                            <option value="Aunt/Uncle">عمة، خالة/عم، خال | Aunt/Uncle</option>
                                         </select>
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.0 0 00-6.364 0z"></path></svg>
                                         </div>
                                         <select v-model="newMember.status" class="border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white">
-                                            <option value="" disabled selected>Alive? | الحالة</option>
-                                            <option value="Alive">Alive | حي يرزق</option>
-                                            <option value="Deceased">Deceased | متوفي</option>
-                                            <option value="Unknown">Unknown | مجهول</option>
+                                            <option value="" disabled selected>على قيد الحياة؟</option>
+                                            <option value="Alive">حي يرزق | Alive</option>
+                                            <option value="Deceased">متوفي | Deceased</option>
+                                            <option value="Unknown">مجهول | Unknown</option>
                                         </select>
                                     </div>
                                     <div class="relative" v-if="newMember.status === 'Deceased' || newMember.status === 'Unknown'">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                             <span class="text-xs">⏳</span>
                                         </div>
-                                        <input v-if="newMember.status === 'Deceased'" v-model="newMember.days_deceased" type="number" placeholder="عدد أيام الوفاة" class="border py-0 pl-8 pr-2 rounded text-sm w-full h-[30px]">
-                                        <input v-if="newMember.status === 'Unknown'" v-model="newMember.days_missing" type="number" placeholder="عدد أيام الفقدان" class="border py-0 pl-8 pr-2 rounded text-sm w-full h-[30px]">
+                                        <input v-if="newMember.status === 'Deceased'" v-model="newMember.days_deceased" type="number" placeholder="⏳ عدد أيام الوفاة" class="border py-0 pl-8 pr-2 rounded text-sm w-full h-[30px]">
+                                        <input v-if="newMember.status === 'Unknown'" v-model="newMember.days_missing" type="number" placeholder="⏳ عدد أيام الفقدان" class="border py-0 pl-8 pr-2 rounded text-sm w-full h-[30px]">
                                     </div>
                                 </div>
                                 <div class="mb-3 relative">
