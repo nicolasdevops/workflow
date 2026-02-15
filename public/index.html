@@ -245,7 +245,7 @@
                                                         
                                                         <!-- List of added children -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
-                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm" dir="auto">
+                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm" dir="ltr" style="text-align: left;">
                                                                 <div class="flex flex-col">
                                                                     <span>
                                                                         <span class="font-bold">{{ member.nameDisplay || member.name }}</span>
@@ -1029,20 +1029,20 @@
                 getRelationshipLabel(relationship, gender) {
                     const isMale = gender === 'Male';
                     const map = {
-                        'Son/Daughter': isMale ? 'ابن | Son' : 'ابنة | Daughter',
-                        'Husband/Wife': isMale ? 'زوج | Husband' : 'زوجة | Wife',
-                        'Brother/Sister': isMale ? 'أخ | Brother' : 'أخت | Sister',
-                        'Mother/Father': isMale ? 'أب | Father' : 'أم | Mother',
-                        'Nephew/Niece': isMale ? 'ابن أخ | Nephew' : 'بنت أخت | Niece',
-                        'Aunt/Uncle': isMale ? 'عم، خال | Uncle' : 'عمة، خالة | Aunt'
+                        'Son/Daughter': isMale ? 'Son | ابن' : 'Daughter | ابنة',
+                        'Husband/Wife': isMale ? 'Husband | زوج' : 'Wife | زوجة',
+                        'Brother/Sister': isMale ? 'Brother | أخ' : 'Sister | أخت',
+                        'Mother/Father': isMale ? 'Father | أب' : 'Mother | أم',
+                        'Nephew/Niece': isMale ? 'Nephew | ابن أخ' : 'Niece | بنت أخت',
+                        'Aunt/Uncle': isMale ? 'Uncle | عم، خال' : 'Aunt | عمة، خالة'
                     };
                     return map[relationship] || relationship;
                 },
                 getStatusLabel(status) {
                     const map = {
-                        'Alive': 'حي يرزق | Alive',
-                        'Deceased': 'متوفي | Deceased',
-                        'Unknown': 'مجهول | Unknown'
+                        'Alive': 'Alive | حي يرزق',
+                        'Deceased': 'Deceased | متوفي',
+                        'Unknown': 'Unknown | مجهول'
                     };
                     return map[status] || status;
                 },
@@ -1083,13 +1083,13 @@
                     const isArabic = /[\u0600-\u06FF]/.test(text);
 
                     if (isArabic) {
-                        // Arabic → English
+                        // Arabic → English (English first to force LTR)
                         const translation = await this.translateText(text, 'en');
-                        return `${text}/${translation}`;
+                        return `${translation} / ${text}`;
                     } else {
-                        // English → Arabic
+                        // English → Arabic (English first to force LTR)
                         const translation = await this.translateText(text, 'ar');
-                        return `${translation}/${text}`;
+                        return `${text} / ${translation}`;
                     }
                 },
                 async handleFileUpload(e) {
