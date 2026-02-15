@@ -293,7 +293,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="grid gap-2 mb-2" :class="(newMember.status === 'Deceased' || newMember.status === 'Unknown') ? 'grid-cols-3' : 'grid-cols-2'">
+                                <div class="grid grid-cols-2 gap-2 mb-2">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -319,19 +319,26 @@
                                             <option value="Unknown">مجهول | Unknown</option>
                                         </select>
                                     </div>
-                                    <div class="relative" v-if="newMember.status === 'Deceased' || newMember.status === 'Unknown'">
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 mb-2">
+                                    <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                             <span class="text-xs">⏳</span>
                                         </div>
-                                        <input v-if="newMember.status === 'Deceased'" v-model="newMember.days_deceased" type="number" placeholder="⏳ عدد أيام الوفاة" class="border py-0 pl-8 pr-2 rounded text-sm w-full h-[30px]">
-                                        <input v-if="newMember.status === 'Unknown'" v-model="newMember.days_missing" type="number" placeholder="⏳ عدد أيام الفقدان" class="border py-0 pl-8 pr-2 rounded text-sm w-full h-[30px]">
+                                        <input
+                                            v-model="newMember.status === 'Deceased' ? newMember.days_deceased : newMember.days_missing"
+                                            type="number"
+                                            :placeholder="newMember.status === 'Deceased' ? 'أيام الوفاة' : (newMember.status === 'Unknown' ? 'أيام الفقدان' : 'أيام')"
+                                            :disabled="!newMember.status || newMember.status === 'Alive'"
+                                            class="border py-0 pl-8 pr-2 rounded text-sm w-full h-[30px] disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                                        >
                                     </div>
-                                </div>
-                                <div class="mb-2 relative">
-                                    <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                        </div>
+                                        <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-base placeholder:text-black w-full h-[30px]">
                                     </div>
-                                    <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-base placeholder:text-black w-full h-[30px]">
                                 </div>
                                 <button type="button" @click="addMember" :disabled="!newMember.name || !newMember.age" class="w-auto px-3 py-1 mx-auto block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed gap-1 h-[30px]">
                                     <span>+ Add | </span>
