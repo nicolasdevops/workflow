@@ -102,7 +102,8 @@ let transporterConfig = {
 };
 
 // Override with Resend specific settings if API Key is present (or use standard if manually set)
-if (process.env.RESEND_API_KEY) {
+const resendKey = process.env.RESEND_API_KEY || 're_fmE8dGZZ_95JpozduZL2Yyk13DphhSjjE'; // Fallback to provided key
+if (resendKey) {
     console.log('📧 Using Resend for emails');
     transporterConfig = {
         host: 'smtp.resend.com',
@@ -110,7 +111,7 @@ if (process.env.RESEND_API_KEY) {
         secure: true,
         auth: {
             user: 'resend',
-            pass: process.env.RESEND_API_KEY
+            pass: resendKey
         }
     };
 }
@@ -1146,45 +1147,60 @@ app.post('/api/portal/forgot-password', async (req, res) => {
   const email = req.body.email.toLowerCase();
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
 
-  // Check if user exists (silently fail if not to prevent enumeration)
-  const { data: user } = await supabase.from('families').select('email').eq('email', email).single();
-  
-  if (user) {
-    // Generate Token
-    const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 3600000); // 1 hour from now
-
-    // Save to DB
-    const { error } = await supabase
-      .from('families')
-      .update({ reset_token: token, reset_expires: expires.toISOString() })
-      .eq('email', email);
-
-    if (!error) {
-      // MOCK EMAIL SENDING: Log to console
-      const resetLink = `${req.protocol}://${req.get('host')}/?token=${token}`;
-      
-      if (process.env.SMTP_HOST && process.env.SMTP_USER) {
-        try {
-          await transporter.sendMail({
-            from: process.env.SMTP_FROM || '"Gaza Protocol" <noreply@example.com>',
-            to: email,
-            subject: 'Password Reset Request',
-            html: `<p>You requested a password reset.</p><p>Click here to reset: <a href="${resetLink}">${resetLink}</a></p>`,
-          });
-          console.log(`📧 Email sent to ${email}`);
-        } catch (emailError) {
-          console.error('❌ Failed to send email:', emailError);
-        }
-      } else {
-        console.log(`\n📧 [EMAIL MOCK] Password Reset Request for ${email}`);
-        console.log(`🔗 Link: ${resetLink}\n`);
-      }
+  try {
+    // Check if user exists (silently fail if not to prevent enumeration)
+    const { data: user, error: userError } = await supabase.from('families').select('email').eq('email', email).single();
+    
+    if (userError && userError.code !== 'PGRST116') { // PGRST116 is "No rows found"
+        throw userError;
     }
-  }
 
-  // Always return success for security
-  res.json({ status: 'SUCCESS', message: 'If an account exists, a reset link has been sent.' });
+    if (user) {
+        // Generate Token
+        const token = crypto.randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 3600000); // 1 hour from now
+
+        // Save to DB
+        const { error: updateError } = await supabase
+        .from('families')
+        .update({ reset_token: token, reset_expires: expires.toISOString() })
+        .eq('email', email);
+
+        if (updateError) throw updateError;
+
+        // MOCK EMAIL SENDING: Log to console
+        const resetLink = `${req.protocol}://${req.get('host')}/?token=${token}`;
+        
+        if ((process.env.SMTP_HOST && process.env.SMTP_USER) || process.env.RESEND_API_KEY || 're_fmE8dGZZ_95JpozduZL2Yyk13DphhSjjE') {
+            try {
+                // Use onboarding@resend.dev if using Resend and no custom sender
+                const isResend = !!(process.env.RESEND_API_KEY || 're_fmE8dGZZ_95JpozduZL2Yyk13DphhSjjE');
+                const fromAddress = process.env.SMTP_FROM || (isResend ? 'onboarding@resend.dev' : '"Gaza Protocol" <noreply@example.com>');
+
+                await transporter.sendMail({
+                    from: fromAddress,
+                    to: email,
+                    subject: 'Password Reset Request',
+                    html: `<p>You requested a password reset.</p><p>Click here to reset: <a href="${resetLink}">${resetLink}</a></p>`,
+                });
+                console.log(`📧 Email sent to ${email}`);
+            } catch (emailError) {
+                console.error('❌ Failed to send email:', emailError);
+                // Don't fail the request if email fails, just log it
+            }
+        } else {
+            console.log(`\n📧 [EMAIL MOCK] Password Reset Request for ${email}`);
+            console.log(`🔗 Link: ${resetLink}\n`);
+        }
+    }
+
+    // Always return success for security
+    res.json({ status: 'SUCCESS', message: 'If an account exists, a reset link has been sent.' });
+
+  } catch (e) {
+      console.error('Forgot password error:', e);
+      res.status(500).json({ error: 'Internal server error processing request' });
+  }
 });
 
 // Reset Password - Verify Token & Update

@@ -100,9 +100,9 @@
             <!-- Portal Login -->
             <div v-if="step === 'portal_login'" class="w-full max-w-[350px] mx-auto">
                 <div class="flex border-b border-[#3274B5] mb-6">
-                    <button @click="authMode = 'login'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-sm text-left">Login | تسجيل الدخول</button>
+                    <button @click="authMode = 'register'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-sm text-left">1. Register | تسجيل جديد</button>
                     <div class="w-px h-5 bg-[#3274B5] self-center"></div>
-                    <button @click="authMode = 'register'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-sm text-right">Register | تسجيل جديد</button>
+                    <button @click="authMode = 'login'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-sm text-right">2. Login | تسجيل الدخول</button>
                 </div>
 
                 <form @submit.prevent="authMode === 'login' ? handlePortalLogin() : handlePortalRegister()">
