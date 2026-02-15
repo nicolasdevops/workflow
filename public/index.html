@@ -246,7 +246,20 @@
                                                         <!-- List of added children -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
                                                             <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm">
-                                                                <span><span class="font-bold">{{ member.name }}</span> ({{ member.gender === 'Male' ? '♂' : '♀' }}, {{ member.age }}) <span v-if="member.condition" class="text-red-600 text-xs">- {{ member.condition }}</span></span>
+                                                                <div class="flex flex-col">
+                                                                    <span>
+                                                                        <span class="font-bold">{{ member.name }}</span> 
+                                                                        ({{ member.relationship || 'Member' }}, {{ member.gender === 'Male' ? '♂' : '♀' }}, {{ member.age }})
+                                                                    </span>
+                                                                    <div class="text-xs text-gray-500 flex gap-2">
+                                                                        <span v-if="member.status" :class="{'text-green-600': member.status === 'Alive', 'text-red-600': member.status === 'Deceased', 'text-orange-500': member.status === 'Unknown'}">
+                                                                            {{ member.status }}
+                                                                            <span v-if="member.status === 'Deceased' && member.days_deceased">({{ member.days_deceased }} days)</span>
+                                                                            <span v-if="member.status === 'Unknown' && member.days_missing">({{ member.days_missing }} days)</span>
+                                                                        </span>
+                                                                        <span v-if="member.condition" class="text-red-600 font-bold">- {{ member.condition }}</span>
+                                                                    </div>
+                                                                </div>
                                                                 <button type="button" @click="removeChild(index)" class="text-red-500 hover:text-red-700 font-bold px-2">×</button>
                                                             </div>
                                                         </div>
@@ -278,6 +291,44 @@
                                             <option value="Male">ذكر ♂</option>
                                             <option value="Female">أنثى ♀</option>
                                         </select>
+                                    </div>
+                                <div class="grid grid-cols-3 gap-2 mb-2">
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                        </div>
+                                        <select v-model="newMember.relationship" class="border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white">
+                                            <option value="" disabled selected>Relationship | صلة القرابة</option>
+                                            <option value="Son">Son | ابن</option>
+                                            <option value="Daughter">Daughter | ابنة</option>
+                                            <option value="Brother">Brother | أخ</option>
+                                            <option value="Sister">Sister | أخت</option>
+                                            <option value="Father">Father | أب</option>
+                                            <option value="Mother">Mother | أم</option>
+                                            <option value="Cousin">Cousin | ابن/ة عم/خال</option>
+                                            <option value="Nephew">Nephew | ابن أخ/أخت</option>
+                                            <option value="Niece">Niece | بنت أخ/أخت</option>
+                                            <option value="Aunt">Aunt | عمة/خالة</option>
+                                            <option value="Uncle">Uncle | عم/خال</option>
+                                        </select>
+                                    </div>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        </div>
+                                        <select v-model="newMember.status" class="border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white">
+                                            <option value="" disabled selected>Alive? | الحالة</option>
+                                            <option value="Alive">Alive | حي يرزق</option>
+                                            <option value="Deceased">Deceased | متوفي</option>
+                                            <option value="Unknown">Unknown | مجهول</option>
+                                        </select>
+                                    </div>
+                                    <div class="relative" v-if="newMember.status === 'Deceased' || newMember.status === 'Unknown'">
+                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                            <span class="text-xs">⏳</span>
+                                        </div>
+                                        <input v-if="newMember.status === 'Deceased'" v-model="newMember.days_deceased" type="number" placeholder="عدد أيام الوفاة" class="border py-0 pl-8 pr-2 rounded text-sm w-full h-[30px]">
+                                        <input v-if="newMember.status === 'Unknown'" v-model="newMember.days_missing" type="number" placeholder="عدد أيام الفقدان" class="border py-0 pl-8 pr-2 rounded text-sm w-full h-[30px]">
                                     </div>
                                 </div>
                                 <div class="mb-3 relative">
@@ -736,7 +787,7 @@
                     editingFile: null,
                     editingScraped: null,
                     newUrgentNeed: '',
-                    newMember: { name: '', age: '', gender: 'Male', condition: '' },
+                    newMember: { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '' },
                     scrapedProfile: null,
                     scrapedContent: [],
                     scrapeStatus: { canScrape: true, minutesRemaining: 0 },
@@ -929,7 +980,7 @@
                 addMember() {
                     if (!this.profile.children_details) this.profile.children_details = [];
                     this.profile.children_details.push({ ...this.newMember });
-                    this.newMember = { name: '', age: '', gender: 'Male', condition: '' }; // Reset
+                    this.newMember = { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '' }; // Reset
                 },
                 removeChild(index) {
                     this.profile.children_details.splice(index, 1);
