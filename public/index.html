@@ -247,17 +247,14 @@
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
                                                             <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm" dir="ltr" style="text-align: left;">
                                                                 <div class="flex flex-col">
-                                                                    <span style="unicode-bidi: plaintext;">
-                                                                        <span class="font-bold">{{ member.nameDisplay || member.name }}</span>&#8206;
-                                                                        <span style="unicode-bidi: embed; direction: ltr;">&#8206;({{ getRelationshipLabel(member.relationship, member.gender) || 'Member' }}, {{ member.gender === 'Male' ? '♂' : '♀' }}, {{ member.age }})&#8206;</span>
+                                                                    <span>
+                                                                        <span class="font-bold">{{ member.nameDisplay || member.name }}</span> | {{ getRelationshipLabel(member.relationship, member.gender) || 'Member' }} | {{ member.gender === 'Male' ? '♂' : '♀' }} | {{ member.age }}
                                                                     </span>
-                                                                    <div class="text-sm text-gray-500 flex gap-2" style="unicode-bidi: plaintext;">
-                                                                        <span v-if="member.status" :class="{'text-green-600': member.status === 'Alive', 'text-red-600': member.status === 'Deceased', 'text-orange-500': member.status === 'Unknown'}" style="unicode-bidi: embed; direction: ltr;">
-                                                                            &#8206;{{ getStatusLabel(member.status) }}&#8206;
-                                                                            <span v-if="member.status === 'Deceased' && member.days_deceased">({{ member.days_deceased }} days)</span>
-                                                                            <span v-if="member.status === 'Unknown' && member.days_missing">({{ member.days_missing }} days)</span>
+                                                                    <div class="text-sm text-gray-500">
+                                                                        <span v-if="member.status" :class="{'text-green-600': member.status === 'Alive', 'text-red-600': member.status === 'Deceased', 'text-orange-500': member.status === 'Unknown'}">
+                                                                            {{ getStatusLabel(member.status) }}<span v-if="member.status === 'Deceased' && member.days_deceased"> | {{ member.days_deceased }} days</span><span v-if="member.status === 'Unknown' && member.days_missing"> | {{ member.days_missing }} days</span>
                                                                         </span>
-                                                                        <span v-if="member.condition" class="text-red-600 font-bold" style="unicode-bidi: embed; direction: ltr;">&#8206;- {{ member.conditionDisplay || member.condition }}&#8206;</span>
+                                                                        <span v-if="member.condition" class="text-red-600 font-bold"> | {{ member.conditionDisplay || member.condition }}</span>
                                                                     </div>
                                                                 </div>
                                                                 <button type="button" @click="removeChild(index)" class="text-red-500 hover:text-red-700 font-bold px-2">×</button>
