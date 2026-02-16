@@ -265,6 +265,7 @@
                                                                             <span v-if="member.status === 'Unknown' && member.days_missing" dir="ltr">| {{ member.days_missing }} days</span>
                                                                         </template>
                                                                         <span v-if="member.condition" class="text-blue-600" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
+                                                                        <span v-if="member.disability" class="text-purple-600" dir="ltr">| {{ member.disability === 'disabled' ? '♿ Disabled' : '✓ Able' }}</span>
                                                                     </div>
                                                                 </div>
                                                                 <button type="button" @click="removeChild(index)" class="text-gray-300 hover:text-gray-500 px-2 text-sm">×</button>
@@ -347,12 +348,24 @@
                                         <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-base placeholder:text-black w-full h-[30px]">
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-2 mx-auto w-fit">
-                                    <button type="button" @click="addMember" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] flex-shrink-0">
-                                        <span>+ Add | </span>
-                                        <span class="text-base">إضافة</span>
-                                    </button>
-                                    <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                        </div>
+                                        <select v-model="newMember.disability" class="border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white placeholder:text-black">
+                                            <option value="" disabled selected>Disabled?</option>
+                                            <option value="able">Able to work and move</option>
+                                            <option value="disabled">Disabled</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" @click="addMember" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] flex-shrink-0">
+                                            <span>+ Add | </span>
+                                            <span class="text-base">إضافة</span>
+                                        </button>
+                                        <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -811,7 +824,7 @@
                     editingFile: null,
                     editingScraped: null,
                     newUrgentNeed: '',
-                    newMember: { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '' },
+                    newMember: { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '', disability: '' },
                     scrapedProfile: null,
                     scrapedContent: [],
                     scrapeStatus: { canScrape: true, minutesRemaining: 0 },
@@ -1037,7 +1050,7 @@
                     }
 
                     this.profile.children_details.push(memberWithTranslations);
-                    this.newMember = { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '' }; // Reset
+                    this.newMember = { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '', disability: '' }; // Reset
 
                     // Show green checkmark immediately
                     this.memberSaved = true;
