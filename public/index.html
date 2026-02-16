@@ -239,8 +239,8 @@
                                                     <div class="mb-6 border-t pt-4">
                                                         <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1">
                                                             <span class="text-base text-[#3274B5]">أفراد العائلة</span>
-                                                            <span class="text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
-                                                            <span>Family Members</span>
+                                                            <span class="text-xs text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
+                                                            <span class="text-xs">Family Members</span>
                                                         </label>
                                                         
                                                         <!-- List of added children -->
@@ -273,9 +273,9 @@
                             
                                                         <!-- Add new child form -->
                                                         <div class="bg-blue-50 p-3 rounded border border-blue-100">
-                                                            <div class="text-sm font-extrabold text-[#3274B5] mb-2 flex items-baseline gap-1">
-                                                                <span class="text-lg font-extrabold">إضافة فرد</span>
-                                                                <span>| Add Member </span>
+                                                            <div class="mb-2 flex items-baseline gap-1 font-bold">
+                                                                <span class="text-base text-[#3274B5]">إضافة فرد</span>
+                                                                <span class="text-xs">| Add Member</span>
                                                             </div>
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
@@ -562,7 +562,7 @@
                                     {{ engagedFollowersCount }} backed up
                                 </span>
                             </div>
-                            <button @click="backupFollowers" :disabled="backupLoading" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button @click="backupFollowers" :disabled="backupLoading" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-6">
                                 <span v-if="!backupLoading">Backup Followers | نسخ المتابعين</span>
                                 <div v-else class="loader"></div>
                             </button>
@@ -570,7 +570,6 @@
                                 {{ backupMessage.text }}
                             </p>
                         </div>
-                        <div class="mb-6"></div>
                     </div>
 
                     <!-- Scraped Content Preview -->
