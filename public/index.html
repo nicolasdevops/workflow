@@ -248,7 +248,7 @@
                                                             <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm" dir="ltr" style="text-align: left;">
                                                                 <div class="flex flex-col">
                                                                     <span style="display: flex; gap: 0.25rem; align-items: center;">
-                                                                        <span dir="auto">{{ member.nameDisplay || member.name }}</span>
+                                                                        <span class="text-xs" dir="auto">{{ member.nameDisplay || member.name }}</span>
                                                                         <span class="text-xs" dir="ltr">|</span>
                                                                         <span class="text-xs" dir="ltr">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).en }}</span>
                                                                         <span dir="rtl">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).ar }}</span>
@@ -362,7 +362,7 @@
                                 </div>
                                 <div class="grid grid-cols-[3fr_1fr_2fr] gap-2 mb-0">
                                     <div class="flex items-center gap-3 h-[30px]">
-                                        <span class="text-base text-black whitespace-nowrap">إعاقة ؟</span>
+                                        <span class="text-base text-black font-bold whitespace-nowrap">إعاقة ؟</span>
                                         <label class="flex items-center gap-1 cursor-pointer">
                                             <input type="radio" v-model="newMember.disability" value="no" class="accent-[#3274B5]">
                                             <span class="text-xs">لأ</span>
@@ -857,10 +857,10 @@
                         { value: "displacement", label: "🚶 استلمنا أمر إخلاء | Displacement order" },
                         { value: "new_tent", label: "🛖 الخيمة تدمرت (بدنا جديدة) | Bad tent" },
                         { value: "home_repair", label: "🧱 البيت بدو ترميم | Repairs" },
-                        { value: "tent_repair", label: "🛠️ الخيمة بدها تصليح | Broken tent needs repair" },
+                        { value: "tent_repair", label: "🛠️ الخيمة بدها تصليح | Broken tent" },
                         { value: "tent_tarp", label: "⛺ الخيمة بدها شادر | Tarp" },
                         { value: "food", label: "🍲 بحاجة ماسة لأكل | Food" },
-                        { value: "medicines", label: "💊 بدنا دواء ضروري | Medicines urgently needed" },
+                        { value: "medicines", label: "💊 بدنا دواء ضروري | Medicines" },
                         { value: "blankets", label: "🧣 بدنا بطانيات | Blankets needed" },
                         { value: "clothes", label: "🧥 بدنا واعي شتوي | Clothes" },
                         { value: "medical_op", label: "🏥 تكاليف عملية | Operation" },
