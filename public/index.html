@@ -1043,6 +1043,16 @@
                         body: JSON.stringify(this.profile)
                     });
                 },
+                checkAgeArabic() {
+                    const arabicNumerals = /[\u0660-\u0669\u06F0-\u06F9]/;
+                    if (arabicNumerals.test(this.newMember.age)) {
+                        this.showAgeArabicError = true;
+                        this.newMember.age = this.newMember.age.replace(arabicNumerals, '');
+                    } else {
+                        this.showAgeArabicError = false;
+                        this.newMember.age = this.newMember.age.replace(/[^0-9]/g, '');
+                    }
+                },
                 async addMember() {
                     // Validate required fields
                     if (!this.newMember.name || !this.newMember.age || !this.newMember.relationship || !this.newMember.status) {
