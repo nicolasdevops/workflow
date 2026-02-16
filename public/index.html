@@ -347,7 +347,7 @@
                                         <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-base placeholder:text-black w-full h-[30px]">
                                     </div>
                                 </div>
-                                <div class="flex items-center justify-center gap-2 min-w-[120px]">
+                                <div class="flex items-center gap-2 mx-auto w-fit">
                                     <button type="button" @click="addMember" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] flex-shrink-0">
                                         <span>+ Add | </span>
                                         <span class="text-base">إضافة</span>
@@ -380,7 +380,7 @@
                                     <option value="" disabled>اختر احتياج...</option>
                                     <option v-for="opt in urgentNeedOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                                 </select>
-                                <div class="flex items-center gap-2 min-w-[120px]">
+                                <div class="flex items-center gap-2">
                                     <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="px-4 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed gap-1 h-[30px] whitespace-nowrap flex-shrink-0">
                                         <span>Add</span>
                                         <span class="text-[10px] text-white/70">|</span>
@@ -539,7 +539,7 @@
                                     <span class="text-xs font-normal leading-none">Password (Optional)</span>
                                 </label>
                                 <input v-model="form.insta_password" type="password" :disabled="!profile.instagram_password_enabled" class="w-full border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed" placeholder="••••••••">
-                                <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1">تواصل مع الإدارة لتفعيل كلمة السر</p>
+                                <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1 text-right">تواصل مع الإدارة لتفعيل كلمة السر</p>
                                 <p v-else class="text-xs text-gray-400 mt-1">Password saved for admin-managed account recovery only</p>
                             </div>
                             <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
@@ -553,16 +553,16 @@
 
                         <!-- Backup Followers Button -->
                         <div v-if="scrapedProfile" class="mt-4 pt-4 border-t border-gray-200">
-                            <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center justify-between mb-1">
                                 <div>
                                     <h4 class="text-sm font-bold text-[#3274B5]">نسخة احتياطية للمتابعين</h4>
-                                    <p class="text-xs text-gray-500">Backup Engaged Followers</p>
+                                    <p class="text-xs text-gray-500 mb-1">Backup Engaged Followers</p>
                                 </div>
                                 <span v-if="engagedFollowersCount" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
                                     {{ engagedFollowersCount }} backed up
                                 </span>
                             </div>
-                            <button @click="backupFollowers" :disabled="backupLoading" class="w-auto px-4 mx-auto block bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700 transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-2">
+                            <button @click="backupFollowers" :disabled="backupLoading" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span v-if="!backupLoading">Backup Followers | نسخ المتابعين</span>
                                 <div v-else class="loader"></div>
                             </button>
@@ -1032,13 +1032,15 @@
 
                     this.profile.children_details.push(memberWithTranslations);
                     this.newMember = { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '' }; // Reset
-                    await this.updateProfile();
 
-                    // Show green checkmark for 5 seconds
+                    // Show green checkmark immediately
                     this.memberSaved = true;
                     setTimeout(() => {
                         this.memberSaved = false;
                     }, 5000);
+
+                    // Update profile in background
+                    await this.updateProfile();
                 },
                 removeChild(index) {
                     this.profile.children_details.splice(index, 1);
@@ -1049,13 +1051,15 @@
                         this.profile.urgent_needs.push(this.newUrgentNeed);
                     }
                     this.newUrgentNeed = '';
-                    await this.updateProfile();
 
-                    // Show green checkmark for 5 seconds
+                    // Show green checkmark immediately
                     this.urgentNeedSaved = true;
                     setTimeout(() => {
                         this.urgentNeedSaved = false;
                     }, 5000);
+
+                    // Update profile in background
+                    await this.updateProfile();
                 },
                 removeUrgentNeed(index) {
                     this.profile.urgent_needs.splice(index, 1);
