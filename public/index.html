@@ -264,7 +264,7 @@
                                                                             <span v-if="member.status === 'Deceased' && member.days_deceased" dir="ltr">| {{ member.days_deceased }} days</span>
                                                                             <span v-if="member.status === 'Unknown' && member.days_missing" dir="ltr">| {{ member.days_missing }} days</span>
                                                                         </template>
-                                                                        <span v-if="member.condition" class="text-red-600 font-bold" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
+                                                                        <span v-if="member.condition" class="text-blue-600" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
                                                                     </div>
                                                                 </div>
                                                                 <button type="button" @click="removeChild(index)" class="text-red-500 hover:text-red-700 font-bold px-2">×</button>
@@ -347,12 +347,12 @@
                                         <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-base placeholder:text-black w-full h-[30px]">
                                     </div>
                                 </div>
-                                <div class="flex items-center justify-center gap-2">
-                                    <button type="button" @click="addMember" class="w-auto px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px]">
+                                <div class="flex items-center justify-center gap-2 min-w-[120px]">
+                                    <button type="button" @click="addMember" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] flex-shrink-0">
                                         <span>+ Add | </span>
                                         <span class="text-base">إضافة</span>
                                     </button>
-                                    <svg v-if="profileSaved" class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 </div>
                             </div>
                         </div>
@@ -380,13 +380,13 @@
                                     <option value="" disabled>اختر احتياج...</option>
                                     <option v-for="opt in urgentNeedOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                                 </select>
-                                <div class="flex items-center gap-2">
-                                    <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="w-auto px-4 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed gap-1 h-[30px] whitespace-nowrap">
+                                <div class="flex items-center gap-2 min-w-[120px]">
+                                    <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="px-4 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed gap-1 h-[30px] whitespace-nowrap flex-shrink-0">
                                         <span>Add</span>
                                         <span class="text-[10px] text-white/70">|</span>
                                         <span class="text-base">إضافة</span>
                                     </button>
-                                    <svg v-if="profileSaved" class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    <svg v-if="urgentNeedSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 </div>
                             </div>
                             <div class="mb-4">
@@ -539,7 +539,7 @@
                                     <span class="text-xs font-normal leading-none">Password (Optional)</span>
                                 </label>
                                 <input v-model="form.insta_password" type="password" :disabled="!profile.instagram_password_enabled" class="w-full border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed" placeholder="••••••••">
-                                <p v-if="!profile.instagram_password_enabled" class="text-xs text-orange-500 mt-1">Contact admin to enable password entry (for account recovery)</p>
+                                <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1">تواصل مع الإدارة لتفعيل كلمة السر</p>
                                 <p v-else class="text-xs text-gray-400 mt-1">Password saved for admin-managed account recovery only</p>
                             </div>
                             <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
@@ -814,7 +814,8 @@
                     backupMessage: null,
                     engagedFollowersCount: 0,
                     translationCache: {},
-                    profileSaved: false,
+                    memberSaved: false,
+                    urgentNeedSaved: false,
                     showValidationError: false,
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
@@ -1006,11 +1007,6 @@
                         headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
                         body: JSON.stringify(this.profile)
                     });
-                    // Show green checkmark for 5 seconds
-                    this.profileSaved = true;
-                    setTimeout(() => {
-                        this.profileSaved = false;
-                    }, 5000);
                 },
                 async addMember() {
                     // Validate required fields
@@ -1036,18 +1032,30 @@
 
                     this.profile.children_details.push(memberWithTranslations);
                     this.newMember = { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '' }; // Reset
-                    this.updateProfile();
+                    await this.updateProfile();
+
+                    // Show green checkmark for 5 seconds
+                    this.memberSaved = true;
+                    setTimeout(() => {
+                        this.memberSaved = false;
+                    }, 5000);
                 },
                 removeChild(index) {
                     this.profile.children_details.splice(index, 1);
                 },
-                addUrgentNeed() {
+                async addUrgentNeed() {
                     if (!this.profile.urgent_needs) this.profile.urgent_needs = [];
                     if (!this.profile.urgent_needs.includes(this.newUrgentNeed)) {
                         this.profile.urgent_needs.push(this.newUrgentNeed);
                     }
                     this.newUrgentNeed = '';
-                    this.updateProfile();
+                    await this.updateProfile();
+
+                    // Show green checkmark for 5 seconds
+                    this.urgentNeedSaved = true;
+                    setTimeout(() => {
+                        this.urgentNeedSaved = false;
+                    }, 5000);
                 },
                 removeUrgentNeed(index) {
                     this.profile.urgent_needs.splice(index, 1);
