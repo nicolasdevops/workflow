@@ -348,18 +348,19 @@
                                         <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-base placeholder:text-black w-full h-[30px]">
                                     </div>
                                 </div>
-                                <div class="grid gap-2 items-center" style="grid-template-columns: 200px auto;">
+                                <div class="grid grid-cols-3 gap-2 mb-0">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                         </div>
                                         <select v-model="newMember.disability" class="border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white placeholder:text-black">
-                                            <option value="" disabled selected>Disabled?</option>
-                                            <option value="able">Able to work and move</option>
-                                            <option value="disabled">Disabled</option>
+                                            <option value="" disabled selected>معاق؟</option>
+                                            <option value="able">قادر على العمل والحركة | Able to work and move</option>
+                                            <option value="disabled">معاق | Disabled</option>
                                         </select>
                                     </div>
-                                    <div class="flex items-center gap-2">
+                                    <div></div>
+                                    <div class="flex items-center gap-2 justify-end">
                                         <button type="button" @click="addMember" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] flex-shrink-0">
                                             <span>+ Add | </span>
                                             <span class="text-base">إضافة</span>
@@ -429,10 +430,10 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="bg-[#3274B5] text-white px-4 py-1 rounded-full hover:bg-[#285e94] flex items-center justify-center gap-2 mx-auto h-[36px]">
-                            <span class="text-base font-bold">حفظ الملف</span>
-                            <span class="text-sm opacity-80">|</span>
-                            <span class="text-sm font-bold">Save</span>
+                        <button type="submit" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] mx-auto">
+                            <span class="text-base">حفظ الملف</span>
+                            <span class="opacity-80">|</span>
+                            <span>Save</span>
                         </button>
                     </form>
                 </div>
