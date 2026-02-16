@@ -245,7 +245,7 @@
                                                         
                                                         <!-- List of added children -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
-                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 px-2 py-1 rounded border text-sm" dir="ltr" style="text-align: left; height: 30px;">
+                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm" dir="ltr" style="text-align: left;">
                                                                 <div class="flex flex-col">
                                                                     <span style="display: flex; gap: 0.25rem; align-items: center;">
                                                                         <span dir="auto">{{ member.nameDisplay || member.name }}</span>
@@ -539,7 +539,7 @@
                                     <span class="text-xs font-normal leading-none">Password (Optional)</span>
                                 </label>
                                 <input v-model="form.insta_password" type="password" :disabled="!profile.instagram_password_enabled" class="w-full border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed" placeholder="••••••••">
-                                <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1 mb-6 text-right">تواصل مع الإدارة لتفعيل كلمة السر</p>
+                                <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1 text-right">تواصل مع الإدارة لتفعيل كلمة السر</p>
                                 <p v-else class="text-xs text-gray-400 mt-1">Password saved for admin-managed account recovery only</p>
                             </div>
                             <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
@@ -570,6 +570,7 @@
                                 {{ backupMessage.text }}
                             </p>
                         </div>
+                        <div class="mb-6"></div>
                     </div>
 
                     <!-- Scraped Content Preview -->
