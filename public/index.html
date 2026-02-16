@@ -218,7 +218,7 @@
                                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                                                                 <span class="text-sm text-black">نوع السكن</span>
                                                             </label>
-                                                            <select v-model="profile.housing_type" class="w-[calc(100%-0.5cm)] mx-auto block border py-0 px-2 rounded text-sm h-[32px]">
+                                                            <select v-model="profile.housing_type" class="w-2/3 mx-auto block border py-0 px-2 rounded text-sm h-[32px]">
                                                                 <option style="font-size: 14px;" value="tent">⛺ خيمة</option>
                                                                 <option style="font-size: 14px;" value="school">🏫 مدرسة</option>
                                                                 <option style="font-size: 14px;" value="damaged_home">🏚️ بيت متضرر</option>
@@ -230,7 +230,7 @@
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                                 <span class="text-sm text-black">مرات النزوح</span>
                                                             </label>
-                                                            <input v-model="profile.displacement_count" type="number" class="w-2/3 mx-auto block border p-1 rounded text-sm h-[32px]">
+                                                            <input v-model="profile.displacement_count" type="number" class="mx-auto block border p-1 rounded text-sm h-[32px]" style="width: calc(66.666667% - 30px);">
                                                         </div>
                             
                                                     </div>
@@ -505,7 +505,7 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="text-[10px] text-gray-400 mt-[10px]">آخر فحص: {{ formatScrapeDate(scrapedProfile.last_scraped_at) }}</p>
+                        <p class="text-[10px] text-gray-400 mt-[10px]">آخر فحص {{ formatScrapeDate(scrapedProfile.last_scraped_at) }}</p>
                     </div>
 
                     <!-- Connected via cookies (legacy) -->
@@ -558,7 +558,7 @@
                         </p>
 
                         <!-- Backup Followers Button -->
-                        <div v-if="scrapedProfile" class="mt-4 pt-4 border-t border-gray-200">
+                        <div v-if="scrapedProfile" class="mt-4 pt-4 border-t border-gray-200" style="padding-bottom: 8px;">
                             <div class="flex items-center justify-between mb-1">
                                 <div>
                                     <h4 class="text-sm font-bold text-[#3274B5]">نسخة احتياطية للمتابعين</h4>
@@ -575,17 +575,15 @@
                             <p v-if="backupMessage" class="text-center text-xs mt-2" :class="backupMessage.type === 'success' ? 'text-green-600' : 'text-red-600'">
                                 {{ backupMessage.text }}
                             </p>
-                            <div style="margin-bottom: 2px;"></div>
                         </div>
                     </div>
 
                     <!-- Scraped Content Preview -->
                     <div v-if="scrapedContent && scrapedContent.length > 0" class="mt-4 mb-4 border-t pt-4">
-                        <h4 class="text-sm font-bold mb-2 flex items-baseline gap-1">
+                        <h4 class="text-sm font-bold flex items-baseline gap-1" style="margin-bottom: 10px;">
                             <span class="text-base text-[#3274B5]">محتوى مستورد</span>
                             <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
                         </h4>
-                        <div style="margin-bottom: 4px;"></div>
                         <div class="grid grid-cols-3 gap-1">
                             <div v-for="item in scrapedContent.slice(0, 9)" :key="item.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
                                 <!-- Clickable Area for Preview -->
