@@ -347,11 +347,13 @@
                                         <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-base placeholder:text-black w-full h-[30px]">
                                     </div>
                                 </div>
-                                <button type="button" @click="addMember" class="w-auto px-3 py-1 mx-auto block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] relative">
-                                    <svg v-if="profileSaved" class="w-4 h-4 text-green-400 absolute -right-1 -top-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                    <span>+ Add | </span>
-                                    <span class="text-base">إضافة</span>
-                                </button>
+                                <div class="flex items-center justify-center gap-2">
+                                    <button type="button" @click="addMember" class="w-auto px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px]">
+                                        <span>+ Add | </span>
+                                        <span class="text-base">إضافة</span>
+                                    </button>
+                                    <svg v-if="profileSaved" class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                </div>
                             </div>
                         </div>
 
@@ -364,9 +366,9 @@
                             
                             <!-- List of added needs -->
                             <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="mb-4 space-y-2">
-                                <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border">
-                                    <span>
-                                        <span class="text-sm">{{ getUrgentNeedLabel(need).split('|')[0] }}</span>
+                                <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-gray-50 px-2 py-1 rounded border h-[30px]">
+                                    <span class="text-sm">
+                                        <span>{{ getUrgentNeedLabel(need).split('|')[0] }}</span>
                                         <span v-if="getUrgentNeedLabel(need).includes('|')" class="text-xs text-gray-600"> | {{ getUrgentNeedLabel(need).split('|')[1] }}</span>
                                     </span>
                                     <button type="button" @click="removeUrgentNeed(index)" class="text-red-500 hover:text-red-700 font-bold px-2">×</button>
@@ -378,12 +380,14 @@
                                     <option value="" disabled>اختر احتياج...</option>
                                     <option v-for="opt in urgentNeedOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                                 </select>
-                                <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="w-auto px-4 block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed gap-1 h-[30px] whitespace-nowrap relative">
-                                    <svg v-if="profileSaved" class="w-4 h-4 text-green-400 absolute -right-1 -top-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                    <span>Add</span>
-                                    <span class="text-[10px] text-white/70">|</span>
-                                    <span class="text-base">إضافة</span>
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="w-auto px-4 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed gap-1 h-[30px] whitespace-nowrap">
+                                        <span>Add</span>
+                                        <span class="text-[10px] text-white/70">|</span>
+                                        <span class="text-base">إضافة</span>
+                                    </button>
+                                    <svg v-if="profileSaved" class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                </div>
                             </div>
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
