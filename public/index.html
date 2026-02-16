@@ -265,7 +265,7 @@
                                                                             <span v-if="member.status === 'Unknown' && member.days_missing" dir="ltr">| {{ member.days_missing }} days</span>
                                                                         </template>
                                                                         <span v-if="member.condition" class="text-blue-600" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
-                                                                        <span v-if="member.disability" class="text-purple-600" dir="ltr">| {{ member.disability === 'disabled' ? '♿ Disabled' : '✓ Able' }}</span>
+                                                                        <span v-if="member.disability === 'yes'" dir="ltr">| ♿</span>
                                                                     </div>
                                                                 </div>
                                                                 <button type="button" @click="removeChild(index)" class="text-gray-300 hover:text-gray-500 px-2 text-sm">×</button>
@@ -349,15 +349,13 @@
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-3 gap-2 mb-0">
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs">♿</span>
+                                        <span class="text-sm whitespace-nowrap">Disabled?</span>
+                                        <div class="flex border rounded overflow-hidden h-[30px]">
+                                            <button type="button" @click="newMember.disability = 'no'" :class="['px-3 text-xs transition', newMember.disability === 'no' ? 'bg-[#3274B5] text-white' : 'bg-white text-gray-600 hover:bg-gray-50']">No</button>
+                                            <button type="button" @click="newMember.disability = 'yes'" :class="['px-3 text-xs border-l transition', newMember.disability === 'yes' ? 'bg-[#3274B5] text-white' : 'bg-white text-gray-600 hover:bg-gray-50']">Yes</button>
                                         </div>
-                                        <select v-model="newMember.disability" class="border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white placeholder:text-black">
-                                            <option value="" disabled selected>معاق؟</option>
-                                            <option value="able">قادر على العمل والحركة | Able to work and move</option>
-                                            <option value="disabled">معاق | Disabled</option>
-                                        </select>
                                     </div>
                                     <div></div>
                                     <div class="flex items-center gap-2 justify-end">
