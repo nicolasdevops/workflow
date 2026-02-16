@@ -1,0 +1,32 @@
+# Dependencies & Build Artifacts
+node_modules/
+dist/
+build/
+.next/
+.cache/
+.git/
+
+# Lock Files (Kimi doesn't need to see every sub-dependency version)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# Database & Migrations (We will handle this differently)
+migrations.sql
+
+# Media & Binary
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.mp4
+*.pdf
+
+# Logs & Temp
+*.log
+npm-debug.log*
+.DS_Store
+tmp/
+temp/

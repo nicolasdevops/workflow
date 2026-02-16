@@ -607,6 +607,48 @@ app.post('/api/admin/automation/:familyId/bulk', basicAuth, async (req, res) => 
   }
 });
 
+// Toggle Instagram password field access for a family
+// POST /api/admin/instagram-password/:familyId { enabled: true }
+app.post('/api/admin/instagram-password/:familyId', basicAuth, async (req, res) => {
+  const { familyId } = req.params;
+  const { enabled } = req.body;
+
+  if (typeof enabled !== 'boolean') {
+    return res.status(400).json({ error: 'enabled must be a boolean (true/false)' });
+  }
+
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+
+  try {
+    const { data: family, error: fetchError } = await supabase
+      .from('families')
+      .select('name, instagram_handle')
+      .eq('id', familyId)
+      .single();
+
+    if (fetchError || !family) {
+      return res.status(404).json({ error: 'Family not found' });
+    }
+
+    const { error: updateError } = await supabase
+      .from('families')
+      .update({ instagram_password_enabled: enabled })
+      .eq('id', familyId);
+
+    if (updateError) throw updateError;
+
+    res.json({
+      success: true,
+      family_id: familyId,
+      family_name: family.name,
+      instagram_password_enabled: enabled
+    });
+  } catch (e) {
+    console.error('Instagram password toggle error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Get automation status for all families
 app.get('/api/admin/automation/status', basicAuth, async (req, res) => {
   if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
@@ -1879,7 +1921,7 @@ app.get('/api/admin/families', adminAuth, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('families')
-      .select('id, name, email, instagram_handle, proxy_city, ig_account_status, cookies, bestbehavior_enabled, commenting_enabled, contentposting_enabled, dm_enabled, created_at')
+      .select('id, name, email, instagram_handle, proxy_city, ig_account_status, cookies, instagram_password_enabled, bestbehavior_enabled, commenting_enabled, contentposting_enabled, dm_enabled, created_at')
       .order('created_at', { ascending: false });
 
     if (error) throw error;

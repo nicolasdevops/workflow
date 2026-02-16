@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaza Protocol - Admin</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen p-8">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Network Status</h1>
+                    <p class="text-gray-500 text-sm">Live monitoring of connected families</p>
+                </div>
+                <button @click="fetchFamilies" class="bg-white px-4 py-2 rounded shadow text-sm font-medium hover:bg-gray-50 text-gray-700">
+                    Refresh Data
+                </button>
+            </div>
+
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instagram Handle</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Children</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cookies Saved</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr v-if="loading">
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">Loading network data...</td>
+                        </tr>
+                        <tr v-else-if="families.length === 0">
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">No families connected yet.</td>
+                        </tr>
+                        <tr v-for="family in families" :key="family.instagram_handle">
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ family.instagram_handle }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                      :class="family.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                                    {{ family.status || 'inactive' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(family.last_login) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ family.children_count || '-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span v-if="family.cookies" class="text-green-600">✓ Encrypted</span>
+                                <span v-else class="text-gray-400">Missing</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button @click="triggerAutomation(family.instagram_handle)" :disabled="processing === family.instagram_handle" class="text-indigo-600 hover:text-indigo-900 disabled:opacity-50">
+                                    {{ processing === family.instagram_handle ? 'Running...' : 'Run Check' }}
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div v-if="error" class="mt-4 p-4 bg-red-50 text-red-700 rounded border border-red-200">
+                {{ error }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() { return { families: [], loading: false, error: null, processing: null } },
+            mounted() { this.fetchFamilies() },
+            methods: {
+                async fetchFamilies() {
+                    this.loading = true;
+                    try {
+                        const res = await fetch('/api/families');
+                        if (res.status === 401) {
+                            window.location.reload(); // Trigger browser auth popup
+                            return;
+                        }
+                        const data = await res.json();
+                        if (data.error) throw new Error(data.error);
+                        this.families = data;
+                    } catch (e) {
+                        this.error = e.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async triggerAutomation(username) {
+                    this.processing = username;
+                    try {
+                        const res = await fetch('/api/trigger', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username })
+                        });
+                        const data = await res.json();
+                        if (data.error) throw new Error(data.error);
+                        alert('Automation started! Check server logs for progress.');
+                    } catch (e) {
+                        alert(e.message);
+                    } finally {
+                        this.processing = null;
+                    }
+                },
+                formatDate(dateStr) {
+                    if (!dateStr) return 'Never';
+                    return new Date(dateStr).toLocaleString();
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

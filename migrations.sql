@@ -1087,3 +1087,10 @@ $$ LANGUAGE plpgsql;
 
 -- Usage: SELECT get_family_ai_context(1);
 -- Returns: "@Element1 is Abud, a 3-year-old male child (brown eyes, curly hair). @Element2 is Eylul, a 4-year-old female child (dark hair, shy smile)."
+
+-- Migration: Add instagram_password_enabled field for admin control
+-- Run this in Supabase SQL Editor
+ALTER TABLE families
+ADD COLUMN IF NOT EXISTS instagram_password_enabled BOOLEAN DEFAULT FALSE;
+
+COMMENT ON COLUMN families.instagram_password_enabled IS 'Admin toggle to allow family to enter Instagram password (for account recovery/limited accounts)';
