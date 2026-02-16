@@ -349,12 +349,11 @@
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-3 gap-2 mb-0">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs">♿</span>
-                                        <span class="text-sm whitespace-nowrap">Disabled?</span>
-                                        <div class="flex border rounded overflow-hidden h-[30px]">
-                                            <button type="button" @click="newMember.disability = 'no'" :class="['px-3 text-xs transition', newMember.disability === 'no' ? 'bg-[#3274B5] text-white' : 'bg-white text-gray-600 hover:bg-gray-50']">No</button>
-                                            <button type="button" @click="newMember.disability = 'yes'" :class="['px-3 text-xs border-l transition', newMember.disability === 'yes' ? 'bg-[#3274B5] text-white' : 'bg-white text-gray-600 hover:bg-gray-50']">Yes</button>
+                                    <div class="flex items-center h-[30px]">
+                                        <div class="flex border rounded overflow-hidden h-[30px] w-full">
+                                            <span class="flex items-center px-2 text-xs text-gray-500 bg-gray-50 border-l whitespace-nowrap">إعاقة؟</span>
+                                            <button type="button" @click="newMember.disability = 'no'" :class="['flex-1 px-2 text-xs transition border-l', newMember.disability === 'no' ? 'bg-[#3274B5] text-white' : 'bg-white text-gray-600 hover:bg-gray-50']">لأ</button>
+                                            <button type="button" @click="newMember.disability = 'yes'" :class="['flex-1 px-2 text-xs transition border-l', newMember.disability === 'yes' ? 'bg-[#3274B5] text-white' : 'bg-white text-gray-600 hover:bg-gray-50']">آه</button>
                                         </div>
                                     </div>
                                     <div></div>
@@ -596,6 +595,7 @@
                             <span class="text-base text-[#3274B5]">محتوى مستورد</span>
                             <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
                         </h4>
+                        <div style="height: 6px;"></div>
                         <div class="grid grid-cols-3 gap-1">
                             <div v-for="item in scrapedContent.slice(0, 9)" :key="item.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
                                 <!-- Clickable Area for Preview -->
