@@ -245,10 +245,10 @@
                                                         
                                                         <!-- List of added children -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
-                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm" dir="ltr" style="text-align: left;">
+                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 px-2 py-1 rounded border text-sm" dir="ltr" style="text-align: left; height: 30px;">
                                                                 <div class="flex flex-col">
                                                                     <span style="display: flex; gap: 0.25rem; align-items: center;">
-                                                                        <span class="font-bold" dir="auto">{{ member.nameDisplay || member.name }}</span>
+                                                                        <span dir="auto">{{ member.nameDisplay || member.name }}</span>
                                                                         <span dir="ltr">|</span>
                                                                         <span dir="ltr">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).en }}</span>
                                                                         <span dir="rtl">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).ar }}</span>
@@ -267,7 +267,7 @@
                                                                         <span v-if="member.condition" class="text-blue-600" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
                                                                     </div>
                                                                 </div>
-                                                                <button type="button" @click="removeChild(index)" class="text-red-500 hover:text-red-700 font-bold px-2">×</button>
+                                                                <button type="button" @click="removeChild(index)" class="text-gray-400 hover:text-gray-600 font-bold px-2">×</button>
                                                             </div>
                                                         </div>
                             
@@ -371,7 +371,7 @@
                                         <span>{{ getUrgentNeedLabel(need).split('|')[0] }}</span>
                                         <span v-if="getUrgentNeedLabel(need).includes('|')" class="text-xs text-gray-600"> | {{ getUrgentNeedLabel(need).split('|')[1] }}</span>
                                     </span>
-                                    <button type="button" @click="removeUrgentNeed(index)" class="text-red-500 hover:text-red-700 font-bold px-2">×</button>
+                                    <button type="button" @click="removeUrgentNeed(index)" class="text-gray-400 hover:text-gray-600 font-bold px-2">×</button>
                                 </div>
                             </div>
 
@@ -1042,8 +1042,9 @@
                     // Update profile in background
                     await this.updateProfile();
                 },
-                removeChild(index) {
+                async removeChild(index) {
                     this.profile.children_details.splice(index, 1);
+                    await this.updateProfile();
                 },
                 async addUrgentNeed() {
                     if (!this.profile.urgent_needs) this.profile.urgent_needs = [];
@@ -1061,8 +1062,9 @@
                     // Update profile in background
                     await this.updateProfile();
                 },
-                removeUrgentNeed(index) {
+                async removeUrgentNeed(index) {
                     this.profile.urgent_needs.splice(index, 1);
+                    await this.updateProfile();
                 },
                 getUrgentNeedLabel(value) {
                     const option = this.urgentNeedOptions.find(o => o.value === value);
