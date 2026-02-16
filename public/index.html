@@ -282,13 +282,13 @@
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         </div>
-                                        <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="الاسم *" autocomplete="off" :class="['border py-0 pl-8 pr-2 rounded text-base placeholder:text-lg w-full h-[30px]', !newMember.name ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black']">
+                                        <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="الاسم *" autocomplete="off" :class="['border py-0 pl-8 pr-2 rounded text-base placeholder:text-lg w-full h-[30px]', showValidationError && !newMember.name ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black']">
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                         </div>
-                                        <input v-model="newMember.age" type="number" placeholder="العمر *" :class="['border py-0 pl-8 pr-2 rounded text-base placeholder:text-lg w-full h-[30px]', !newMember.age ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black']">
+                                        <input v-model="newMember.age" type="number" placeholder="العمر *" :class="['border py-0 pl-8 pr-2 rounded text-base placeholder:text-lg w-full h-[30px]', showValidationError && !newMember.age ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black']">
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -305,7 +305,7 @@
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                                         </div>
-                                        <select v-model="newMember.relationship" :class="['border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white', !newMember.relationship ? 'border-red-500 text-red-500' : '']">
+                                        <select v-model="newMember.relationship" :class="['border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white', showValidationError && !newMember.relationship ? 'border-red-500 text-red-500' : '']">
                                             <option value="" disabled selected>صلة القرابة *</option>
                                             <option value="Son/Daughter">ابن/ابنة | Son/Daughter</option>
                                             <option value="Husband/Wife">زوج/زوجة | Husband/Wife</option>
@@ -319,7 +319,7 @@
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.0 0 00-6.364 0z"></path></svg>
                                         </div>
-                                        <select v-model="newMember.status" :class="['border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white', !newMember.status ? 'border-red-500 text-red-500' : '']">
+                                        <select v-model="newMember.status" :class="['border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white', showValidationError && !newMember.status ? 'border-red-500 text-red-500' : '']">
                                             <option value="" disabled selected>على قيد الحياة؟ *</option>
                                             <option value="Alive">حي يرزق | Alive</option>
                                             <option value="Deceased">متوفي | Deceased</option>
@@ -347,7 +347,7 @@
                                         <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-base placeholder:text-black w-full h-[30px]">
                                     </div>
                                 </div>
-                                <button type="button" @click="addMember" :disabled="!newMember.name || !newMember.age || !newMember.relationship || !newMember.status" class="w-auto px-3 py-1 mx-auto block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed disabled:opacity-50 gap-1 h-[30px] relative">
+                                <button type="button" @click="addMember" class="w-auto px-3 py-1 mx-auto block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] relative">
                                     <svg v-if="profileSaved" class="w-4 h-4 text-green-400 absolute -right-1 -top-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                     <span>+ Add | </span>
                                     <span class="text-base">إضافة</span>
@@ -811,24 +811,25 @@
                     engagedFollowersCount: 0,
                     translationCache: {},
                     profileSaved: false,
+                    showValidationError: false,
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
-                        { value: "displacement", label: "🚶 استلمنا أمر إخلاء | Displacement order received" },
-                        { value: "new_tent", label: "🛖 الخيمة تدمرت (بدنا جديدة) | Collapsed/ruined tent (need new)" },
-                        { value: "home_repair", label: "🧱 البيت بدو ترميم | Building needs critical repairs" },
+                        { value: "displacement", label: "🚶 استلمنا أمر إخلاء | Displacement order" },
+                        { value: "new_tent", label: "🛖 الخيمة تدمرت (بدنا جديدة) | Bad tent" },
+                        { value: "home_repair", label: "🧱 البيت بدو ترميم | Repairs" },
                         { value: "tent_repair", label: "🛠️ الخيمة بدها تصليح | Broken tent needs repair" },
-                        { value: "tent_tarp", label: "⛺ الخيمة بدها شادر | Tent has holes, needs tarp" },
-                        { value: "food", label: "🍲 بحاجة ماسة لأكل | In critical need of food" },
+                        { value: "tent_tarp", label: "⛺ الخيمة بدها شادر | Tarp" },
+                        { value: "food", label: "🍲 بحاجة ماسة لأكل | Food" },
                         { value: "medicines", label: "💊 بدنا دواء ضروري | Medicines urgently needed" },
                         { value: "blankets", label: "🧣 بدنا بطانيات | Blankets needed" },
-                        { value: "clothes", label: "🧥 بدنا واعي شتوي | Jackets or clothes needed" },
-                        { value: "medical_op", label: "🏥 تكاليف عملية | Finance mandatory medical operation" },
-                        { value: "medical_consult", label: "🩺 استشارة طبية عاجلة | Medical consultation urgently needed" },
+                        { value: "clothes", label: "🧥 بدنا واعي شتوي | Clothes" },
+                        { value: "medical_op", label: "🏥 تكاليف عملية | Operation" },
+                        { value: "medical_consult", label: "🩺 استشارة طبية عاجلة | Consultation" },
                         { value: "rent", label: "💵 علينا إيجار متأخر | Rent arrears overdue" },
-                        { value: "evacuation", label: "🚌 تكاليف السفر لمصر | Finance evacuation to Egypt" },
-                        { value: "business_setup", label: "💼 تكاليف تأسيس مشروع | Business setup overhead costs" },
-                        { value: "campaign", label: "💻 دعم الحملة | Finance fundraising campaign" },
-                        { value: "other", label: "❓ احتياجات تانية | Other necessities needed" }
+                        { value: "evacuation", label: "🚌 تكاليف السفر لمصر | Egypt" },
+                        { value: "business_setup", label: "💼 تكاليف تأسيس مشروع | Business" },
+                        { value: "campaign", label: "💻 دعم الحملة | Financing" },
+                        { value: "other", label: "❓ احتياجات تانية | Necessities" }
                     ],
                     form: { email: '', family_name: '', password: '', insta_username: '', insta_password: '', code: '' } 
                 } 
@@ -1008,6 +1009,16 @@
                     }, 5000);
                 },
                 async addMember() {
+                    // Validate required fields
+                    if (!this.newMember.name || !this.newMember.age || !this.newMember.relationship || !this.newMember.status) {
+                        // Show validation errors for 4 seconds
+                        this.showValidationError = true;
+                        setTimeout(() => {
+                            this.showValidationError = false;
+                        }, 4000);
+                        return;
+                    }
+
                     if (!this.profile.children_details) this.profile.children_details = [];
 
                     // Add translations for name and condition
