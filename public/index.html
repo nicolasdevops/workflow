@@ -568,14 +568,14 @@
                                     {{ engagedFollowersCount }} backed up
                                 </span>
                             </div>
-                            <button @click="backupFollowers" :disabled="backupLoading" class="w-auto px-3 mx-auto block bg-[#3274B5] text-white font-bold py-1.5 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-3">
+                            <button @click="backupFollowers" disabled class="w-auto px-3 mx-auto block bg-gray-400 text-white font-bold py-1.5 rounded-lg transition flex justify-center items-center text-sm opacity-50 cursor-not-allowed mt-3">
                                 <span v-if="!backupLoading">Backup Followers | نسخ المتابعين</span>
                                 <div v-else class="loader"></div>
                             </button>
                             <p v-if="backupMessage" class="text-center text-xs mt-2" :class="backupMessage.type === 'success' ? 'text-green-600' : 'text-red-600'">
                                 {{ backupMessage.text }}
                             </p>
-                            <div class="mb-3"></div>
+                            <div style="margin-bottom: 2px;"></div>
                         </div>
                     </div>
 
@@ -585,6 +585,7 @@
                             <span class="text-base text-[#3274B5]">محتوى مستورد</span>
                             <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
                         </h4>
+                        <div style="margin-bottom: 4px;"></div>
                         <div class="grid grid-cols-3 gap-1">
                             <div v-for="item in scrapedContent.slice(0, 9)" :key="item.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
                                 <!-- Clickable Area for Preview -->
@@ -1507,13 +1508,11 @@
                 formatScrapeDate(dateStr) {
                     if (!dateStr) return '';
                     const d = new Date(dateStr);
-                    const slaMonths = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
-                    const month = slaMonths[d.getMonth()];
-                    const day = d.getDate();
+                    const month = (d.getMonth() + 1).toString().padStart(2, '0'); // 01-12
+                    const day = d.getDate().toString().padStart(2, '0');
                     const hours = d.getHours().toString().padStart(2, '0');
                     const mins = d.getMinutes().toString().padStart(2, '0');
-                    // Keep Western numerals (already default in JavaScript)
-                    return `${day} ${month}، ${hours}:${mins}`;
+                    return `${day}/${month}، ${hours}:${mins}`;
                 },
                 async unlinkInstagram() {
                     if (!confirm('Unlink this Instagram account? This will remove scraped profile and content data.\n\nإلغاء ربط هذا الحساب؟ سيتم حذف بيانات الملف الشخصي والمحتوى.')) {
