@@ -548,7 +548,7 @@
                                 <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1 text-right">تواصل مع الإدارة لتفعيل كلمة السر</p>
                                 <p v-else class="text-xs text-gray-400 mt-1">Password saved for admin-managed account recovery only</p>
                             </div>
-                            <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button :disabled="loading" type="submit" class="w-auto px-3 mx-auto block bg-[#3274B5] text-white font-bold py-1.5 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span v-if="!loading">{{ scrapedProfile ? 'Rescrape Profile | إعادة الجلب' : 'Scrape Profile | جلب الملف' }}</span>
                                 <div v-else class="loader"></div>
                             </button>
@@ -568,18 +568,19 @@
                                     {{ engagedFollowersCount }} backed up
                                 </span>
                             </div>
-                            <button @click="backupFollowers" :disabled="backupLoading" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-3">
+                            <button @click="backupFollowers" :disabled="backupLoading" class="w-auto px-3 mx-auto block bg-[#3274B5] text-white font-bold py-1.5 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-3">
                                 <span v-if="!backupLoading">Backup Followers | نسخ المتابعين</span>
                                 <div v-else class="loader"></div>
                             </button>
                             <p v-if="backupMessage" class="text-center text-xs mt-2" :class="backupMessage.type === 'success' ? 'text-green-600' : 'text-red-600'">
                                 {{ backupMessage.text }}
                             </p>
+                            <div class="mb-3"></div>
                         </div>
                     </div>
 
                     <!-- Scraped Content Preview -->
-                    <div v-if="scrapedContent && scrapedContent.length > 0" class="mt-4 border-t pt-4">
+                    <div v-if="scrapedContent && scrapedContent.length > 0" class="mt-4 mb-4 border-t pt-4">
                         <h4 class="text-sm font-bold mb-2 flex items-baseline gap-1">
                             <span class="text-base text-[#3274B5]">محتوى مستورد</span>
                             <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
