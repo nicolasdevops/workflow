@@ -247,14 +247,24 @@
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
                                                             <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm" dir="ltr" style="text-align: left;">
                                                                 <div class="flex flex-col">
-                                                                    <span>
-                                                                        <span class="font-bold">{{ member.nameDisplay || member.name }}</span> | {{ getRelationshipLabel(member.relationship, member.gender) || 'Member' }} | {{ member.gender === 'Male' ? '♂' : '♀' }} | {{ member.age }}
+                                                                    <span style="display: flex; gap: 0.25rem; align-items: center;">
+                                                                        <span class="font-bold" dir="auto">{{ member.nameDisplay || member.name }}</span>
+                                                                        <span dir="ltr">|</span>
+                                                                        <span dir="ltr">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).en }}</span>
+                                                                        <span dir="rtl">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).ar }}</span>
+                                                                        <span dir="ltr">|</span>
+                                                                        <span dir="ltr">{{ member.gender === 'Male' ? '♂' : '♀' }}</span>
+                                                                        <span dir="ltr">|</span>
+                                                                        <span dir="ltr">{{ member.age }}</span>
                                                                     </span>
-                                                                    <div class="text-sm text-gray-500">
-                                                                        <span v-if="member.status" :class="{'text-green-600': member.status === 'Alive', 'text-red-600': member.status === 'Deceased', 'text-orange-500': member.status === 'Unknown'}">
-                                                                            {{ getStatusLabel(member.status) }}<span v-if="member.status === 'Deceased' && member.days_deceased"> | {{ member.days_deceased }} days</span><span v-if="member.status === 'Unknown' && member.days_missing"> | {{ member.days_missing }} days</span>
-                                                                        </span>
-                                                                        <span v-if="member.condition" class="text-red-600 font-bold"> | {{ member.conditionDisplay || member.condition }}</span>
+                                                                    <div class="text-sm text-gray-500" style="display: flex; gap: 0.25rem; align-items: center;">
+                                                                        <template v-if="member.status">
+                                                                            <span dir="ltr" :class="{'text-green-600': member.status === 'Alive', 'text-red-600': member.status === 'Deceased', 'text-orange-500': member.status === 'Unknown'}">{{ getStatusLabel(member.status).en }}</span>
+                                                                            <span dir="rtl" :class="{'text-green-600': member.status === 'Alive', 'text-red-600': member.status === 'Deceased', 'text-orange-500': member.status === 'Unknown'}">{{ getStatusLabel(member.status).ar }}</span>
+                                                                            <span v-if="member.status === 'Deceased' && member.days_deceased" dir="ltr">| {{ member.days_deceased }} days</span>
+                                                                            <span v-if="member.status === 'Unknown' && member.days_missing" dir="ltr">| {{ member.days_missing }} days</span>
+                                                                        </template>
+                                                                        <span v-if="member.condition" class="text-red-600 font-bold" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
                                                                     </div>
                                                                 </div>
                                                                 <button type="button" @click="removeChild(index)" class="text-red-500 hover:text-red-700 font-bold px-2">×</button>
@@ -1026,22 +1036,22 @@
                 getRelationshipLabel(relationship, gender) {
                     const isMale = gender === 'Male';
                     const map = {
-                        'Son/Daughter': isMale ? 'Son | ابن' : 'Daughter | ابنة',
-                        'Husband/Wife': isMale ? 'Husband | زوج' : 'Wife | زوجة',
-                        'Brother/Sister': isMale ? 'Brother | أخ' : 'Sister | أخت',
-                        'Mother/Father': isMale ? 'Father | أب' : 'Mother | أم',
-                        'Nephew/Niece': isMale ? 'Nephew | ابن أخ' : 'Niece | بنت أخت',
-                        'Aunt/Uncle': isMale ? 'Uncle | عم، خال' : 'Aunt | عمة، خالة'
+                        'Son/Daughter': isMale ? { en: 'Son', ar: 'ابن' } : { en: 'Daughter', ar: 'ابنة' },
+                        'Husband/Wife': isMale ? { en: 'Husband', ar: 'زوج' } : { en: 'Wife', ar: 'زوجة' },
+                        'Brother/Sister': isMale ? { en: 'Brother', ar: 'أخ' } : { en: 'Sister', ar: 'أخت' },
+                        'Mother/Father': isMale ? { en: 'Father', ar: 'أب' } : { en: 'Mother', ar: 'أم' },
+                        'Nephew/Niece': isMale ? { en: 'Nephew', ar: 'ابن أخ' } : { en: 'Niece', ar: 'بنت أخت' },
+                        'Aunt/Uncle': isMale ? { en: 'Uncle', ar: 'عم، خال' } : { en: 'Aunt', ar: 'عمة، خالة' }
                     };
-                    return map[relationship] || relationship;
+                    return map[relationship] || { en: relationship, ar: '' };
                 },
                 getStatusLabel(status) {
                     const map = {
-                        'Alive': 'Alive | حي يرزق',
-                        'Deceased': 'Deceased | متوفي',
-                        'Unknown': 'Unknown | مجهول'
+                        'Alive': { en: 'Alive', ar: 'حي يرزق' },
+                        'Deceased': { en: 'Deceased', ar: 'متوفي' },
+                        'Unknown': { en: 'Unknown', ar: 'مجهول' }
                     };
-                    return map[status] || status;
+                    return map[status] || { en: status, ar: '' };
                 },
                 async translateText(text, targetLang = 'en') {
                     if (!text || !text.trim()) return text;
