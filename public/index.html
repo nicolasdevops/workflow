@@ -334,7 +334,8 @@
                                             <span class="text-xs">⏳</span>
                                         </div>
                                         <input
-                                            v-model="newMember.status === 'Deceased' ? newMember.days_deceased : newMember.days_missing"
+                                            :value="newMember.status === 'Deceased' ? newMember.days_deceased : newMember.days_missing"
+                                            @input="newMember.status === 'Deceased' ? (newMember.days_deceased = $event.target.value) : (newMember.days_missing = $event.target.value)"
                                             type="number"
                                             :placeholder="newMember.status === 'Deceased' ? 'أيام الوفاة' : (newMember.status === 'Unknown' ? 'أيام الفقدان' : 'أيام')"
                                             :disabled="!newMember.status || newMember.status === 'Alive'"
@@ -350,7 +351,7 @@
                                 </div>
                                 <div class="grid grid-cols-[3fr_1fr_2fr] gap-2 mb-0">
                                     <div class="flex items-center gap-3 h-[30px]">
-                                        <span class="text-sm text-gray-600 whitespace-nowrap">إعاقة؟</span>
+                                        <span class="text-base text-black whitespace-nowrap">إعاقة ؟</span>
                                         <label class="flex items-center gap-1 cursor-pointer">
                                             <input type="radio" v-model="newMember.disability" value="no" class="accent-[#3274B5]">
                                             <span class="text-xs">لأ</span>
