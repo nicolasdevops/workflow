@@ -43,7 +43,7 @@
             <div class="text-3xl md:text-4xl whitespace-nowrap" style="font-family: 'Asap Condensed', sans-serif; letter-spacing: 0.03em;">[D|H<span style="letter-spacing: calc(0.03em + 1px)">|S]</span></div>
             <div class="ml-3 md:ml-6 text-sm opacity-90 font-light border-l border-white/30 pl-3 md:pl-6 h-16 flex flex-col justify-center">
                 <div class="font-bold text-[9px] md:text-xs leading-tight md:leading-none mb-[3.5px] whitespace-nowrap tracking-tight">[72H] تسجيل دخول مجموعة الاختبار | Test Group Login</div>
-                <div class="font-bold text-[10px] leading-none">System Active | v2.4.0</div>
+                <div class="font-bold text-[10px] leading-none">System Active | v2.7.2</div>
             </div>
             <button v-if="profile.email" @click="signOut" class="absolute bottom-[9px] right-[20.5px] md:right-[40px] text-white hover:text-gray-200 text-[8px] border border-white px-2 py-0 rounded transition flex items-center justify-center gap-1 h-[18px]">
                 <span class="text-[10px] leading-none pb-[2px]">تسجيل خروج</span>
@@ -348,13 +348,17 @@
                                         <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-base placeholder:text-black w-full h-[30px]">
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-3 gap-2 mb-0">
-                                    <div class="flex items-center h-[30px]">
-                                        <div class="flex border rounded overflow-hidden h-[30px] w-full">
-                                            <span class="flex items-center px-2 text-xs text-gray-500 bg-gray-50 border-l whitespace-nowrap">إعاقة؟</span>
-                                            <button type="button" @click="newMember.disability = 'no'" :class="['flex-1 px-2 text-xs transition border-l', newMember.disability === 'no' ? 'bg-[#3274B5] text-white' : 'bg-white text-gray-600 hover:bg-gray-50']">لأ</button>
-                                            <button type="button" @click="newMember.disability = 'yes'" :class="['flex-1 px-2 text-xs transition border-l', newMember.disability === 'yes' ? 'bg-[#3274B5] text-white' : 'bg-white text-gray-600 hover:bg-gray-50']">آه</button>
-                                        </div>
+                                <div class="grid grid-cols-[3fr_1fr_2fr] gap-2 mb-0">
+                                    <div class="flex items-center gap-3 h-[30px]">
+                                        <span class="text-sm text-gray-600 whitespace-nowrap">إعاقة؟</span>
+                                        <label class="flex items-center gap-1 cursor-pointer">
+                                            <input type="radio" v-model="newMember.disability" value="no" class="accent-[#3274B5]">
+                                            <span class="text-xs">لأ</span>
+                                        </label>
+                                        <label class="flex items-center gap-1 cursor-pointer">
+                                            <input type="radio" v-model="newMember.disability" value="yes" class="accent-[#3274B5]">
+                                            <span class="text-xs">آه</span>
+                                        </label>
                                     </div>
                                     <div></div>
                                     <div class="flex items-center gap-2 justify-end">
