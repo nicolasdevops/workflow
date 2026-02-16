@@ -299,7 +299,8 @@
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                         </div>
-                                        <input v-model="newMember.age" type="number" placeholder="العمر *" :class="['border py-0 pl-8 pr-2 rounded text-base placeholder:text-lg w-full h-[30px]', showValidationError && !newMember.age ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black']">
+                                        <input v-model="newMember.age" type="text" inputmode="numeric" placeholder="العمر *" @input="checkAgeArabic" :class="['border py-0 pl-8 pr-2 rounded text-base placeholder:text-lg w-full h-[30px]', showValidationError && !newMember.age ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black', showAgeArabicError ? 'border-red-500' : '']">
+                                        <p v-if="showAgeArabicError" class="text-red-500 text-[10px] mt-0.5 leading-tight">الرجاء كتابة العمر بالأرقام الغربية | Please write age using Western numerals (0-9)</p>
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -850,6 +851,7 @@
                     memberSaved: false,
                     urgentNeedSaved: false,
                     showValidationError: false,
+                    showAgeArabicError: false,
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
                         { value: "displacement", label: "🚶 استلمنا أمر إخلاء | Displacement order" },
