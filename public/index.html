@@ -238,8 +238,8 @@
                                                     <!-- Children Details Section -->
                                                     <div class="mb-6 border-t pt-4">
                                                         <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1">
-                                                            <span class="text-base">أفراد العائلة</span>
-                                                            <span>({{ profile.children_details?.length || 0 }})</span>
+                                                            <span class="text-base text-[#3274B5]">أفراد العائلة</span>
+                                                            <span class="text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
                                                             <span>Family Members</span>
                                                         </label>
                                                         
@@ -360,7 +360,7 @@
                         <!-- Urgent Needs Section -->
                         <div class="mb-6 border-t pt-4">
                             <label class="block mb-1 flex items-baseline gap-1 font-bold">
-                                <span class="text-base">احتياجات عاجلة</span>
+                                <span class="text-base text-[#3274B5]">احتياجات عاجلة</span>
                                 <span class="text-xs">| Urgent Needs</span>
                             </label>
                             
@@ -391,7 +391,7 @@
                             </div>
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
-                                    <span class="text-base">المبلغ المطلوب</span>
+                                    <span class="text-base text-[#3274B5]">المبلغ المطلوب</span>
                                     <span>| Cash Amount Needed</span>
                                 </label>
                                 <input v-model="profile.urgent_need_amount" type="text" class="w-[60%] border p-2 rounded text-sm h-[30px]" style="width: calc(60% + 4px);" placeholder="e.g. $500">
@@ -402,14 +402,14 @@
                         <div class="mb-6 border-t pt-4">
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
-                                    <span class="text-base">رقم محفظة بالباي غزة</span>
+                                    <span class="text-base text-[#3274B5]">رقم محفظة بالباي غزة</span>
                                     <span class="text-[10px]">| Gaza PalPay Wallet phone number</span>
                                 </label>
                                 <input v-model="profile.palpay_phone" type="tel" class="w-full border p-2 rounded text-sm h-[30px]" placeholder="e.g. 0599123456">
                             </div>
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
-                                    <span class="text-base">الاسم المسجل بالمحفظة</span>
+                                    <span class="text-base text-[#3274B5]">الاسم المسجل بالمحفظة</span>
                                     <span class="text-[10px]">| Full name as registered on Wallet</span>
                                 </label>
                                 <input v-model="profile.palpay_name" type="text" class="w-full border p-2 rounded text-sm h-[30px]" placeholder="الاسم الكامل">
@@ -426,11 +426,11 @@
 
                 <!-- Tab: Media -->
                 <div v-if="tab === 'media'">
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg px-8 py-4 text-center mb-6">
                         <input type="file" multiple @change="handleFileUpload" class="hidden" id="fileInput" accept="image/*,video/*">
                         <label for="fileInput" class="cursor-pointer block group hover:text-[#3274B5] transition-colors">
                             <div class="text-black group-hover:text-[#3274B5] leading-tight text-center">
-                                <div class="text-base font-bold mb-1">صور وفيديوهات لإنشاء فيديو ريلز بالذكاء الاصطناعي. اضغط هنا للرفع</div>
+                                <div class="text-base font-bold mb-3">صور وفيديوهات لإنشاء فيديو ريلز بالذكاء الاصطناعي. اضغط هنا للرفع</div>
                                 <div class="text-sm">Photos and Videos For AI Reel Generation. Click to Upload</div>
                             </div>
                         </label>
@@ -494,12 +494,12 @@
                                 <p class="text-xs text-gray-600">@{{ scrapedProfile.instagram_username }}</p>
                                 <p v-if="scrapedProfile.full_name" class="text-xs text-gray-600">{{ scrapedProfile.full_name }}</p>
                                 <div class="flex gap-3 text-xs text-gray-500 mt-1">
-                                    <span>{{ scrapedProfile.followers_count?.toLocaleString() || 0 }} followers</span>
-                                    <span>{{ scrapedProfile.posts_count || 0 }} posts</span>
+                                    <span>{{ scrapedProfile.followers_count?.toLocaleString() || 0 }} متابع</span>
+                                    <span>{{ scrapedProfile.posts_count || 0 }} منشور</span>
                                 </div>
                             </div>
                         </div>
-                        <p class="text-[10px] text-gray-400 mt-[10px]">Last checked: {{ formatScrapeDate(scrapedProfile.last_scraped_at) }}</p>
+                        <p class="text-[10px] text-gray-400 mt-[10px]">آخر فحص: {{ formatScrapeDate(scrapedProfile.last_scraped_at) }}</p>
                     </div>
 
                     <!-- Connected via cookies (legacy) -->
@@ -539,7 +539,7 @@
                                     <span class="text-xs font-normal leading-none">Password (Optional)</span>
                                 </label>
                                 <input v-model="form.insta_password" type="password" :disabled="!profile.instagram_password_enabled" class="w-full border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed" placeholder="••••••••">
-                                <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1 text-right">تواصل مع الإدارة لتفعيل كلمة السر</p>
+                                <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1 mb-6 text-right">تواصل مع الإدارة لتفعيل كلمة السر</p>
                                 <p v-else class="text-xs text-gray-400 mt-1">Password saved for admin-managed account recovery only</p>
                             </div>
                             <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
@@ -575,7 +575,7 @@
                     <!-- Scraped Content Preview -->
                     <div v-if="scrapedContent && scrapedContent.length > 0" class="mt-4 border-t pt-4">
                         <h4 class="text-sm font-bold mb-2 flex items-baseline gap-1">
-                            <span class="text-base">محتوى مستورد</span>
+                            <span class="text-base text-[#3274B5]">محتوى مستورد</span>
                             <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
                         </h4>
                         <div class="grid grid-cols-3 gap-1">
@@ -1498,11 +1498,12 @@
                 formatScrapeDate(dateStr) {
                     if (!dateStr) return '';
                     const d = new Date(dateStr);
-                    const month = d.toLocaleString('en-US', { month: 'long' });
+                    const slaMonths = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
+                    const month = slaMonths[d.getMonth()];
                     const day = d.getDate();
                     const hours = d.getHours().toString().padStart(2, '0');
                     const mins = d.getMinutes().toString().padStart(2, '0');
-                    return `${month} ${day}, ${hours}:${mins}`;
+                    return `${day} ${month}، ${hours}:${mins}`;
                 },
                 async unlinkInstagram() {
                     if (!confirm('Unlink this Instagram account? This will remove scraped profile and content data.\n\nإلغاء ربط هذا الحساب؟ سيتم حذف بيانات الملف الشخصي والمحتوى.')) {
