@@ -265,7 +265,15 @@
                                                                             <span v-if="member.status === 'Unknown' && member.days_missing" dir="ltr">| {{ member.days_missing }} days</span>
                                                                         </template>
                                                                         <span v-if="member.condition" class="text-blue-600" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
-                                                                        <span v-if="member.disability === 'yes'" class="inline-flex items-center gap-0.5">| <svg class="w-3.5 h-3.5 text-[#3274B5] inline-block" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-1 10c-2.8 0-5 2.2-5 5 0 .6.4 1 1 1s1-.4 1-1c0-1.7 1.3-3 3-3h2c1.7 0 3 1.3 3 3 0 .6.4 1 1 1s1-.4 1-1c0-2.8-2.2-5-5-5h-2zm-3 8a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm8 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg></span>
+                                                                        <span v-if="member.disability === 'yes'" class="inline-flex items-center gap-1">|
+                                                                            <img src="screenshot/010.png" class="w-4 h-4 object-contain inline-block" title="Option 1">
+                                                                            <img src="screenshot/011.jpeg" class="w-4 h-4 object-contain inline-block" title="Option 2">
+                                                                            <img src="screenshot/012.png" class="w-4 h-4 object-contain inline-block" title="Option 3">
+                                                                            <img src="screenshot/013.png" class="w-4 h-4 object-contain inline-block" title="Option 4">
+                                                                            <img src="screenshot/014.png" class="w-4 h-4 object-contain inline-block" title="Option 5">
+                                                                            <img src="screenshot/015.jpg" class="w-4 h-4 object-contain inline-block" title="Option 6">
+                                                                            <img src="screenshot/016.png" class="w-4 h-4 object-contain inline-block" title="Option 7">
+                                                                        </span>
                                                                     </div>
                                                                 </div>
                                                                 <button type="button" @click="removeChild(index)" class="text-gray-300 hover:text-gray-500 px-2 text-sm">×</button>
