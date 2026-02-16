@@ -249,24 +249,24 @@
                                                                 <div class="flex flex-col">
                                                                     <span style="display: flex; gap: 0.25rem; align-items: center;">
                                                                         <span dir="auto">{{ member.nameDisplay || member.name }}</span>
-                                                                        <span dir="ltr">|</span>
-                                                                        <span dir="ltr">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).en }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="ltr">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).en }}</span>
                                                                         <span dir="rtl">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).ar }}</span>
-                                                                        <span dir="ltr">|</span>
-                                                                        <span dir="ltr">{{ member.gender === 'Male' ? '♂' : '♀' }}</span>
-                                                                        <span dir="ltr">|</span>
-                                                                        <span dir="ltr">{{ member.age }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="ltr">{{ member.gender === 'Male' ? '♂' : '♀' }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="ltr">{{ member.age }}</span>
                                                                     </span>
-                                                                    <div class="text-sm text-gray-500" style="display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap;">
+                                                                    <div class="text-xs text-gray-500" style="display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap;">
                                                                         <template v-if="member.status">
-                                                                            <span dir="ltr" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).en }}</span>
+                                                                            <span class="text-xs" dir="ltr" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).en }}</span>
                                                                             <span dir="rtl" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).ar }}</span>
-                                                                            <span v-if="member.status === 'Deceased' && member.days_deceased" dir="ltr">| {{ member.days_deceased }} days</span>
-                                                                            <span v-if="member.status === 'Unknown' && member.days_missing" dir="ltr">| {{ member.days_missing }} days</span>
+                                                                            <span v-if="member.status === 'Deceased' && member.days_deceased" class="text-xs" dir="ltr">| {{ member.days_deceased }} days</span>
+                                                                            <span v-if="member.status === 'Unknown' && member.days_missing" class="text-xs" dir="ltr">| {{ member.days_missing }} days</span>
                                                                         </template>
                                                                         <span v-if="member.condition" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
                                                                         <span v-if="member.disability === 'yes'" class="inline-flex items-center gap-1">|
-                                                                            <img src="icons/disability-7.png" style="width: 19px; height: 19px;" class="object-contain inline-block" title="Disabled">
+                                                                            <img src="icons/disability-7.png" style="width: 19px; height: 19px; mix-blend-mode: multiply;" class="object-contain inline-block" title="Disabled">
                                                                             <!-- Other candidates - uncomment to compare:
                                                                             <img src="icons/disability-1.png" class="w-4 h-4 object-contain inline-block" title="Option 1">
                                                                             <img src="icons/disability-2.jpeg" class="w-4 h-4 object-contain inline-block" title="Option 2">
