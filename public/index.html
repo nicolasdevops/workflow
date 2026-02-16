@@ -243,45 +243,6 @@
                                                             <span class="text-xs">Family Members</span>
                                                         </label>
                                                         
-                                                        <!-- List of added children -->
-                                                        <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
-                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm" dir="ltr" style="text-align: left;">
-                                                                <div class="flex flex-col">
-                                                                    <span style="display: flex; gap: 0.25rem; align-items: center;">
-                                                                        <span class="text-xs" dir="auto">{{ member.nameDisplay || member.name }}</span>
-                                                                        <span class="text-xs" dir="ltr">|</span>
-                                                                        <span class="text-xs" dir="ltr">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).en }}</span>
-                                                                        <span dir="rtl">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).ar }}</span>
-                                                                        <span class="text-xs" dir="ltr">|</span>
-                                                                        <span class="text-xs" dir="ltr">{{ member.gender === 'Male' ? '♂' : '♀' }}</span>
-                                                                        <span class="text-xs" dir="ltr">|</span>
-                                                                        <span class="text-xs" dir="ltr">{{ member.age }}</span>
-                                                                    </span>
-                                                                    <div class="text-xs text-gray-500" style="display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap;">
-                                                                        <template v-if="member.status">
-                                                                            <span class="text-xs" dir="ltr" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).en }}</span>
-                                                                            <span dir="rtl" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).ar }}</span>
-                                                                            <span v-if="member.status === 'Deceased' && member.days_deceased" class="text-xs" dir="ltr">| {{ member.days_deceased }} days</span>
-                                                                            <span v-if="member.status === 'Unknown' && member.days_missing" class="text-xs" dir="ltr">| {{ member.days_missing }} days</span>
-                                                                        </template>
-                                                                        <span v-if="member.condition" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
-                                                                        <span v-if="member.disability === 'yes'" class="inline-flex items-center gap-1">|
-                                                                            <img src="icons/disability-7.png" style="width: 19px; height: 19px; mix-blend-mode: multiply;" class="object-contain inline-block" title="Disabled">
-                                                                            <!-- Other candidates - uncomment to compare:
-                                                                            <img src="icons/disability-1.png" class="w-4 h-4 object-contain inline-block" title="Option 1">
-                                                                            <img src="icons/disability-2.jpeg" class="w-4 h-4 object-contain inline-block" title="Option 2">
-                                                                            <img src="icons/disability-3.png" class="w-4 h-4 object-contain inline-block" title="Option 3">
-                                                                            <img src="icons/disability-4.png" class="w-4 h-4 object-contain inline-block" title="Option 4">
-                                                                            <img src="icons/disability-5.png" class="w-4 h-4 object-contain inline-block" title="Option 5">
-                                                                            <img src="icons/disability-6.jpg" class="w-4 h-4 object-contain inline-block" title="Option 6">
-                                                                            -->
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                                <button type="button" @click="removeChild(index)" class="text-gray-300 hover:text-gray-500 px-2 text-sm">×</button>
-                                                            </div>
-                                                        </div>
-                            
                                                         <!-- Add new child form -->
                                                         <div class="bg-blue-50 p-3 rounded border border-blue-100">
                                                             <div class="mb-2 flex items-baseline gap-1 font-bold">
@@ -362,7 +323,6 @@
                                 </div>
                                 <div class="grid grid-cols-[3fr_1fr_2fr] gap-2 mb-0">
                                     <div class="flex items-center gap-3 h-[30px]">
-                                        <span class="text-base text-black font-bold whitespace-nowrap">إعاقة ؟</span>
                                         <label class="flex items-center gap-1 cursor-pointer">
                                             <input type="radio" v-model="newMember.disability" value="no" class="accent-[#3274B5]">
                                             <span class="text-xs">لأ</span>
@@ -371,10 +331,11 @@
                                             <input type="radio" v-model="newMember.disability" value="yes" class="accent-[#3274B5]">
                                             <span class="text-xs">آه</span>
                                         </label>
+                                        <span class="text-base text-black whitespace-nowrap">إعاقة ؟</span>
                                     </div>
                                     <div></div>
                                     <div class="flex items-center gap-2 justify-end">
-                                        <button type="button" @click="addMember" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] flex-shrink-0">
+                                        <button type="button" @click="addMember" class="px-2 py-0.5 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[26px] flex-shrink-0">
                                             <span>+ Add | </span>
                                             <span class="text-base">إضافة</span>
                                         </button>
@@ -383,6 +344,45 @@
                                 </div>
                             </div>
                         </div>
+
+                                                        <!-- List of added children -->
+                                                        <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
+                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm" dir="ltr" style="text-align: left;">
+                                                                <div class="flex flex-col">
+                                                                    <span style="display: flex; gap: 0.25rem; align-items: center;">
+                                                                        <span class="text-xs" dir="auto">{{ member.nameDisplay || member.name }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="ltr">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).en }}</span>
+                                                                        <span dir="rtl">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).ar }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="ltr">{{ member.gender === 'Male' ? '♂' : '♀' }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="ltr">{{ member.age }}</span>
+                                                                    </span>
+                                                                    <div class="text-xs text-gray-500" style="display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap;">
+                                                                        <template v-if="member.status">
+                                                                            <span class="text-xs" dir="ltr" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).en }}</span>
+                                                                            <span dir="rtl" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).ar }}</span>
+                                                                            <span v-if="member.status === 'Deceased' && member.days_deceased" class="text-xs" dir="ltr">| {{ member.days_deceased }} days</span>
+                                                                            <span v-if="member.status === 'Unknown' && member.days_missing" class="text-xs" dir="ltr">| {{ member.days_missing }} days</span>
+                                                                        </template>
+                                                                        <span v-if="member.condition" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
+                                                                        <span v-if="member.disability === 'yes'" class="inline-flex items-center gap-1">|
+                                                                            <img src="icons/disability-7.png" style="width: 19px; height: 19px; mix-blend-mode: multiply;" class="object-contain inline-block" title="Disabled">
+                                                                            <!-- Other candidates - uncomment to compare:
+                                                                            <img src="icons/disability-1.png" class="w-4 h-4 object-contain inline-block" title="Option 1">
+                                                                            <img src="icons/disability-2.jpeg" class="w-4 h-4 object-contain inline-block" title="Option 2">
+                                                                            <img src="icons/disability-3.png" class="w-4 h-4 object-contain inline-block" title="Option 3">
+                                                                            <img src="icons/disability-4.png" class="w-4 h-4 object-contain inline-block" title="Option 4">
+                                                                            <img src="icons/disability-5.png" class="w-4 h-4 object-contain inline-block" title="Option 5">
+                                                                            <img src="icons/disability-6.jpg" class="w-4 h-4 object-contain inline-block" title="Option 6">
+                                                                            -->
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <button type="button" @click="removeChild(index)" class="text-gray-300 hover:text-gray-500 px-2 text-sm">×</button>
+                                                            </div>
+                                                        </div>
 
                         <!-- Urgent Needs Section -->
                         <div class="mb-6 border-t pt-4">
