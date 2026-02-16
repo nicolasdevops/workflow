@@ -257,7 +257,7 @@
                                                                         <span dir="ltr">|</span>
                                                                         <span dir="ltr">{{ member.age }}</span>
                                                                     </span>
-                                                                    <div class="text-sm text-gray-500" style="display: flex; gap: 0.25rem; align-items: center;">
+                                                                    <div class="text-sm text-gray-500" style="display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap;">
                                                                         <template v-if="member.status">
                                                                             <span dir="ltr" :class="{'text-green-600': member.status === 'Alive', 'text-red-600': member.status === 'Deceased', 'text-orange-500': member.status === 'Unknown'}">{{ getStatusLabel(member.status).en }}</span>
                                                                             <span dir="rtl" :class="{'text-green-600': member.status === 'Alive', 'text-red-600': member.status === 'Deceased', 'text-orange-500': member.status === 'Unknown'}">{{ getStatusLabel(member.status).ar }}</span>
@@ -348,7 +348,7 @@
                                         <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-base placeholder:text-black w-full h-[30px]">
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+                                <div class="grid gap-2 items-center" style="grid-template-columns: 200px auto;">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
@@ -571,7 +571,7 @@
                         </p>
 
                         <!-- Backup Followers Button -->
-                        <div v-if="scrapedProfile" class="mt-4 pt-4 border-t border-gray-200" style="padding-bottom: 8px;">
+                        <div v-if="scrapedProfile" class="mt-4 pt-4 border-t border-gray-200" style="padding-bottom: 3px;">
                             <div class="flex items-center justify-between mb-1">
                                 <div>
                                     <h4 class="text-sm font-bold text-[#3274B5]">نسخة احتياطية للمتابعين</h4>
@@ -592,7 +592,7 @@
                     </div>
 
                     <!-- Scraped Content Preview -->
-                    <div v-if="scrapedContent && scrapedContent.length > 0" class="mt-4 mb-4 border-t pt-4">
+                    <div v-if="scrapedContent && scrapedContent.length > 0" class="mt-4 mb-4 border-t pt-4" style="padding-bottom: 10px;">
                         <h4 class="text-sm font-bold flex items-baseline gap-1" style="margin-bottom: 10px;">
                             <span class="text-base text-[#3274B5]">محتوى مستورد</span>
                             <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
