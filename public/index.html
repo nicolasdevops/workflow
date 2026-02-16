@@ -1090,13 +1090,13 @@
                     const isArabic = /[\u0600-\u06FF]/.test(text);
 
                     if (isArabic) {
-                        // Arabic → English (English first to force LTR)
+                        // Arabic → English
                         const translation = await this.translateText(text, 'en');
-                        return `${translation} / ${text}`;
+                        return `${translation} ${text}`;
                     } else {
-                        // English → Arabic (English first to force LTR)
+                        // English → Arabic
                         const translation = await this.translateText(text, 'ar');
-                        return `${text} / ${translation}`;
+                        return `${text} ${translation}`;
                     }
                 },
                 async handleFileUpload(e) {
