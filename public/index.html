@@ -1021,8 +1021,11 @@
                             this.form.insta_username = this.profile.instagram_handle;
                         }
 
-                        // Translate existing family members (conditions only, not names)
+                        // Transliterate names and translate conditions for existing members
                         for (const member of this.profile.children_details) {
+                            if (member.name && !member.nameDisplay) {
+                                member.nameDisplay = await this.getTransliteratedName(member.name);
+                            }
                             if (member.condition && !member.conditionDisplay) {
                                 member.conditionDisplay = await this.getBilingualText(member.condition);
                             }
@@ -1063,8 +1066,11 @@
 
                     if (!this.profile.children_details) this.profile.children_details = [];
 
-                    // Add translations for condition only (names shown as-is, no semantic translation)
+                    // Transliterate name (phonetic) and translate condition (semantic)
                     const memberWithTranslations = { ...this.newMember };
+                    if (memberWithTranslations.name) {
+                        memberWithTranslations.nameDisplay = await this.getTransliteratedName(memberWithTranslations.name);
+                    }
                     if (memberWithTranslations.condition) {
                         memberWithTranslations.conditionDisplay = await this.getBilingualText(memberWithTranslations.condition);
                     }
@@ -1157,6 +1163,22 @@
                     } catch (error) {
                         console.error('Translation error:', error);
                         return text; // Return original text on error
+                    }
+                },
+                async getTransliteratedName(name) {
+                    if (!name || !name.trim()) return name;
+                    try {
+                        const res = await fetch('/api/transliterate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ text: name })
+                        });
+                        if (!res.ok) return name;
+                        const data = await res.json();
+                        const isArabic = /[\u0600-\u06FF]/.test(name);
+                        return isArabic ? `${data.transliteration} ${name}` : `${name} ${data.transliteration}`;
+                    } catch (e) {
+                        return name;
                     }
                 },
                 async getBilingualText(text) {

@@ -21,6 +21,7 @@ const { initB2Client, isB2Configured, uploadFamilyMedia, deleteFromB2 } = requir
 const { CommentScheduler } = require('./comment-scheduler');
 const { EngagementTracker } = require('./engagement-tracker');
 const deepl = require('deepl-node');
+const { transliterate } = require('transliteration');
 require('dotenv').config();
 
 const app = express();
@@ -929,6 +930,57 @@ app.post('/api/translate', portalAuth, async (req, res) => {
   } catch (error) {
     console.error('Translation error:', error);
     res.status(500).json({ error: 'Translation failed', original: text });
+  }
+});
+
+// Transliteration endpoint (phonetic, not semantic)
+const latinToArabicMap = {
+  'th': 'ث', 'sh': 'ش', 'kh': 'خ', 'dh': 'ذ', 'gh': 'غ', 'ch': 'تش',
+  'ph': 'ف', 'oo': 'و', 'ee': 'ي', 'ou': 'و', 'aa': 'ا', 'ai': 'اي',
+  'ei': 'اي', 'au': 'او', 'aw': 'او',
+  'a': 'ا', 'b': 'ب', 'c': 'ك', 'd': 'د', 'e': 'ي', 'f': 'ف',
+  'g': 'غ', 'h': 'ه', 'i': 'ي', 'j': 'ج', 'k': 'ك', 'l': 'ل',
+  'm': 'م', 'n': 'ن', 'o': 'و', 'p': 'ب', 'q': 'ق', 'r': 'ر',
+  's': 'س', 't': 'ت', 'u': 'و', 'v': 'ف', 'w': 'و', 'x': 'كس',
+  'y': 'ي', 'z': 'ز'
+};
+
+function latinToArabic(text) {
+  let result = '';
+  const lower = text.toLowerCase();
+  let i = 0;
+  while (i < lower.length) {
+    if (i + 1 < lower.length) {
+      const pair = lower.substring(i, i + 2);
+      if (latinToArabicMap[pair]) {
+        result += latinToArabicMap[pair];
+        i += 2;
+        continue;
+      }
+    }
+    const ch = lower[i];
+    result += latinToArabicMap[ch] || ch;
+    i++;
+  }
+  return result;
+}
+
+app.post('/api/transliterate', portalAuth, async (req, res) => {
+  const { text } = req.body;
+  if (!text || !text.trim()) {
+    return res.json({ transliteration: text });
+  }
+
+  try {
+    const isArabic = /[\u0600-\u06FF]/.test(text);
+    if (isArabic) {
+      res.json({ transliteration: transliterate(text) });
+    } else {
+      res.json({ transliteration: latinToArabic(text) });
+    }
+  } catch (error) {
+    console.error('Transliteration error:', error);
+    res.json({ transliteration: text });
   }
 });
 

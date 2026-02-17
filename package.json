@@ -18,6 +18,7 @@
     "nodemailer": "^6.9.13",
     "pg": "latest",
     "playwright": "^1.48.0",
-    "socks-proxy-agent": "^8.0.5"
+    "socks-proxy-agent": "^8.0.5",
+    "transliteration": "^2.6.1"
   }
 }
