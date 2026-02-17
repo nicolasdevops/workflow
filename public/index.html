@@ -55,7 +55,7 @@
         <!-- Mobile User Bar (Aligned with Card) -->
         <div class="max-w-2xl w-full flex justify-between items-end mb-3 px-1" v-if="profile.email">
             <div class="flex items-center gap-2 mb-[3px]">
-                <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-8 h-8 rounded-full border border-gray-300 object-cover">
+                <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-8 h-8 rounded-full border-2 border-[#3274B5] object-cover">
                 <div v-else class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
                     {{ (profile.name || profile.family_name || 'F')[0].toUpperCase() }}
                 </div>
