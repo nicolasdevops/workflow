@@ -290,7 +290,7 @@
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                            <span class="text-xs">❤️</span>
+                                            <span class="text-xs">🩵</span>
                                         </div>
                                         <select v-model="newMember.status" :class="['border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white', showValidationError && !newMember.status ? 'border-red-500 text-red-500' : '']">
                                             <option value="" disabled selected>على قيد الحياة؟ *</option>
@@ -1021,11 +1021,8 @@
                             this.form.insta_username = this.profile.instagram_handle;
                         }
 
-                        // Translate existing family members
+                        // Translate existing family members (conditions only, not names)
                         for (const member of this.profile.children_details) {
-                            if (member.name && !member.nameDisplay) {
-                                member.nameDisplay = await this.getBilingualText(member.name);
-                            }
                             if (member.condition && !member.conditionDisplay) {
                                 member.conditionDisplay = await this.getBilingualText(member.condition);
                             }
@@ -1066,11 +1063,8 @@
 
                     if (!this.profile.children_details) this.profile.children_details = [];
 
-                    // Add translations for name and condition
+                    // Add translations for condition only (names shown as-is, no semantic translation)
                     const memberWithTranslations = { ...this.newMember };
-                    if (memberWithTranslations.name) {
-                        memberWithTranslations.nameDisplay = await this.getBilingualText(memberWithTranslations.name);
-                    }
                     if (memberWithTranslations.condition) {
                         memberWithTranslations.conditionDisplay = await this.getBilingualText(memberWithTranslations.condition);
                     }
