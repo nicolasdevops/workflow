@@ -107,11 +107,11 @@ class CommentScheduler {
     async getActiveFamilies() {
         const { data, error } = await this.supabase
             .from('families')
-            .select('id, name, ig_username, session_cookies, children_count, children_ages, proxy_city, proxy_country, timezone, geo_latitude, geo_longitude')
+            .select('id, name, ig_username, cookies, children_count, children_ages, proxy_city, proxy_country, timezone, geo_latitude, geo_longitude')
             .eq('commenting_enabled', true)
             .eq('ig_account_status', 'active')
             .not('ig_username', 'is', null)
-            .not('session_cookies', 'is', null);
+            .not('cookies', 'is', null);
 
         if (error) {
             console.error('[CommentScheduler] Error fetching families:', error.message);
@@ -255,8 +255,8 @@ class CommentScheduler {
             await bot.init();
 
             // 3. Restore session cookies
-            if (family.session_cookies) {
-                const cookies = JSON.parse(family.session_cookies);
+            if (family.cookies) {
+                const cookies = JSON.parse(family.cookies);
                 await bot.page.context().addCookies(cookies);
             }
 
