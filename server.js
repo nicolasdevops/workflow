@@ -610,7 +610,7 @@ app.post('/api/admin/automation/:familyId/bulk', basicAuth, async (req, res) => 
 
 // Toggle Instagram password field access for a family
 // POST /api/admin/instagram-password/:familyId { enabled: true }
-app.post('/api/admin/instagram-password/:familyId', basicAuth, async (req, res) => {
+app.post('/api/admin/instagram-password/:familyId', adminAuth, async (req, res) => {
   const { familyId } = req.params;
   const { enabled } = req.body;
 
@@ -986,10 +986,15 @@ app.post('/api/transliterate', portalAuth, async (req, res) => {
 
 // Portal Register
 app.post('/api/portal/register', async (req, res) => {
-  const { password, family_name } = req.body;
+  const { password, family_name, instagram_handle } = req.body;
   const email = req.body.email.toLowerCase();
-  
+
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
+
+  // Instagram handle is mandatory
+  if (!instagram_handle || !instagram_handle.trim()) {
+    return res.status(400).json({ error: 'Instagram username is required | حساب انستغرام مطلوب' });
+  }
 
   // Check if email exists
   const { data: existing } = await supabase.from('families').select('email').eq('email', email).single();
@@ -997,11 +1002,12 @@ app.post('/api/portal/register', async (req, res) => {
 
   const { data, error } = await supabase
     .from('families')
-    .insert([{ 
-      email, 
+    .insert([{
+      email,
       password: crypto.createHash('sha256').update(password).digest('hex'),
       name: family_name,
-      status: 'active' 
+      instagram_handle: instagram_handle.replace(/^@/, '').trim(),
+      status: 'active'
     }])
     .select()
     .single();
@@ -1988,11 +1994,23 @@ app.get('/api/admin/families', adminAuth, async (req, res) => {
 
     if (error) throw error;
 
-    // Mask cookies - just indicate if present
-    const sanitized = data.map(f => ({
-      ...f,
-      cookies: f.cookies ? true : false
-    }));
+    // Mask cookies and add transliterated names
+    const sanitized = data.map(f => {
+      let nameDisplay = f.name;
+      if (f.name) {
+        const isArabic = /[\u0600-\u06FF]/.test(f.name);
+        if (isArabic) {
+          nameDisplay = transliterate(f.name) + '  |  ' + f.name;
+        } else {
+          nameDisplay = f.name + '  |  ' + latinToArabic(f.name);
+        }
+      }
+      return {
+        ...f,
+        cookies: f.cookies ? true : false,
+        nameDisplay
+      };
+    });
 
     res.json(sanitized);
   } catch (e) {

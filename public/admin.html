@@ -123,7 +123,7 @@
                             <tbody>
                                 <tr v-for="f in families" :key="f.id" class="border-t hover:bg-gray-50">
                                     <td class="p-3 text-gray-500">{{ f.id }}</td>
-                                    <td class="p-3 font-medium">{{ f.name || '-' }}</td>
+                                    <td class="p-3 font-medium">{{ f.nameDisplay || f.name || '-' }}</td>
                                     <td class="p-3 text-gray-600">{{ f.email }}</td>
                                     <td class="p-3">
                                         <span v-if="f.instagram_handle" class="text-blue-600">@{{ f.instagram_handle }}</span>
