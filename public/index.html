@@ -505,10 +505,10 @@
                                                                     <div class="mb-2" dir="ltr">
                                                                         <label class="block text-xs font-bold mb-1 text-[#3274B5]">Clothing | صور الملابس</label>
                                                                         <input type="file" multiple accept="image/*" @change="handleMemberFileUpload($event, index, 'clothing_photos')" class="w-full text-xs">
-                                                                        <div v-if="member.clothing_photos && member.clothing_photos.length" class="flex gap-1 mt-1 flex-wrap">
-                                                                            <div v-for="(url, pi) in member.clothing_photos" :key="pi" class="relative">
-                                                                                <img :src="url" class="w-10 h-10 object-cover rounded border">
-                                                                                <button type="button" @click="removeMemberFile(index, 'clothing_photos', pi)" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs leading-none">&times;</button>
+                                                                        <div v-if="member.clothing_photos && member.clothing_photos.length" class="flex gap-2 mt-2 flex-wrap">
+                                                                            <div v-for="(url, pi) in member.clothing_photos" :key="pi" class="relative group">
+                                                                                <img :src="url" @click="previewFile = { url: url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 object-cover rounded-lg border shadow-sm cursor-pointer hover:opacity-80 transition">
+                                                                                <button type="button" @click="removeMemberFile(index, 'clothing_photos', pi)" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition">&times;</button>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -516,10 +516,10 @@
                                                                     <div class="mb-2" dir="ltr">
                                                                         <label class="block text-xs font-bold mb-1 text-[#3274B5]">Pictures of {{ member.name }}</label>
                                                                         <input type="file" multiple accept="image/*" @change="handleMemberFileUpload($event, index, 'photo_refs')" class="w-full text-xs">
-                                                                        <div v-if="member.photo_refs && member.photo_refs.length" class="flex gap-1 mt-1 flex-wrap">
-                                                                            <div v-for="(url, pi) in member.photo_refs" :key="pi" class="relative">
-                                                                                <img :src="url" class="w-10 h-10 object-cover rounded border">
-                                                                                <button type="button" @click="removeMemberFile(index, 'photo_refs', pi)" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs leading-none">&times;</button>
+                                                                        <div v-if="member.photo_refs && member.photo_refs.length" class="flex gap-2 mt-2 flex-wrap">
+                                                                            <div v-for="(url, pi) in member.photo_refs" :key="pi" class="relative group">
+                                                                                <img :src="url" @click="previewFile = { url: url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 object-cover rounded-lg border shadow-sm cursor-pointer hover:opacity-80 transition">
+                                                                                <button type="button" @click="removeMemberFile(index, 'photo_refs', pi)" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition">&times;</button>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -527,11 +527,13 @@
                                                                     <div class="mb-2" dir="ltr">
                                                                         <label class="block text-xs font-bold mb-1 text-[#3274B5]">Videos of {{ member.name }}</label>
                                                                         <input type="file" multiple accept="video/*" @change="handleMemberFileUpload($event, index, 'video_refs')" class="w-full text-xs">
-                                                                        <div v-if="member.video_refs && member.video_refs.length" class="flex gap-1 mt-1 flex-wrap">
-                                                                            <span v-for="(url, vi) in member.video_refs" :key="vi" class="inline-flex items-center gap-1 bg-gray-200 rounded px-2 py-0.5 text-xs">
-                                                                                ✓ video {{ vi + 1 }}
-                                                                                <button type="button" @click="removeMemberFile(index, 'video_refs', vi)" class="text-red-500 font-bold">&times;</button>
-                                                                            </span>
+                                                                        <div v-if="member.video_refs && member.video_refs.length" class="flex gap-2 mt-2 flex-wrap">
+                                                                            <div v-for="(url, vi) in member.video_refs" :key="vi" class="relative group">
+                                                                                <div @click="previewFile = { url: url, metadata: { mimetype: 'video/mp4' } }" class="w-16 h-16 bg-gray-800 rounded-lg border shadow-sm cursor-pointer hover:opacity-80 transition flex items-center justify-center">
+                                                                                    <span class="text-white text-lg">▶</span>
+                                                                                </div>
+                                                                                <button type="button" @click="removeMemberFile(index, 'video_refs', vi)" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition">&times;</button>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                     <!-- Row 9: Notes (full width) -->
