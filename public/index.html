@@ -502,8 +502,8 @@
                                                                         <input v-model="member.clothing_description" @blur="updateProfile()" type="text" class="w-full border py-0 px-2 rounded text-xs h-[28px]" placeholder="مثال: بلوزة رمادية كبيرة، بنطلون ممزق">
                                                                     </div>
                                                                     <!-- Row 6: Clothing photos -->
-                                                                    <div class="mb-2">
-                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">صور الملابس | Clothing</label>
+                                                                    <div class="mb-2" dir="ltr">
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Clothing | صور الملابس</label>
                                                                         <input type="file" multiple accept="image/*" @change="handleMemberFileUpload($event, index, 'clothing_photos')" class="w-full text-xs">
                                                                         <div v-if="member.clothing_photos && member.clothing_photos.length" class="flex gap-1 mt-1 flex-wrap">
                                                                             <div v-for="(url, pi) in member.clothing_photos" :key="pi" class="relative">
@@ -513,8 +513,8 @@
                                                                         </div>
                                                                     </div>
                                                                     <!-- Row 7: Photos of [Name] -->
-                                                                    <div class="mb-2">
-                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]" dir="ltr">Pictures of {{ member.name }}</label>
+                                                                    <div class="mb-2" dir="ltr">
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Pictures of {{ member.name }}</label>
                                                                         <input type="file" multiple accept="image/*" @change="handleMemberFileUpload($event, index, 'photo_refs')" class="w-full text-xs">
                                                                         <div v-if="member.photo_refs && member.photo_refs.length" class="flex gap-1 mt-1 flex-wrap">
                                                                             <div v-for="(url, pi) in member.photo_refs" :key="pi" class="relative">
@@ -524,8 +524,8 @@
                                                                         </div>
                                                                     </div>
                                                                     <!-- Row 8: Videos of [Name] -->
-                                                                    <div class="mb-2">
-                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]" dir="ltr">Videos of {{ member.name }}</label>
+                                                                    <div class="mb-2" dir="ltr">
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Videos of {{ member.name }}</label>
                                                                         <input type="file" multiple accept="video/*" @change="handleMemberFileUpload($event, index, 'video_refs')" class="w-full text-xs">
                                                                         <div v-if="member.video_refs && member.video_refs.length" class="flex gap-1 mt-1 flex-wrap">
                                                                             <span v-for="(url, vi) in member.video_refs" :key="vi" class="inline-flex items-center gap-1 bg-gray-200 rounded px-2 py-0.5 text-xs">
@@ -539,9 +539,11 @@
                                                                         <label class="block text-xs font-bold mb-1 text-[#3274B5]">ملاحظات</label>
                                                                         <textarea v-model="member.notes" @blur="updateProfile()" class="w-full border py-1 px-2 rounded text-xs" rows="2" placeholder="ملاحظات إضافية..."></textarea>
                                                                     </div>
-                                                                    <!-- Save button -->
-                                                                    <button type="button" @click="saveMemberDetails(index)" class="w-full bg-[#3274B5] text-white rounded-lg py-2 text-sm font-bold hover:bg-[#275d94]">
-                                                                        حفظ | Save
+                                                                    <!-- Save button (matches base form style) -->
+                                                                    <button type="button" @click="saveMemberDetails(index)" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] mx-auto">
+                                                                        <span class="text-base">حفظ</span>
+                                                                        <span class="opacity-80">|</span>
+                                                                        <span>Save</span>
                                                                     </button>
                                                                 </div><!-- /popup content -->
                                                                 </div><!-- /popup overlay -->
