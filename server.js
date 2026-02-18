@@ -1135,7 +1135,17 @@ app.post('/api/portal/upload', portalAuth, upload.single('file'), async (req, re
       throw dbError;
     }
 
-    res.json({ status: 'SUCCESS', path: filePath, b2: !!b2Url });
+    // Return the accessible URL so frontend can use it immediately
+    let publicUrl = b2Url;
+    if (!publicUrl) {
+      const { data: signed } = await supabase
+        .storage
+        .from('media')
+        .createSignedUrl(filePath, 60 * 60 * 24 * 7); // 7-day URL
+      publicUrl = signed?.signedUrl;
+    }
+
+    res.json({ status: 'SUCCESS', path: filePath, b2: !!b2Url, url: publicUrl });
   } catch (e) {
     console.error('Upload error:', e);
     res.status(500).json({ error: 'Upload failed: ' + e.message });
