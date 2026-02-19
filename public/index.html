@@ -211,27 +211,23 @@
                         <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover">
                         <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
                         <div class="flex-1">
-                            <!-- After IG sync: name + email only -->
-                            <template v-if="profile.instagram_handle">
-                                <h3 class="font-bold text-lg leading-tight">{{ profile.name || profile.family_name || 'Family Profile' }}</h3>
-                                <p class="text-xs text-gray-500">({{ profile.email }})</p>
-                            </template>
-                            <!-- Before IG sync: name/email compact + IG input -->
-                            <template v-else>
-                                <p class="font-bold text-sm leading-tight">{{ profile.name || profile.family_name || 'Family Profile' }} <span class="font-normal text-xs text-gray-500">({{ profile.email }})</span></p>
-                                <label class="block text-xs font-bold mt-1.5 mb-1 text-[#3274B5]">اسم حساب الانستغرام | IG username</label>
+                            <h3 class="font-bold text-lg leading-tight">{{ profile.name || profile.family_name || 'Family Profile' }}</h3>
+                            <p class="text-xs text-gray-500">({{ profile.email }})</p>
+                            <!-- IG username: always visible -->
+                            <div v-if="!profile.instagram_handle" class="mt-1.5">
+                                <label class="block text-xs font-bold mb-1 text-[#3274B5]">اسم حساب الانستغرام | IG username</label>
                                 <div class="flex gap-1.5 items-center">
                                     <input v-model="igUsernameInput" @keyup.enter="saveIgUsername" type="text" class="flex-1 border p-1.5 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing}" placeholder="@username">
                                     <button type="button" @click="saveIgUsername" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
                                 </div>
                                 <p v-if="igUsernameMissing" class="text-red-500 text-xs mt-0.5">مطلوب | Required</p>
-                            </template>
+                            </div>
                         </div>
                     </div>
 
                     <form @submit.prevent="updateProfile">
                         <div class="grid grid-cols-2 gap-4">
-                                                        <div class="mb-4">
+                                                        <div class="mb-1">
                                                             <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
                                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                                                                 <span class="text-sm text-black">نوع السكن</span>
@@ -243,7 +239,7 @@
                                                                 <option style="font-size: 14px;" value="open_air">💀 بالعراء</option>
                                                             </select>
                                                         </div>
-                                                        <div class="mb-4">
+                                                        <div class="mb-1">
                                                             <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                                 <span class="text-sm text-black">مرات النزوح</span>
@@ -252,7 +248,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="grid grid-cols-2 gap-4">
-                                                        <div class="mb-4">
+                                                        <div class="mb-1">
                                                             <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
                                                                 <span class="text-sm">📍</span>
                                                                 <span class="text-sm text-black">المنطقة</span>
@@ -269,7 +265,7 @@
                                                                 <option value="bureij">البريج | Bureij</option>
                                                             </select>
                                                         </div>
-                                                        <div class="mb-4">
+                                                        <div class="mb-1">
                                                             <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
                                                                 <span class="text-sm">🕊️</span>
                                                                 <span class="text-sm text-black">الديانة</span>
@@ -424,13 +420,13 @@
                                                                 </div>
                                                                 <!-- AMAP button: bottom-right corner -->
                                                                 <button type="button" @click="toggleMemberDetails(index)" class="absolute bottom-1 right-1 p-0.5 rounded hover:bg-gray-200" title="تفاصيل">
-                                                                    <img src="icons/detail-panel.png" style="width: 17px; height: 17px; opacity: 0.35;" class="object-contain">
+                                                                    <img src="icons/detail-panel.png" style="width: 13px; height: 13px; opacity: 0.18;" class="object-contain">
                                                                 </button>
                                                                 <!-- Detail popup overlay -->
                                                                 <div v-show="member.detailsOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);" @click.self="toggleMemberDetails(index)">
                                                                 <!-- Popup wrapper: close button outside panel, not scrollable -->
                                                                 <div class="relative mx-4 max-w-md w-full" @click.stop>
-                                                                    <button type="button" @click="toggleMemberDetails(index)" class="absolute -top-10 right-0 text-white hover:text-gray-300 text-2xl leading-none z-10">&times;</button>
+                                                                    <button type="button" @click="toggleMemberDetails(index)" class="absolute -top-7 right-0 text-white hover:text-gray-300 text-2xl leading-none z-10">&times;</button>
                                                                 <div class="bg-white/95 rounded-3xl p-4 max-h-[80vh] overflow-y-auto shadow-2xl" style="overscroll-behavior: contain;" dir="rtl">
                                                                     <!-- Popup header: name left -->
                                                                     <div class="mb-3" dir="ltr">
@@ -762,7 +758,7 @@
                                 <div v-else class="loader"></div>
                             </button>
                         </form>
-                        <p v-if="scrapeMessage" class="text-center text-base mt-3" :class="scrapeMessage.type === 'success' ? 'text-green-600' : scrapeMessage.type === 'error' ? 'text-red-600' : 'text-blue-600'">
+                        <p v-if="scrapeMessage" class="text-center text-xs mt-3" :class="scrapeMessage.type === 'success' ? 'text-green-600' : scrapeMessage.type === 'error' ? 'text-red-600' : 'text-blue-600'">
                             {{ scrapeMessage.text }}
                         </p>
 
