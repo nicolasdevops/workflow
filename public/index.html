@@ -420,7 +420,7 @@
                                                                 </div>
                                                                 <!-- AMAP button: bottom-right corner -->
                                                                 <button type="button" @click="toggleMemberDetails(index)" class="absolute bottom-1 right-1 p-0.5" title="تفاصيل">
-                                                                    <img src="icons/detail-panel.png" style="width: 13px; height: 13px; opacity: 0.18; transition: opacity 0.2s;" class="object-contain" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.18'">
+                                                                    <img src="icons/detail-panel.png" style="width: 16px; height: 16px; opacity: 0.18; transition: opacity 0.2s;" class="object-contain" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.18'">
                                                                 </button>
                                                                 <!-- Detail popup overlay -->
                                                                 <div v-show="member.detailsOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);" @click.self="toggleMemberDetails(index)">
@@ -431,6 +431,11 @@
                                                                     <!-- Popup header: name left -->
                                                                     <div class="mb-3" dir="ltr">
                                                                         <span class="text-sm font-bold text-[#3274B5]">{{ member.nameDisplay || member.name }}</span>
+                                                                    </div>
+                                                                    <!-- Section: Medical -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-1 border-b border-[#3274B5]/20 pb-1">
+                                                                        <svg class="w-3.5 h-3.5 text-[#3274B5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">صحة | HEALTH</span>
                                                                     </div>
                                                                     <!-- Row 1: Medical condition + Physical state -->
                                                                     <div class="grid grid-cols-2 gap-3 mb-2">
@@ -490,6 +495,11 @@
                                                                         <label class="block text-xs font-bold mb-1 text-[#3274B5]">تفاصيل طبية</label>
                                                                         <input v-model="member.medical_detail" @blur="updateProfile()" type="text" class="w-full border py-0 px-2 rounded text-xs h-[28px]" placeholder="مثال: ثقب في القلب، يحتاج بخاخ">
                                                                     </div>
+                                                                    <!-- Section: Medication -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 border-b border-[#3274B5]/20 pb-1">
+                                                                        <svg class="w-3.5 h-3.5 text-[#3274B5]" fill="currentColor" viewBox="0 0 24 24"><path d="M4.22 11.29l5.5-5.5a5.004 5.004 0 017.07 7.07l-5.5 5.5a5.004 5.004 0 01-7.07-7.07zm4.13.71a.996.996 0 000 1.41l2.24 2.24a.996.996 0 101.41-1.41l-2.24-2.24a.996.996 0 00-1.41 0z"></path></svg>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">أدوية | MEDICATION</span>
+                                                                    </div>
                                                                     <!-- Row 4: Medication name + cost + remaining -->
                                                                     <div class="grid grid-cols-3 gap-3 mb-2">
                                                                         <div>
@@ -504,6 +514,11 @@
                                                                             <label class="block text-xs font-bold mb-1 text-[#3274B5]">الكمية المتبقية</label>
                                                                             <input v-model="member.medication_remaining" @blur="updateProfile()" type="text" class="w-full border py-0 px-2 rounded text-xs h-[28px]">
                                                                         </div>
+                                                                    </div>
+                                                                    <!-- Section: Clothing -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 border-b border-[#3274B5]/20 pb-1">
+                                                                        <svg class="w-3.5 h-3.5 text-[#3274B5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l3-3 3 3M9 4v8m0 0H3m6 0h6m0 0v-8m0 8h6m-6 0l3 3m3-3l-3-3m-6 8v4h12v-4"></path></svg>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">ملابس | CLOTHING</span>
                                                                     </div>
                                                                     <!-- Row 5: Clothing description (full width) -->
                                                                     <div class="mb-2">
@@ -520,6 +535,11 @@
                                                                                 <button type="button" @click="removeMemberFile(index, 'clothing_photos', pi)" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition">&times;</button>
                                                                             </div>
                                                                         </div>
+                                                                    </div>
+                                                                    <!-- Section: Media -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 border-b border-[#3274B5]/20 pb-1">
+                                                                        <svg class="w-3.5 h-3.5 text-[#3274B5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">صور وفيديو | MEDIA</span>
                                                                     </div>
                                                                     <!-- Row 7: Photos of [Name] -->
                                                                     <div class="mb-2" dir="ltr">
@@ -544,6 +564,11 @@
                                                                                 <button type="button" @click="removeMemberFile(index, 'video_refs', vi)" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition">&times;</button>
                                                                             </div>
                                                                         </div>
+                                                                    </div>
+                                                                    <!-- Section: Notes -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 border-b border-[#3274B5]/20 pb-1">
+                                                                        <svg class="w-3.5 h-3.5 text-[#3274B5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">ملاحظات | NOTES</span>
                                                                     </div>
                                                                     <!-- Row 9: Notes (full width) -->
                                                                     <div class="mb-3">
