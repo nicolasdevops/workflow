@@ -1341,6 +1341,12 @@
                     if (res.ok) {
                         this.profileSaved = true;
                         setTimeout(() => { this.profileSaved = false; }, 2000);
+                    } else if (res.status === 401) {
+                        // Session expired (server redeployed) — force re-login
+                        alert('انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى\n\nSession expired. Please log in again.');
+                        this.signOut();
+                    } else {
+                        alert('خطأ بالحفظ | Save failed: ' + (await res.json().catch(() => ({}))).error);
                     }
                 },
                 checkAgeArabic() {

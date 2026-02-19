@@ -1120,7 +1120,7 @@ app.post('/api/portal/profile', portalAuth, async (req, res) => {
   const updates = req.body;
   
   // Whitelist allowed fields
-  const allowed = ['housing_type', 'displacement_count', 'children_count', 'children_details', 'medical_conditions', 'facing_cold', 'facing_hunger', 'urgent_need', 'urgent_needs', 'urgent_need_amount', 'palpay_phone', 'palpay_name', 'gaza_zone', 'religion', 'instagram_handle'];
+  const allowed = ['name', 'housing_type', 'displacement_count', 'children_count', 'children_details', 'medical_conditions', 'facing_cold', 'facing_hunger', 'urgent_need', 'urgent_needs', 'urgent_need_amount', 'palpay_phone', 'palpay_name', 'gaza_zone', 'religion', 'instagram_handle'];
   const cleanUpdates = {};
   
   Object.keys(updates).forEach(key => {
