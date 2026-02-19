@@ -211,17 +211,21 @@
                         <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover">
                         <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
                         <div class="flex-1">
-                            <h3 class="font-bold text-lg">{{ profile.name || profile.family_name || 'Family Profile' }}</h3>
-                            <p class="text-xs text-gray-500">{{ profile.email }}</p>
-                            <!-- IG username: show handle if set, input if not -->
-                            <div v-if="profile.instagram_handle" class="mt-1">
-                                <span class="text-xs text-[#3274B5] font-medium">@{{ profile.instagram_handle }}</span>
-                            </div>
-                            <div v-else class="mt-2">
-                                <label class="block text-xs font-bold mb-1 text-[#3274B5]">اسم حساب الانستغرام | IG username</label>
-                                <input v-model="igUsernameInput" type="text" class="w-full border p-1.5 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing}" placeholder="@username">
+                            <!-- After IG sync: name + email only -->
+                            <template v-if="profile.instagram_handle">
+                                <h3 class="font-bold text-lg leading-tight">{{ profile.name || profile.family_name || 'Family Profile' }}</h3>
+                                <p class="text-xs text-gray-500">({{ profile.email }})</p>
+                            </template>
+                            <!-- Before IG sync: name/email compact + IG input -->
+                            <template v-else>
+                                <p class="font-bold text-sm leading-tight">{{ profile.name || profile.family_name || 'Family Profile' }} <span class="font-normal text-xs text-gray-500">({{ profile.email }})</span></p>
+                                <label class="block text-xs font-bold mt-1.5 mb-1 text-[#3274B5]">اسم حساب الانستغرام | IG username</label>
+                                <div class="flex gap-1.5 items-center">
+                                    <input v-model="igUsernameInput" @keyup.enter="saveIgUsername" type="text" class="flex-1 border p-1.5 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing}" placeholder="@username">
+                                    <button type="button" @click="saveIgUsername" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
+                                </div>
                                 <p v-if="igUsernameMissing" class="text-red-500 text-xs mt-0.5">مطلوب | Required</p>
-                            </div>
+                            </template>
                         </div>
                     </div>
 
@@ -423,11 +427,11 @@
                                                                     <img src="icons/detail-panel.png" style="width: 17px; height: 17px; opacity: 0.35;" class="object-contain">
                                                                 </button>
                                                                 <!-- Detail popup overlay -->
-                                                                <div v-show="member.detailsOpen" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);" @click.self="toggleMemberDetails(index)">
+                                                                <div v-show="member.detailsOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);" @click.self="toggleMemberDetails(index)">
                                                                 <!-- Popup wrapper: close button outside panel, not scrollable -->
                                                                 <div class="relative mx-4 max-w-md w-full" @click.stop>
                                                                     <button type="button" @click="toggleMemberDetails(index)" class="absolute -top-10 right-0 text-white hover:text-gray-300 text-2xl leading-none z-10">&times;</button>
-                                                                <div class="bg-white/95 rounded-3xl p-4 max-h-[80vh] overflow-y-auto shadow-2xl" dir="rtl">
+                                                                <div class="bg-white/95 rounded-3xl p-4 max-h-[80vh] overflow-y-auto shadow-2xl" style="overscroll-behavior: contain;" dir="rtl">
                                                                     <!-- Popup header: name left -->
                                                                     <div class="mb-3" dir="ltr">
                                                                         <span class="text-sm font-bold text-[#3274B5]">{{ member.nameDisplay || member.name }}</span>
@@ -1221,13 +1225,17 @@
                         console.error('Fetch profile error', e);
                     }
                 },
-                async updateProfile() {
-                    // Save IG username if entered and not yet saved
-                    if (this.igUsernameInput.trim() && !this.profile.instagram_handle) {
-                        this.profile.instagram_handle = this.igUsernameInput.replace(/^@/, '').trim();
-                        this.form.insta_username = this.profile.instagram_handle;
-                        this.igUsernameMissing = false;
+                async saveIgUsername() {
+                    if (!this.igUsernameInput.trim()) {
+                        this.igUsernameMissing = true;
+                        return;
                     }
+                    this.profile.instagram_handle = this.igUsernameInput.replace(/^@/, '').trim();
+                    this.form.insta_username = this.profile.instagram_handle;
+                    this.igUsernameMissing = false;
+                    await this.updateProfile();
+                },
+                async updateProfile() {
                     // Sync count
                     this.profile.children_count = this.profile.children_details.length;
                     await fetch('/api/portal/profile', {
@@ -1289,6 +1297,8 @@
                 toggleMemberDetails(index) {
                     const member = this.profile.children_details[index];
                     member.detailsOpen = !member.detailsOpen;
+                    // Lock/unlock body scroll when popup is open/closed
+                    document.body.style.overflow = member.detailsOpen ? 'hidden' : '';
                 },
                 async handleMemberFileUpload(e, memberIndex, fieldName) {
                     const files = Array.from(e.target.files);
