@@ -248,7 +248,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="grid grid-cols-2 gap-4">
-                                                        <div class="mb-1">
+                                                        <div class="mb-4">
                                                             <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
                                                                 <span class="text-sm">📍</span>
                                                                 <span class="text-sm text-black">المنطقة</span>
@@ -265,7 +265,7 @@
                                                                 <option value="bureij">البريج | Bureij</option>
                                                             </select>
                                                         </div>
-                                                        <div class="mb-1">
+                                                        <div class="mb-4">
                                                             <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
                                                                 <span class="text-sm">🕊️</span>
                                                                 <span class="text-sm text-black">الديانة</span>
@@ -1229,10 +1229,14 @@
                         this.igUsernameMissing = true;
                         return;
                     }
+                    // Reset state from any previous attempt
+                    if (this.igScrapeTimer) clearInterval(this.igScrapeTimer);
+                    this.igScrapeProgress = '';
+                    this.igUsernameMissing = false;
+
                     const handle = this.igUsernameInput.replace(/^@/, '').trim();
                     this.profile.instagram_handle = handle;
                     this.form.insta_username = handle;
-                    this.igUsernameMissing = false;
                     await this.updateProfile();
 
                     // Start animated dots
@@ -1250,9 +1254,10 @@
                             body: JSON.stringify({ username: handle })
                         });
                         const checkData = await checkRes.json();
-                        if (!checkRes.ok || !checkData.is_public) {
+                        if (!checkRes.ok || !checkData.isPublic) {
                             clearInterval(this.igScrapeTimer);
                             this.igScrapeProgress = checkData.error || 'Account not public';
+                            setTimeout(() => { this.igScrapeProgress = ''; }, 4000);
                             return;
                         }
 
