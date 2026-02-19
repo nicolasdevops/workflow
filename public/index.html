@@ -1734,7 +1734,9 @@
                         // 3. Trigger scrape
                         this.scrapeMessage = { type: 'info', text: 'عم نجلب الملف... ممكن ياخد كم دقيقة | Scraping profile...' };
 
-                        // Use profile pic from check-public immediately if available
+                        // Update profile with new handle and pic from check-public
+                        this.profile.instagram_handle = cleanUsername;
+                        this.igUsernameInput = cleanUsername;
                         if (checkData.profilePicUrl) {
                             this.profile.profile_pic_url = checkData.profilePicUrl;
                         }
@@ -1774,6 +1776,7 @@
 
                             // Check if profile pic is now available
                             if (this.scrapedProfile?.profile_pic_url) {
+                                this.profile.profile_pic_url = this.scrapedProfile.profile_pic_url;
                                 this.scrapeMessage = { type: 'success', text: 'تم جلب الملف بنجاح! | Profile scraped!' };
                                 setTimeout(() => { this.scrapeMessage = null; }, 3000);
                                 return;
