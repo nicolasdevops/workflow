@@ -945,22 +945,62 @@ const latinToArabicMap = {
   'y': 'ي', 'z': 'ز'
 };
 
-const arabicToLatinMap = {
-  'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'aa', 'ب': 'b', 'ت': 't', 'ث': 'th',
-  'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z',
-  'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'dh', 'ع': 'a',
-  'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
-  'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'a', 'ة': 'a', 'ء': "'",
-  'ئ': 'e', 'ؤ': 'o', 'ّ': '', 'َ': 'a', 'ُ': 'u', 'ِ': 'i', 'ً': '', 'ٌ': '', 'ٍ': '', 'ْ': '',
+// Common Arabic word overrides (names, family terms)
+const arabicWordMap = {
+  'عائلة': 'Eayilat', 'محمد': 'Muhammad', 'أحمد': 'Ahmad', 'احمد': 'Ahmad',
+  'عبد': 'Abd', 'الله': 'Allah', 'فاطمة': 'Fatima', 'خالد': 'Khaled',
+  'علي': 'Ali', 'عمر': 'Omar', 'حسن': 'Hassan', 'حسين': 'Hussein',
+  'ابراهيم': 'Ibrahim', 'إبراهيم': 'Ibrahim', 'يوسف': 'Yousef',
+  'مريم': 'Mariam', 'ياسمين': 'Yasmin', 'نور': 'Nour', 'سارة': 'Sara',
+  'عيسى': 'Issa', 'موسى': 'Musa', 'سليمان': 'Sulaiman', 'رمضان': 'Ramadan',
+  'عبدالله': 'Abdullah', 'عبدالرحمن': 'Abdulrahman',
+  'أبو': 'Abu', 'ابو': 'Abu', 'بنت': 'Bint', 'بن': 'Bin',
 };
 
-function arabicToLatin(text) {
+const arabicCharMap = {
+  'عائ': "a'i", 'ائ': "a'i", 'ال': 'al-', 'خو': 'khaw', 'شو': 'shaw',
+  'ث': 'th', 'ش': 'sh', 'خ': 'kh', 'ذ': 'dh', 'غ': 'gh', 'تش': 'ch',
+  'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'aa', 'ب': 'b', 'ت': 't',
+  'ج': 'j', 'ح': 'h', 'د': 'd', 'ر': 'r', 'ز': 'z',
+  'س': 's', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'dh', 'ع': 'a',
+  'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+  'ه': 'h', 'و': 'u', 'ي': 'i', 'ى': 'a', 'ة': 'a', 'ء': '',
+  'ئ': 'i', 'ؤ': 'u', 'ّ': '', 'َ': 'a', 'ُ': 'u', 'ِ': 'i',
+  'ً': '', 'ٌ': '', 'ٍ': '', 'ْ': '',
+};
+
+function translitArabicWord(word) {
+  if (arabicWordMap[word]) return arabicWordMap[word];
   let result = '';
-  for (const ch of text) {
-    result += arabicToLatinMap[ch] ?? ch;
+  const chars = [...word];
+  let i = 0;
+  while (i < chars.length) {
+    let matched = false;
+    for (const len of [3, 2, 1]) {
+      if (i + len > chars.length) continue;
+      const chunk = chars.slice(i, i + len).join('');
+      if (arabicCharMap[chunk] !== undefined) {
+        result += arabicCharMap[chunk];
+        i += len;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) { result += chars[i]; i++; }
   }
-  // Capitalize first letter of each word
-  return result.replace(/\b[a-z]/g, c => c.toUpperCase());
+  // Insert 'a' between consecutive consonants (preserve digraphs th/sh/kh/dh/gh/ch)
+  for (let pass = 0; pass < 2; pass++) {
+    result = result.replace(/([bcdfghjklmnpqrstvwxyz])([bcdfghjklmnpqrstvwxyz])/gi, (m, a, b) => {
+      if ('tskdgc'.includes(a.toLowerCase()) && b.toLowerCase() === 'h') return m;
+      if (a.toLowerCase() === 'l' && b === '-') return m;
+      return a + 'a' + b;
+    });
+  }
+  return result.replace(/--/g, '-').replace(/\b[a-z]/g, c => c.toUpperCase());
+}
+
+function arabicToLatin(text) {
+  return text.split(/\s+/).map(translitArabicWord).join(' ');
 }
 
 function latinToArabic(text) {
