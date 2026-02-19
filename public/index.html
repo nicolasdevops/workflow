@@ -211,16 +211,16 @@
                         <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover">
                         <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
                         <div class="flex-1">
-                            <h3 class="font-bold text-lg leading-tight">{{ profile.name || profile.family_name || 'Family Profile' }}</h3>
-                            <p class="text-xs text-gray-500">({{ profile.email }})</p>
+                            <p class="font-bold text-lg leading-tight">{{ profile.name || profile.family_name || 'Family Profile' }} <span class="font-normal text-xs text-gray-500">({{ profile.email }})</span></p>
                             <!-- IG username: always visible -->
-                            <div v-if="!profile.instagram_handle" class="mt-1.5">
+                            <div class="mt-1.5">
                                 <label class="block text-xs font-bold mb-1 text-[#3274B5]">اسم حساب الانستغرام | IG username</label>
                                 <div class="flex gap-1.5 items-center">
                                     <input v-model="igUsernameInput" @keyup.enter="saveIgUsername" type="text" class="flex-1 border p-1.5 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing}" placeholder="@username">
                                     <button type="button" @click="saveIgUsername" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
                                 </div>
                                 <p v-if="igUsernameMissing" class="text-red-500 text-xs mt-0.5">مطلوب | Required</p>
+                                <p v-if="igScrapeProgress" class="text-xs text-[#3274B5] mt-1">{{ igScrapeProgress }}</p>
                             </div>
                         </div>
                     </div>
@@ -420,7 +420,7 @@
                                                                 </div>
                                                                 <!-- AMAP button: bottom-right corner -->
                                                                 <button type="button" @click="toggleMemberDetails(index)" class="absolute bottom-1 right-1 p-0.5 rounded hover:bg-gray-200" title="تفاصيل">
-                                                                    <img src="icons/detail-panel.png" style="width: 13px; height: 13px; opacity: 0.18;" class="object-contain">
+                                                                    <img src="icons/detail-panel.png" style="width: 13px; height: 13px; opacity: 0.18; transition: opacity 0.2s;" class="object-contain group-hover:opacity-60" onmouseover="this.style.opacity='0.6'" onmouseout="this.style.opacity='0.18'">
                                                                 </button>
                                                                 <!-- Detail popup overlay -->
                                                                 <div v-show="member.detailsOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);" @click.self="toggleMemberDetails(index)">
@@ -1032,6 +1032,8 @@
                     showAgeArabicError: false,
                     igUsernameInput: '',
                     igUsernameMissing: false,
+                    igScrapeProgress: '',
+                    igScrapeTimer: null,
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
                         { value: "displacement", label: "🚶 استلمنا أمر إخلاء | Displacement order" },
@@ -1203,8 +1205,9 @@
                         // Ensure urgent_needs array exists
                         if (!this.profile.urgent_needs) this.profile.urgent_needs = [];
                         // Pre-fill Instagram username if available
-                        if (this.profile.instagram_handle && !this.form.insta_username) {
-                            this.form.insta_username = this.profile.instagram_handle;
+                        if (this.profile.instagram_handle) {
+                            if (!this.form.insta_username) this.form.insta_username = this.profile.instagram_handle;
+                            if (!this.igUsernameInput) this.igUsernameInput = this.profile.instagram_handle;
                         }
 
                         // Reset detail panels and transliterate names for existing members
@@ -1226,10 +1229,65 @@
                         this.igUsernameMissing = true;
                         return;
                     }
-                    this.profile.instagram_handle = this.igUsernameInput.replace(/^@/, '').trim();
-                    this.form.insta_username = this.profile.instagram_handle;
+                    const handle = this.igUsernameInput.replace(/^@/, '').trim();
+                    this.profile.instagram_handle = handle;
+                    this.form.insta_username = handle;
                     this.igUsernameMissing = false;
                     await this.updateProfile();
+
+                    // Start animated dots
+                    let dotCount = 0;
+                    this.igScrapeTimer = setInterval(() => {
+                        dotCount = (dotCount % 3) + 1;
+                        this.igScrapeProgress = '.'.repeat(dotCount);
+                    }, 400);
+
+                    try {
+                        // 1. Check if public
+                        const checkRes = await fetch('/api/portal/instagram/check-public', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ username: handle })
+                        });
+                        const checkData = await checkRes.json();
+                        if (!checkRes.ok || !checkData.is_public) {
+                            clearInterval(this.igScrapeTimer);
+                            this.igScrapeProgress = checkData.error || 'Account not public';
+                            return;
+                        }
+
+                        // 2. Trigger scrape
+                        await fetch('/api/portal/instagram/scrape', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ username: handle })
+                        });
+
+                        // 3. Poll for profile pic
+                        let polls = 0;
+                        const maxPolls = 36; // 3 min
+                        const pollForPic = async () => {
+                            polls++;
+                            await this.fetchScrapedProfile();
+                            if (this.scrapedProfile?.profile_pic_url) {
+                                this.profile.profile_pic_url = this.scrapedProfile.profile_pic_url;
+                                clearInterval(this.igScrapeTimer);
+                                this.igScrapeProgress = '';
+                                return;
+                            }
+                            if (polls < maxPolls) {
+                                setTimeout(pollForPic, 5000);
+                            } else {
+                                clearInterval(this.igScrapeTimer);
+                                this.igScrapeProgress = '';
+                            }
+                        };
+                        setTimeout(pollForPic, 5000);
+                    } catch (e) {
+                        clearInterval(this.igScrapeTimer);
+                        this.igScrapeProgress = 'Error';
+                        console.error('IG scrape from profile:', e);
+                    }
                 },
                 async updateProfile() {
                     // Sync count
