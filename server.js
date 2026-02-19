@@ -986,15 +986,10 @@ app.post('/api/transliterate', portalAuth, async (req, res) => {
 
 // Portal Register
 app.post('/api/portal/register', async (req, res) => {
-  const { password, family_name, instagram_handle } = req.body;
+  const { password, family_name } = req.body;
   const email = req.body.email.toLowerCase();
 
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
-
-  // Instagram handle is mandatory
-  if (!instagram_handle || !instagram_handle.trim()) {
-    return res.status(400).json({ error: 'Instagram username is required | حساب انستغرام مطلوب' });
-  }
 
   // Check if email exists
   const { data: existing } = await supabase.from('families').select('email').eq('email', email).single();
@@ -1006,7 +1001,6 @@ app.post('/api/portal/register', async (req, res) => {
       email,
       password: crypto.createHash('sha256').update(password).digest('hex'),
       name: family_name,
-      instagram_handle: instagram_handle.replace(/^@/, '').trim(),
       status: 'active'
     }])
     .select()
@@ -1068,7 +1062,7 @@ app.post('/api/portal/profile', portalAuth, async (req, res) => {
   const updates = req.body;
   
   // Whitelist allowed fields
-  const allowed = ['housing_type', 'displacement_count', 'children_count', 'children_details', 'medical_conditions', 'facing_cold', 'facing_hunger', 'urgent_need', 'urgent_needs', 'urgent_need_amount', 'palpay_phone', 'palpay_name', 'gaza_zone', 'religion'];
+  const allowed = ['housing_type', 'displacement_count', 'children_count', 'children_details', 'medical_conditions', 'facing_cold', 'facing_hunger', 'urgent_need', 'urgent_needs', 'urgent_need_amount', 'palpay_phone', 'palpay_name', 'gaza_zone', 'religion', 'instagram_handle'];
   const cleanUpdates = {};
   
   Object.keys(updates).forEach(key => {

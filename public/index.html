@@ -7,7 +7,7 @@
     <meta property="og:title" content="Gaza Protocol - Family Connect">
     <meta property="og:description" content="Secure family registration portal">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='630' fill='%233274B5'%3E%3Crect width='1200' height='630'/%3E%3Ctext x='600' y='315' fill='white' font-size='64' font-family='sans-serif' text-anchor='middle' dominant-baseline='middle'%3EFamily Connect%3C/text%3E%3C/svg%3E">
+    <meta property="og:image" content="/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -115,10 +115,6 @@
                         <label class="block text-gray-700 text-sm font-bold mb-2">Family Name | اسم العائلة</label>
                         <input v-model="form.family_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="e.g. Al-Masri Family | مثال: عائلة المصري">
                     </div>
-                    <div v-if="authMode === 'register'" class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Instagram Username | حساب انستغرام</label>
-                        <input v-model="form.instagram_handle" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="@username">
-                    </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Email Address | البريد الإلكتروني</label>
                         <input v-model="form.email" type="email" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" title="Must be a valid email address" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="family@example.com">
@@ -211,12 +207,21 @@
                 <!-- Tab: Profile -->
                 <div v-if="tab === 'profile'" class="w-full max-w-[350px] mx-auto">
                     <!-- Profile Header with Image -->
-                    <div class="flex items-center gap-4 mb-[20px] px-4 bg-gray-50 rounded-lg border border-gray-100">
+                    <div class="flex items-center gap-4 mb-[20px] px-4 py-3 bg-gray-50 rounded-lg border border-gray-100">
                         <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover">
                         <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
-                        <div>
+                        <div class="flex-1">
                             <h3 class="font-bold text-lg">{{ profile.name || profile.family_name || 'Family Profile' }}</h3>
                             <p class="text-xs text-gray-500">{{ profile.email }}</p>
+                            <!-- IG username: show handle if set, input if not -->
+                            <div v-if="profile.instagram_handle" class="mt-1">
+                                <span class="text-xs text-[#3274B5] font-medium">@{{ profile.instagram_handle }}</span>
+                            </div>
+                            <div v-else class="mt-2">
+                                <label class="block text-xs font-bold mb-1 text-[#3274B5]">اسم حساب الانستغرام | IG username</label>
+                                <input v-model="igUsernameInput" type="text" class="w-full border p-1.5 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing}" placeholder="@username">
+                                <p v-if="igUsernameMissing" class="text-red-500 text-xs mt-0.5">مطلوب | Required</p>
+                            </div>
                         </div>
                     </div>
 
@@ -385,40 +390,38 @@
 
                                                         <!-- List of added children -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
-                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="bg-gray-50 rounded border text-sm">
-                                                                <!-- Summary row -->
-                                                                <div class="flex justify-between items-center p-2" dir="ltr" style="text-align: left;">
-                                                                    <div class="flex flex-col">
-                                                                        <span style="display: flex; gap: 0.25rem; align-items: center;">
-                                                                            <span class="text-xs" dir="auto">{{ member.nameDisplay || member.name }}</span>
-                                                                            <span class="text-xs" dir="ltr">|</span>
-                                                                            <span class="text-xs" dir="ltr">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).en }}</span>
-                                                                            <span dir="rtl">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).ar }}</span>
-                                                                            <span class="text-xs" dir="ltr">|</span>
-                                                                            <span class="text-xs" dir="ltr">{{ member.gender === 'Male' ? '♂' : '♀' }}</span>
-                                                                            <span class="text-xs" dir="ltr">|</span>
-                                                                            <span class="text-xs" dir="ltr">{{ member.age }}</span>
+                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="bg-gray-50 rounded border text-sm relative">
+                                                                <!-- × delete: top-right corner -->
+                                                                <button type="button" @click="removeChild(index)" class="absolute top-1 right-1 text-gray-300 hover:text-gray-500 text-sm leading-none px-1">×</button>
+                                                                <!-- Summary content -->
+                                                                <div class="p-2 pr-6" dir="ltr" style="text-align: left;">
+                                                                    <span style="display: flex; gap: 0.25rem; align-items: center;">
+                                                                        <span class="text-xs" dir="auto">{{ member.nameDisplay || member.name }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="ltr">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).en }}</span>
+                                                                        <span dir="rtl">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).ar }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="ltr">{{ member.gender === 'Male' ? '♂' : '♀' }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="ltr">{{ member.age }}</span>
+                                                                    </span>
+                                                                    <div class="text-xs text-gray-500" style="display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap;">
+                                                                        <template v-if="member.status">
+                                                                            <span class="text-xs" dir="ltr" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).en }}</span>
+                                                                            <span dir="rtl" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).ar }}</span>
+                                                                            <span v-if="member.status === 'Deceased' && member.days_deceased" class="text-xs" dir="ltr">| {{ member.days_deceased }} days</span>
+                                                                            <span v-if="member.status === 'Unknown' && member.days_missing" class="text-xs" dir="ltr">| {{ member.days_missing }} days</span>
+                                                                        </template>
+                                                                        <span v-if="member.condition" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
+                                                                        <span v-if="member.disability === 'yes'" class="inline-flex items-center gap-1">|
+                                                                            <img src="icons/disability-7.png" style="width: 19px; height: 19px; mix-blend-mode: multiply;" class="object-contain inline-block" title="Disabled">
                                                                         </span>
-                                                                        <div class="text-xs text-gray-500" style="display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap;">
-                                                                            <template v-if="member.status">
-                                                                                <span class="text-xs" dir="ltr" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).en }}</span>
-                                                                                <span dir="rtl" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).ar }}</span>
-                                                                                <span v-if="member.status === 'Deceased' && member.days_deceased" class="text-xs" dir="ltr">| {{ member.days_deceased }} days</span>
-                                                                                <span v-if="member.status === 'Unknown' && member.days_missing" class="text-xs" dir="ltr">| {{ member.days_missing }} days</span>
-                                                                            </template>
-                                                                            <span v-if="member.condition" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
-                                                                            <span v-if="member.disability === 'yes'" class="inline-flex items-center gap-1">|
-                                                                                <img src="icons/disability-7.png" style="width: 19px; height: 19px; mix-blend-mode: multiply;" class="object-contain inline-block" title="Disabled">
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="flex items-center gap-1">
-                                                                        <button type="button" @click="toggleMemberDetails(index)" class="p-1 rounded hover:bg-gray-200" title="تفاصيل">
-                                                                            <img src="icons/detail-panel.png" style="width: 19px; height: 19px; mix-blend-mode: multiply;" class="object-contain">
-                                                                        </button>
-                                                                        <button type="button" @click="removeChild(index)" class="text-gray-300 hover:text-gray-500 px-2 text-sm">×</button>
                                                                     </div>
                                                                 </div>
+                                                                <!-- AMAP button: bottom-right corner -->
+                                                                <button type="button" @click="toggleMemberDetails(index)" class="absolute bottom-1 right-1 p-0.5 rounded hover:bg-gray-200" title="تفاصيل">
+                                                                    <img src="icons/detail-panel.png" style="width: 17px; height: 17px; opacity: 0.35;" class="object-contain">
+                                                                </button>
                                                                 <!-- Detail popup overlay -->
                                                                 <div v-show="member.detailsOpen" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);" @click.self="toggleMemberDetails(index)">
                                                                 <!-- Popup wrapper: close button outside panel, not scrollable -->
@@ -1027,6 +1030,8 @@
                     urgentNeedSaved: false,
                     showValidationError: false,
                     showAgeArabicError: false,
+                    igUsernameInput: '',
+                    igUsernameMissing: false,
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
                         { value: "displacement", label: "🚶 استلمنا أمر إخلاء | Displacement order" },
@@ -1050,7 +1055,13 @@
                 } 
             },
             watch: {
-                tab(newTab) {
+                tab(newTab, oldTab) {
+                    // Validate IG username before leaving profile tab
+                    if (oldTab === 'profile' && !this.profile.instagram_handle && !this.igUsernameInput.trim()) {
+                        this.igUsernameMissing = true;
+                        this.tab = 'profile';
+                        return;
+                    }
                     sessionStorage.setItem('current_tab', newTab);
                     if (newTab === 'media') this.fetchMedia();
                     if (newTab === 'instagram') this.fetchScrapedProfile();
@@ -1142,7 +1153,7 @@
                         const res = await fetch('/api/portal/register', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: this.form.email, password: this.form.password, family_name: this.form.family_name, instagram_handle: this.form.instagram_handle.replace(/^@/, '').trim() })
+                            body: JSON.stringify({ email: this.form.email, password: this.form.password, family_name: this.form.family_name })
                         });
                         const data = await res.json();
                         if (data.error) throw new Error(data.error);
@@ -1196,8 +1207,9 @@
                             this.form.insta_username = this.profile.instagram_handle;
                         }
 
-                        // Transliterate names and translate conditions for existing members
+                        // Reset detail panels and transliterate names for existing members
                         for (const member of this.profile.children_details) {
+                            member.detailsOpen = false;
                             if (member.name && !member.nameDisplay) {
                                 member.nameDisplay = await this.getTransliteratedName(member.name);
                             }
@@ -1210,6 +1222,12 @@
                     }
                 },
                 async updateProfile() {
+                    // Save IG username if entered and not yet saved
+                    if (this.igUsernameInput.trim() && !this.profile.instagram_handle) {
+                        this.profile.instagram_handle = this.igUsernameInput.replace(/^@/, '').trim();
+                        this.form.insta_username = this.profile.instagram_handle;
+                        this.igUsernameMissing = false;
+                    }
                     // Sync count
                     this.profile.children_count = this.profile.children_details.length;
                     await fetch('/api/portal/profile', {
