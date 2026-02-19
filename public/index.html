@@ -247,8 +247,8 @@
                                                             <input v-model="profile.displacement_count" type="number" class="mx-auto block border p-1 rounded text-sm h-[32px]" style="width: calc(66.666667% - 20px);">
                                                         </div>
                                                     </div>
-                                                    <div class="grid grid-cols-2 gap-4">
-                                                        <div class="mb-4">
+                                                    <div class="flex items-end gap-2 mb-4">
+                                                        <div class="flex-1">
                                                             <label class="block text-sm font-bold mb-[3px] mt-[2px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
                                                                 <span class="text-sm">📍</span>
                                                                 <span class="text-sm text-black">المنطقة</span>
@@ -265,20 +265,20 @@
                                                                 <option value="bureij">البريج | Bureij</option>
                                                             </select>
                                                         </div>
-                                                        <div class="mb-4">
+                                                        <div class="flex-1">
                                                             <label class="block text-sm font-bold mb-[3px] mt-[2px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
                                                                 <span class="text-sm">🕊️</span>
                                                                 <span class="text-sm text-black">الديانة</span>
                                                             </label>
-                                                            <div class="flex items-center justify-center gap-1">
-                                                                <select v-model="profile.religion" class="border py-0 px-2 rounded text-sm h-[32px]" style="width: calc(66.666667% - 20px);">
-                                                                    <option value="" disabled>اختر...</option>
-                                                                    <option value="muslim">مسلم | Muslim</option>
-                                                                    <option value="christian">مسيحي | Christian</option>
-                                                                </select>
-                                                                <span v-if="profileSaved" class="text-green-500 text-sm">&#10003;</span>
-                                                                <button type="button" @click="updateProfile()" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
-                                                            </div>
+                                                            <select v-model="profile.religion" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px]" style="width: calc(66.666667% - 20px);">
+                                                                <option value="" disabled>اختر...</option>
+                                                                <option value="muslim">مسلم | Muslim</option>
+                                                                <option value="christian">مسيحي | Christian</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="flex items-center gap-0.5 pb-[2px]">
+                                                            <span v-if="profileSaved" class="text-green-500 text-sm">&#10003;</span>
+                                                            <button type="button" @click="updateProfile()" class="text-[#3274B5] font-bold text-xl leading-none hover:text-[#285e94]">&rsaquo;</button>
                                                         </div>
                                                     </div>
 
