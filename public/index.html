@@ -208,7 +208,7 @@
                 <div v-if="tab === 'profile'" class="w-full max-w-[350px] mx-auto">
                     <!-- Profile Header with Image -->
                     <div class="flex items-center gap-4 mb-[20px] px-4 py-3 bg-gray-50 rounded-lg border border-gray-100">
-                        <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover">
+                        <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" @click="previewFile = { url: profile.profile_pic_url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition">
                         <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
                         <div class="flex-1">
                             <p class="font-bold text-lg leading-tight">{{ profile.name || profile.family_name || 'Family Profile' }} <span class="font-normal text-xs text-gray-500">({{ profile.email }})</span></p>
@@ -689,7 +689,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                         <div class="flex items-start gap-3">
-                            <img v-if="scrapedProfile.profile_pic_url" :src="scrapedProfile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover">
+                            <img v-if="scrapedProfile.profile_pic_url" :src="scrapedProfile.profile_pic_url" @click="previewFile = { url: scrapedProfile.profile_pic_url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition">
                             <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 text-[#3274B5] font-bold mb-1">
@@ -1247,7 +1247,7 @@
                     }, 150);
 
                     try {
-                        // 1. Check if public
+                        // 1. Check if public (also saves profile pic to DB)
                         const checkRes = await fetch('/api/portal/instagram/check-public', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
@@ -1261,33 +1261,36 @@
                             return;
                         }
 
-                        // 2. Trigger scrape
+                        // 2. Use profile pic from check-public response immediately
+                        if (checkData.profilePicUrl) {
+                            this.profile.profile_pic_url = checkData.profilePicUrl;
+                        }
+                        clearInterval(this.igScrapeTimer);
+                        this.igScrapeProgress = '';
+
+                        // 3. Trigger full scrape in background (skip redundant public check)
                         await fetch('/api/portal/instagram/scrape', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
-                            body: JSON.stringify({ username: handle })
+                            body: JSON.stringify({ username: handle, skip_public_check: true })
                         });
 
-                        // 3. Poll for profile pic
+                        // 4. Poll for scraped posts (content appears after full scrape completes)
                         let polls = 0;
-                        const maxPolls = 36; // 3 min
-                        const pollForPic = async () => {
+                        const maxPolls = 36;
+                        const pollForContent = async () => {
                             polls++;
                             await this.fetchScrapedProfile();
                             if (this.scrapedProfile?.profile_pic_url) {
+                                // Update with persistent B2 URL if available
                                 this.profile.profile_pic_url = this.scrapedProfile.profile_pic_url;
-                                clearInterval(this.igScrapeTimer);
-                                this.igScrapeProgress = '';
                                 return;
                             }
                             if (polls < maxPolls) {
-                                setTimeout(pollForPic, 5000);
-                            } else {
-                                clearInterval(this.igScrapeTimer);
-                                this.igScrapeProgress = '';
+                                setTimeout(pollForContent, 5000);
                             }
                         };
-                        setTimeout(pollForPic, 5000);
+                        setTimeout(pollForContent, 5000);
                     } catch (e) {
                         clearInterval(this.igScrapeTimer);
                         this.igScrapeProgress = 'Error';
@@ -1731,10 +1734,15 @@
                         // 3. Trigger scrape
                         this.scrapeMessage = { type: 'info', text: 'عم نجلب الملف... ممكن ياخد كم دقيقة | Scraping profile...' };
 
+                        // Use profile pic from check-public immediately if available
+                        if (checkData.profilePicUrl) {
+                            this.profile.profile_pic_url = checkData.profilePicUrl;
+                        }
+
                         const scrapeRes = await fetch('/api/portal/instagram/scrape', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
-                            body: JSON.stringify({ username: cleanUsername })
+                            body: JSON.stringify({ username: cleanUsername, skip_public_check: true })
                         });
 
                         const scrapeData = await scrapeRes.json();
@@ -1879,9 +1887,13 @@
                     return `${day}/${month}، ${hours}:${mins}`;
                 },
                 async unlinkInstagram() {
-                    if (!confirm('Unlink this Instagram account? This will remove scraped profile and content data.\n\nإلغاء ربط هذا الحساب؟ سيتم حذف بيانات الملف الشخصي والمحتوى.')) {
-                        return;
+                    let confirmed = false;
+                    try {
+                        confirmed = confirm('Unlink this Instagram account? This will remove scraped profile and content data.\n\nإلغاء ربط هذا الحساب؟ سيتم حذف بيانات الملف الشخصي والمحتوى.');
+                    } catch (e) {
+                        confirmed = true; // If confirm() fails (embedded browser), proceed anyway
                     }
+                    if (!confirmed) return;
 
                     this.loading = true;
                     try {
@@ -1902,6 +1914,7 @@
                         this.scrapeStatus = { canScrape: true, hoursRemaining: 0 };
                         this.form.insta_username = '';
                         this.form.insta_password = '';
+                        this.igUsernameInput = '';
 
                         // Clear profile pic from profile
                         if (this.profile) {

@@ -17,7 +17,7 @@ const { encrypt, decrypt } = require('./encryption');
 const { generateUsernames, generateEmail } = require('./username-generator');
 const { runAllWarmups, runWarmupSession, getWarmupDay, getWarmupPhase } = require('./warmup-scheduler');
 const { checkAccountPublic, scrapeProfile, checkScrapeCooldown, saveScrapedData, scrapeEngagedFollowers, saveEngagedFollowers } = require('./apify-scraper');
-const { initB2Client, isB2Configured, uploadFamilyMedia, deleteFromB2 } = require('./b2-storage');
+const { initB2Client, isB2Configured, uploadFamilyMedia, deleteFromB2, uploadProfilePic } = require('./b2-storage');
 const { CommentScheduler } = require('./comment-scheduler');
 const { EngagementTracker } = require('./engagement-tracker');
 const deepl = require('deepl-node');
@@ -1414,6 +1414,24 @@ app.post('/api/portal/instagram/check-public', portalAuth, async (req, res) => {
       });
     }
 
+    // Save profile pic to families table immediately if available
+    const picUrl = result.profileData?.profilePicUrl;
+    if (picUrl && supabase) {
+      const familyId = req.user.id;
+      // Upload to B2 if configured, otherwise use raw URL
+      let persistentPicUrl = picUrl;
+      if (isB2Configured()) {
+        try {
+          const b2Url = await uploadProfilePic(picUrl, familyId);
+          if (b2Url) persistentPicUrl = b2Url;
+        } catch (e) {
+          console.log('[Apify] B2 upload for quick pic failed, using raw URL:', e.message);
+        }
+      }
+      await supabase.from('families').update({ profile_pic_url: persistentPicUrl }).eq('id', familyId);
+      console.log(`[Apify] Quick profile pic saved for family ${familyId}`);
+    }
+
     res.json({
       isPublic: true,
       username: result.profileData?.username || username,
@@ -1429,7 +1447,7 @@ app.post('/api/portal/instagram/check-public', portalAuth, async (req, res) => {
 
 // Scrape Instagram profile (with 24-hour cooldown)
 app.post('/api/portal/instagram/scrape', portalAuth, async (req, res) => {
-  const { username } = req.body;
+  const { username, skip_public_check } = req.body;
   const familyId = req.user.id;
 
   if (!username) {
@@ -1440,7 +1458,7 @@ app.post('/api/portal/instagram/scrape', portalAuth, async (req, res) => {
     return res.status(500).json({ error: 'Database not configured' });
   }
 
-  console.log(`[Apify] Scrape request for @${username} by family ${familyId}`);
+  console.log(`[Apify] Scrape request for @${username} by family ${familyId} (skip_public_check=${!!skip_public_check})`);
 
   try {
     // 1. Check 24-hour cooldown
@@ -1453,15 +1471,17 @@ app.post('/api/portal/instagram/scrape', portalAuth, async (req, res) => {
       });
     }
 
-    // 2. Verify account is public first
-    console.log(`[Apify] Checking if @${username} is public...`);
-    const publicCheck = await checkAccountPublic(username);
-    if (!publicCheck.isPublic) {
-      console.log(`[Apify] Public check failed for @${username}: ${publicCheck.error}`);
-      return res.status(400).json({
-        error: publicCheck.error || 'Account is private. Only public accounts can be scraped.',
-        isPublic: false
-      });
+    // 2. Verify account is public first (skip if caller just checked)
+    if (!skip_public_check) {
+      console.log(`[Apify] Checking if @${username} is public...`);
+      const publicCheck = await checkAccountPublic(username);
+      if (!publicCheck.isPublic) {
+        console.log(`[Apify] Public check failed for @${username}: ${publicCheck.error}`);
+        return res.status(400).json({
+          error: publicCheck.error || 'Account is private. Only public accounts can be scraped.',
+          isPublic: false
+        });
+      }
     }
     console.log(`[Apify] @${username} is public, starting full scrape...`);
 
