@@ -212,8 +212,8 @@
                         <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
                         <div class="flex-1">
                             <p class="font-bold text-lg leading-tight">{{ profile.name || profile.family_name || 'Family Profile' }} <span class="font-normal text-xs text-gray-500">({{ profile.email }})</span></p>
-                            <!-- IG username: always visible -->
-                            <div class="mt-1.5">
+                            <!-- IG username: hidden once profile pic is scraped -->
+                            <div v-if="!profile.profile_pic_url" class="mt-1.5">
                                 <label class="block text-xs font-bold mb-1 text-[#3274B5]">اسم حساب الانستغرام | IG username</label>
                                 <div class="flex gap-1.5 items-center">
                                     <input v-model="igUsernameInput" @keyup.enter="saveIgUsername" type="text" class="flex-1 border p-1.5 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing}" placeholder="@username">
