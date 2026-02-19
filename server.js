@@ -945,6 +945,24 @@ const latinToArabicMap = {
   'y': 'ي', 'z': 'ز'
 };
 
+const arabicToLatinMap = {
+  'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'aa', 'ب': 'b', 'ت': 't', 'ث': 'th',
+  'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z',
+  'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'dh', 'ع': 'a',
+  'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+  'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'a', 'ة': 'a', 'ء': "'",
+  'ئ': 'e', 'ؤ': 'o', 'ّ': '', 'َ': 'a', 'ُ': 'u', 'ِ': 'i', 'ً': '', 'ٌ': '', 'ٍ': '', 'ْ': '',
+};
+
+function arabicToLatin(text) {
+  let result = '';
+  for (const ch of text) {
+    result += arabicToLatinMap[ch] ?? ch;
+  }
+  // Capitalize first letter of each word
+  return result.replace(/\b[a-z]/g, c => c.toUpperCase());
+}
+
 function latinToArabic(text) {
   let result = '';
   const lower = text.toLowerCase();
@@ -974,7 +992,7 @@ app.post('/api/transliterate', portalAuth, async (req, res) => {
   try {
     const isArabic = /[\u0600-\u06FF]/.test(text);
     if (isArabic) {
-      res.json({ transliteration: transliterate(text) });
+      res.json({ transliteration: arabicToLatin(text) });
     } else {
       res.json({ transliteration: latinToArabic(text) });
     }
@@ -2014,7 +2032,7 @@ app.get('/api/admin/families', adminAuth, async (req, res) => {
       if (f.name) {
         const isArabic = /[\u0600-\u06FF]/.test(f.name);
         if (isArabic) {
-          nameDisplay = transliterate(f.name) + '  |  ' + f.name;
+          nameDisplay = arabicToLatin(f.name) + '  |  ' + f.name;
         } else {
           nameDisplay = f.name + '  |  ' + latinToArabic(f.name);
         }

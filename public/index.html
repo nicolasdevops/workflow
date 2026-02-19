@@ -1242,7 +1242,7 @@
                     // Start animated dots
                     let dotCount = 0;
                     this.igScrapeTimer = setInterval(() => {
-                        if (dotCount < 40) dotCount++;
+                        dotCount = (dotCount % 40) + 1;
                         this.igScrapeProgress = '.'.repeat(dotCount);
                     }, 150);
 
