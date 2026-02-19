@@ -277,7 +277,8 @@
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div class="flex justify-end -mt-2 mb-2 pr-1">
+                                                    <div class="flex justify-end items-center -mt-2 mb-2 pr-1 gap-1">
+                                                        <span v-if="profileSaved" class="text-green-500 text-sm">&#10003;</span>
                                                         <button type="button" @click="updateProfile()" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
                                                     </div>
 
@@ -649,11 +650,14 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] mx-auto">
-                            <span class="text-base">حفظ الملف</span>
-                            <span class="opacity-80">|</span>
-                            <span>Save</span>
-                        </button>
+                        <div class="flex items-center justify-center gap-2">
+                            <button type="submit" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px]">
+                                <span class="text-base">حفظ الملف</span>
+                                <span class="opacity-80">|</span>
+                                <span>Save</span>
+                            </button>
+                            <span v-if="profileSaved" class="text-green-500 text-lg transition">&#10003;</span>
+                        </div>
                     </form>
                 </div>
 
@@ -1062,6 +1066,7 @@
                     igUsernameMissing: false,
                     igScrapeProgress: '',
                     igScrapeTimer: null,
+                    profileSaved: false,
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
                         { value: "displacement", label: "🚶 استلمنا أمر إخلاء | Displacement order" },
@@ -1328,11 +1333,15 @@
                 async updateProfile() {
                     // Sync count
                     this.profile.children_count = this.profile.children_details.length;
-                    await fetch('/api/portal/profile', {
+                    const res = await fetch('/api/portal/profile', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
                         body: JSON.stringify(this.profile)
                     });
+                    if (res.ok) {
+                        this.profileSaved = true;
+                        setTimeout(() => { this.profileSaved = false; }, 2000);
+                    }
                 },
                 checkAgeArabic() {
                     const arabicNumerals = /[\u0660-\u0669\u06F0-\u06F9]/;
