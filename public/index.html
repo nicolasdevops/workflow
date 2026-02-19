@@ -420,7 +420,7 @@
                                                                 </div>
                                                                 <!-- AMAP button: bottom-right corner -->
                                                                 <button type="button" @click="toggleMemberDetails(index)" class="absolute bottom-1 right-1 p-0.5" title="تفاصيل">
-                                                                    <img src="icons/detail-panel.png" style="width: 13px; height: 13px; opacity: 0.18; transition: opacity 0.2s;" class="object-contain" onmouseover="this.style.opacity='0.35'" onmouseout="this.style.opacity='0.18'">
+                                                                    <img src="icons/detail-panel.png" style="width: 13px; height: 13px; opacity: 0.18; transition: opacity 0.2s;" class="object-contain" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.18'">
                                                                 </button>
                                                                 <!-- Detail popup overlay -->
                                                                 <div v-show="member.detailsOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);" @click.self="toggleMemberDetails(index)">
@@ -1242,7 +1242,7 @@
                     // Start animated dots
                     let dotCount = 0;
                     this.igScrapeTimer = setInterval(() => {
-                        dotCount++;
+                        if (dotCount < 40) dotCount++;
                         this.igScrapeProgress = '.'.repeat(dotCount);
                     }, 150);
 
