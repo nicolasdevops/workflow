@@ -10,6 +10,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.500.0",
     "@supabase/supabase-js": "^2.39.0",
+    "arabic-transliterate": "^1.0.1",
     "body-parser": "^1.20.2",
     "deepl-node": "^1.14.0",
     "dotenv": "^16.3.1",

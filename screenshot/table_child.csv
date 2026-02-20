@@ -1,0 +1,16 @@
+Variable,Type,Example,Static/Interval
+`child_id`,string,"""CH\_0042\_01""",static
+`child_name`,string,"""Ahmad""",static
+`child_age`,integer,4,static
+`child_gender`,enum,male / female,static
+`child_medical_condition`,enum,none / cerebral\_palsy / heart\_defect / diabetes / malnutrition / respiratory / amputee / burns,static
+`child_medical_detail`,string,"""hole in heart, needs nebulizer""",static
+`child_mobility`,enum,full / limited / wheelchair / immobile,static
+`child_cognitive`,enum,typical / delayed / nonverbal,static
+`child_medication_name`,string,"""insulin""",static
+`child_medication_cost`,float,300,static
+`child_medication_remaining`,string,"""14 units""",static
+`child_photo_ref`,file,"""ahmad\_face\_ref.jpg""",static
+`child_video_ref`,file,"""ahmad\_movement\_ref.mp4""",static
+`child_clothing_description`,string,"""oversized grey sweater, torn sweatpants""",static
+`child_physical_state`,enum,healthy / thin / malnourished / emaciated / injured,static
