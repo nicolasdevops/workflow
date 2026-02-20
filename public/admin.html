@@ -192,7 +192,16 @@
                                     <tr class="bg-gray-100"><td colspan="3" class="p-1.5 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Members</td></tr>
                                     <template v-for="(m, i) in memberVarRows" :key="'mem-'+i">
                                         <tr class="border-t" :style="{ backgroundColor: m.bgColor }">
-                                            <td class="p-1.5 font-mono text-gray-600" :class="{ 'font-bold': m.isName }">{{ m.varName }}</td>
+                                            <td class="p-1.5 font-mono text-gray-600" :class="{ 'font-bold': m.isName }">
+                                                <template v-if="m.isName">
+                                                    <select :value="m.prefix" @change="changeMemberPrefix(m.memberIndex, $event.target.value)" class="text-[10px] border rounded p-0 mr-0.5 bg-transparent font-bold">
+                                                        <option value="child">child</option>
+                                                        <option value="adult">adult</option>
+                                                        <option value="deceased">deceased</option>
+                                                    </select><span class="font-bold">{{ m.prefixNum }}:name</span>
+                                                </template>
+                                                <template v-else>{{ m.varName }}</template>
+                                            </td>
                                             <td class="p-1.5" :class="{ 'font-bold': m.isName }">{{ m.value }}</td>
                                             <td class="p-1.5"><input v-model="memberOverrides[m.varName]" type="text" :placeholder="m.value" class="w-24 border p-0.5 rounded text-xs" @change="setMemberOverride(m.varName)"></td>
                                         </tr>
@@ -758,6 +767,7 @@
                         if (!this.detailConfig.template_overrides) this.detailConfig.template_overrides = {};
                         if (!this.detailConfig.variable_locks) this.detailConfig.variable_locks = {};
                         if (!this.detailConfig.child_assignments) this.detailConfig.child_assignments = {};
+                        if (!this.detailConfig.member_prefix_overrides) this.detailConfig.member_prefix_overrides = {};
                         this.selectedTemplates = [];
                         this.buildVariableTables();
                         await Promise.all([this.fetchComments(), this.fetchTemplates()]);
@@ -790,7 +800,10 @@
                     const f = this.detailFamily.family;
                     const c = this.detailFamily.computed;
                     const members = this.detailFamily.members;
-                    const hasParent = members.find(m => ['father','mother'].includes((m.relationship||'').toLowerCase()));
+                    const hasParent = members.find(m => {
+                        const r = (m.relationship||'').toLowerCase();
+                        return r === 'father' || r === 'mother' || r === 'mother/father';
+                    });
                     this.contextualVars = [
                         { name: 'parent_role', value: hasParent ? (hasParent.gender === 'Male' ? 'baba' : 'mama') : 'mama' },
                         { name: 'shelter_type', value: c.housing_type || 'tent' },
@@ -811,15 +824,28 @@
                         'rgba(239,68,68,0.08)',    // red
                         'rgba(107,114,128,0.08)',  // gray
                     ];
-                    const counters = { child: 0, adult: 0 };
+                    // Determine prefix per member: auto-detect then apply admin overrides
+                    const prefixOverrides = this.detailConfig.member_prefix_overrides || {};
+                    const autoCategories = members.map((m) => {
+                        const rel = (m.relationship || '').toLowerCase();
+                        if ((m.status || '') === 'Deceased') return 'deceased';
+                        const isChild = !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
+                        return isChild ? 'child' : 'adult';
+                    });
+                    const categories = autoCategories.map((auto, i) => prefixOverrides[String(i)] || auto);
+
+                    // Assign numbered keys per prefix
+                    const counters = {};
+                    const memberKeys = [];
+                    categories.forEach((prefix) => {
+                        counters[prefix] = (counters[prefix] || 0) + 1;
+                        memberKeys.push({ prefix, num: counters[prefix] });
+                    });
+
                     const rows = [];
                     members.forEach((m, i) => {
-                        const rel = (m.relationship || '').toLowerCase();
-                        const isChild = !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
-                        const prefix = isChild ? 'child' : 'adult';
-                        counters[prefix]++;
-                        const idx = counters[prefix];
-                        const varPrefix = `${prefix}${idx}`;
+                        const { prefix, num } = memberKeys[i];
+                        const varPrefix = `${prefix}${num}`;
                         const bg = bgColors[i % bgColors.length];
                         const name = m.nameDisplay || m.name || '-';
                         const pronoun = m.gender === 'Male' ? 'he' : 'she';
@@ -827,7 +853,7 @@
                         const medical = m.medical_condition || m.condition || '';
                         const disabled = m.disability === 'yes' ? 'yes' : '';
 
-                        rows.push({ varName: `${varPrefix}:name`, value: name, bgColor: bg, isName: true });
+                        rows.push({ varName: `${varPrefix}:name`, value: name, bgColor: bg, isName: true, memberIndex: i, prefix, prefixNum: num });
                         rows.push({ varName: `${varPrefix}:age`, value: m.age || '-', bgColor: bg, isName: false });
                         rows.push({ varName: `${varPrefix}:gender`, value: m.gender || '-', bgColor: bg, isName: false });
                         rows.push({ varName: `${varPrefix}:role`, value: role, bgColor: bg, isName: false });
@@ -852,6 +878,23 @@
                             }
                         });
                     }
+                },
+                changeMemberPrefix(memberIndex, newPrefix) {
+                    // Store the override and rebuild — numbers cascade automatically
+                    if (!this.detailConfig.member_prefix_overrides) this.detailConfig.member_prefix_overrides = {};
+                    // Check if this matches the auto-detected prefix (if so, remove override)
+                    const m = this.detailFamily.members[memberIndex];
+                    const rel = (m.relationship || '').toLowerCase();
+                    let autoPrefix;
+                    if ((m.status || '') === 'Deceased') autoPrefix = 'deceased';
+                    else if (!rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child') autoPrefix = 'child';
+                    else autoPrefix = 'adult';
+                    if (newPrefix === autoPrefix) {
+                        delete this.detailConfig.member_prefix_overrides[String(memberIndex)];
+                    } else {
+                        this.detailConfig.member_prefix_overrides[String(memberIndex)] = newPrefix;
+                    }
+                    this.buildVariableTables();
                 },
                 setAggregateOverride(key) {
                     const val = this.aggregateOverrides[key];

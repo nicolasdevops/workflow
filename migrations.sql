@@ -133,6 +133,10 @@ COMMENT ON COLUMN family_template_config.template_overrides IS 'Numeric range ov
 COMMENT ON COLUMN family_template_config.variable_locks IS 'Locked variable values: {"classmates_count": 29}';
 COMMENT ON COLUMN family_template_config.child_assignments IS 'Manual child->slot mapping: {"child1": 2, "child2": 0}';
 
+-- Migration 14: Add member_prefix_overrides column
+ALTER TABLE family_template_config ADD COLUMN IF NOT EXISTS member_prefix_overrides JSONB DEFAULT '{}';
+COMMENT ON COLUMN family_template_config.member_prefix_overrides IS 'Admin overrides for member variable prefixes: {"0": "adult", "3": "deceased"}';
+
 -- Pre-generated comments pool (admin reviews before scheduler posts)
 CREATE TABLE IF NOT EXISTS family_generated_comments (
     id SERIAL PRIMARY KEY,

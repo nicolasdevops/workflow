@@ -2436,7 +2436,7 @@ app.post('/api/admin/family/:id/config', adminAuth, async (req, res) => {
   if (!supabase) return res.status(500).json({ error: 'Database not configured' });
   try {
     const familyId = parseInt(req.params.id);
-    const { template_overrides, variable_locks, child_assignments, notes } = req.body;
+    const { template_overrides, variable_locks, child_assignments, member_prefix_overrides, notes } = req.body;
 
     const { error } = await supabase
       .from('family_template_config')
@@ -2445,6 +2445,7 @@ app.post('/api/admin/family/:id/config', adminAuth, async (req, res) => {
         template_overrides: template_overrides || {},
         variable_locks: variable_locks || {},
         child_assignments: child_assignments || {},
+        member_prefix_overrides: member_prefix_overrides || {},
         notes: notes || '',
         updated_at: new Date().toISOString(),
       }, { onConflict: 'family_id' });

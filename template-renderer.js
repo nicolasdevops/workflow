@@ -90,26 +90,37 @@ function pick(arr) {
  * adult1/adult2 (Husband/Wife, Mother/Father, Brother/Sister, etc.),
  * plus special refs (oldest_child, youngest_child, etc.)
  */
-function buildMemberLookup(members) {
+function buildMemberLookup(members, prefixOverrides) {
     if (!members || !Array.isArray(members) || members.length === 0) return {};
 
     const lookup = {};
+    const overrides = prefixOverrides || {};
 
-    // Categorize: child = Son/Daughter or unspecified, adult = everything else
-    const counters = { child: 0, adult: 0 };
-    const memberKeys = []; // track assigned key per member index
+    // Determine auto-prefix for each member:
+    //   Deceased → deceased, Son/Daughter or unspecified → child, everything else → adult
+    // Then apply admin prefix overrides from config
+    const autoCategories = members.map((m) => {
+        const rel = (m.relationship || '').toLowerCase();
+        if ((m.status || '') === 'Deceased') return 'deceased';
+        const isChild = !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
+        return isChild ? 'child' : 'adult';
+    });
+
+    // Apply admin overrides: overrides = { "0": "child", "3": "adult" } (member index → prefix)
+    const categories = autoCategories.map((auto, i) => overrides[String(i)] || auto);
+
+    // Assign numbered keys, renumbering within each prefix
+    const counters = {};
+    const memberKeys = [];
+    categories.forEach((prefix) => {
+        counters[prefix] = (counters[prefix] || 0) + 1;
+        memberKeys.push(`${prefix}${counters[prefix]}`);
+    });
 
     members.forEach((m, i) => {
         const derived = deriveFromGender(m.gender);
         const rel = (m.relationship || '').toLowerCase();
-
-        // Son/Daughter or unspecified → child; everything else → adult
-        const isChild = !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
-        const prefix = isChild ? 'child' : 'adult';
-
-        counters[prefix]++;
-        const key = `${prefix}${counters[prefix]}`;
-        memberKeys.push(key);
+        const key = memberKeys[i];
 
         let role = derived.role_child;
         if (rel === 'brother' || rel === 'sister' || rel === 'sibling' || rel === 'brother/sister') {
@@ -143,17 +154,14 @@ function buildMemberLookup(members) {
         };
     });
 
-    // Special references — filter to children only (child prefix)
+    // Special references — oldest/youngest from child-prefixed entries only
     const childEntries = members
         .map((m, i) => ({ ...m, _key: memberKeys[i] }))
         .filter((_m, i) => memberKeys[i].startsWith('child'));
 
     const alive = childEntries.filter(m => (m.status || 'Alive') === 'Alive');
-    const deceased = childEntries.filter(m => (m.status || '') === 'Deceased');
 
-    // Sort by age
     const byAgeDesc = (a, b) => (parseInt(b.age) || 0) - (parseInt(a.age) || 0);
-
     const sortedChildren = [...childEntries].sort(byAgeDesc);
     const sortedAlive = [...alive].sort(byAgeDesc);
 
@@ -165,9 +173,6 @@ function buildMemberLookup(members) {
         lookup['oldest_alive'] = lookup[sortedAlive[0]._key];
         lookup['youngest_alive'] = lookup[sortedAlive[sortedAlive.length - 1]._key];
     }
-    deceased.forEach((m, i) => {
-        lookup[`deceased${i + 1}`] = lookup[m._key];
-    });
 
     return lookup;
 }
@@ -238,14 +243,15 @@ function renderTemplate(templateText, familyProfile, config) {
     const overrides = (config && config.template_overrides) || {};
     const locks = (config && config.variable_locks) || {};
     const childAssignments = (config && config.child_assignments) || {};
+    const prefixOverrides = (config && config.member_prefix_overrides) || {};
 
     const members = familyProfile.children_details || [];
-    const memberLookup = buildMemberLookup(members);
+    const memberLookup = buildMemberLookup(members, prefixOverrides);
 
     // Aggregate stats
     const allChildren = members.filter(m => {
         const rel = (m.relationship || '').toLowerCase();
-        return !rel || rel === 'son' || rel === 'daughter' || rel === 'child';
+        return !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
     });
     const stats = {
         member_count: members.length,
@@ -268,11 +274,10 @@ function renderTemplate(templateText, familyProfile, config) {
     // Check if any parent is in members
     const parentMember = members.find(m => {
         const rel = (m.relationship || '').toLowerCase();
-        return rel === 'father' || rel === 'mother';
+        return rel === 'father' || rel === 'mother' || rel === 'mother/father';
     });
     if (parentMember) {
-        const rel = (parentMember.relationship || '').toLowerCase();
-        contextual.parent_role = rel === 'father' ? 'baba' : 'mama';
+        contextual.parent_role = parentMember.gender === 'Male' ? 'baba' : 'mama';
     }
 
     // Temporal
