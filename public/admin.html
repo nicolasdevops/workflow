@@ -148,12 +148,12 @@
                                 <tbody>
                                     <tr v-for="(m, i) in detailFamily.members" :key="i" class="border-t">
                                         <td class="p-2 text-gray-400">{{ i + 1 }}</td>
-                                        <td class="p-2 font-medium">{{ m.name || '-' }}</td>
+                                        <td class="p-2 font-medium">{{ m.nameDisplay || m.name || '-' }}</td>
                                         <td class="p-2">{{ m.age || '-' }}</td>
                                         <td class="p-2">{{ m.gender || '-' }}</td>
                                         <td class="p-2">{{ m.relationship || '-' }}</td>
                                         <td class="p-2"><span :class="m.status === 'Deceased' ? 'text-red-600' : 'text-green-600'">{{ m.status }}</span></td>
-                                        <td class="p-2 text-xs">{{ m.medical_condition || '-' }}</td>
+                                        <td class="p-2 text-xs">{{ m.medical_condition || m.condition || '-' }}</td>
                                         <td class="p-2 text-xs">{{ m.mobility || '-' }}</td>
                                         <td class="p-2 text-xs">{{ m.medication_name || '-' }}</td>
                                     </tr>
@@ -328,15 +328,15 @@
                                     <td class="p-3 text-gray-500 text-xs">{{ formatDate(f.created_at) }}</td>
                                     <td class="p-3">
                                         <div class="flex gap-2">
-                                            <button @click="viewAsFamily(f)" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]" title="View their dashboard as they see it">
+                                            <button @click.stop="viewAsFamily(f)" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]" title="View their dashboard as they see it">
                                                 View as User
                                             </button>
-                                            <button @click="toggleInstagramPassword(f)" :class="f.instagram_password_enabled ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'" class="text-xs p-1 rounded transition" :title="f.instagram_password_enabled ? 'IG Password Entry: ENABLED' : 'IG Password Entry: DISABLED'">
+                                            <button @click.stop="toggleInstagramPassword(f)" :class="f.instagram_password_enabled ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'" class="text-xs p-1 rounded transition" :title="f.instagram_password_enabled ? 'IG Password Entry: ENABLED' : 'IG Password Entry: DISABLED'">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                                                 </svg>
                                             </button>
-                                            <button @click="deleteFamily(f)" class="text-xs bg-red-100 text-red-600 p-1 rounded hover:bg-red-200 transition" title="Delete family account and all data">
+                                            <button @click.stop="deleteFamily(f)" class="text-xs bg-red-100 text-red-600 p-1 rounded hover:bg-red-200 transition" title="Delete family account and all data">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
@@ -551,10 +551,9 @@
                             alert('Failed to impersonate: ' + (data.error || 'Unknown error'));
                             return;
                         }
-                        // Open the main portal in a new tab with the impersonation token
-                        // We'll pass the token via URL param, the portal will detect and use it
+                        // Navigate to portal with impersonation token (same tab so back button works)
                         const portalUrl = `/?impersonate=${data.token}`;
-                        window.open(portalUrl, '_blank');
+                        window.location.href = portalUrl;
                     } catch (e) {
                         alert('Error: ' + e.message);
                     }

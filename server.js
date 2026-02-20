@@ -232,7 +232,7 @@ app.get('/f/:familyId', async (req, res) => {
 });
 
 // Admin Routes
-app.get('/admin', basicAuth, (req, res) => {
+app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
@@ -2413,20 +2413,28 @@ app.get('/api/admin/family/:id/config', adminAuth, async (req, res) => {
 
     res.json({
       family: { id: family.id, name: family.name, email: family.email, profile_pic_url: family.profile_pic_url, instagram_handle: family.instagram_handle },
-      members: members.map((m, i) => ({
-        index: i,
-        name: m.name || '',
-        age: m.age || '',
-        gender: m.gender || '',
-        relationship: m.relationship || '',
-        status: m.status || 'Alive',
-        medical_condition: m.medical_condition || '',
-        mobility: m.mobility || '',
-        physical_state: m.physical_state || '',
-        medication_name: m.medication_name || '',
-        disability: m.disability || 'no',
-        cognitive: m.cognitive || '',
-      })),
+      members: members.map((m, i) => {
+        let nameDisplay = m.name || '';
+        if (nameDisplay && /[\u0600-\u06FF]/.test(nameDisplay)) {
+          nameDisplay = arabicToLatin(nameDisplay) + '  |  ' + nameDisplay;
+        }
+        return {
+          index: i,
+          name: m.name || '',
+          nameDisplay,
+          age: m.age || '',
+          gender: m.gender || '',
+          relationship: m.relationship || '',
+          status: m.status || 'Alive',
+          condition: m.condition || '',
+          medical_condition: m.medical_condition || '',
+          mobility: m.mobility || '',
+          physical_state: m.physical_state || '',
+          medication_name: m.medication_name || '',
+          disability: m.disability || 'no',
+          cognitive: m.cognitive || '',
+        };
+      }),
       computed,
       config: config || { template_overrides: {}, variable_locks: {}, child_assignments: {}, notes: '' },
     });
