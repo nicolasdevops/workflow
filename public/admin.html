@@ -163,63 +163,111 @@
                         <div v-if="detailFamily.members.length === 0" class="p-4 text-center text-gray-400 text-sm">No members added yet.</div>
                     </div>
 
-                    <!-- Template Overrides & Variable Locks -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Overrides -->
-                        <div class="bg-white rounded-lg shadow p-4">
-                            <h3 class="font-bold text-gray-700 mb-3 text-sm">Template Overrides</h3>
-                            <div v-for="(override, varName) in detailConfig.template_overrides" :key="varName" class="flex items-center gap-2 mb-2">
-                                <input :value="varName" readonly class="w-32 border p-1 rounded text-xs bg-gray-50">
-                                <input v-model.number="override.min" type="number" step="any" placeholder="Min" class="w-16 border p-1 rounded text-xs">
-                                <input v-model.number="override.max" type="number" step="any" placeholder="Max" class="w-16 border p-1 rounded text-xs">
-                                <input v-model.number="override.fixed" type="number" step="any" placeholder="Fixed" class="w-16 border p-1 rounded text-xs">
-                                <button @click="removeOverride(varName)" class="text-red-400 hover:text-red-600 text-xs">&times;</button>
-                            </div>
-                            <div class="flex gap-2 mt-2">
-                                <input v-model="newOverrideName" placeholder="Variable name" class="flex-1 border p-1 rounded text-xs">
-                                <button @click="addOverride" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]">+ Add</button>
-                            </div>
+                    <!-- Editable Variables -->
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-gray-700 text-sm">Family Variables</h3>
+                            <button @click="saveConfig" class="text-xs bg-[#3274B5] text-white px-3 py-1 rounded hover:bg-[#285e94] flex items-center gap-1">
+                                <span v-if="configSaved" class="text-green-300">&#10003;</span> Save
+                            </button>
                         </div>
-                        <!-- Locks -->
-                        <div class="bg-white rounded-lg shadow p-4">
-                            <h3 class="font-bold text-gray-700 mb-3 text-sm">Variable Locks</h3>
-                            <div v-for="(val, varName) in detailConfig.variable_locks" :key="varName" class="flex items-center gap-2 mb-2">
-                                <input :value="varName" readonly class="w-32 border p-1 rounded text-xs bg-gray-50">
-                                <input v-model.number="detailConfig.variable_locks[varName]" type="number" step="any" class="w-24 border p-1 rounded text-xs">
-                                <button @click="removeLock(varName)" class="text-red-400 hover:text-red-600 text-xs">&times;</button>
-                            </div>
-                            <div class="flex gap-2 mt-2">
-                                <input v-model="newLockName" placeholder="Variable name" class="flex-1 border p-1 rounded text-xs">
-                                <input v-model.number="newLockValue" type="number" step="any" placeholder="Value" class="w-24 border p-1 rounded text-xs">
-                                <button @click="addLock" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]">+ Add</button>
-                            </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="text-left p-1.5 text-gray-600">Variable</th>
+                                        <th class="text-left p-1.5 text-gray-600">Auto Value</th>
+                                        <th class="text-left p-1.5 text-gray-600">Override</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Section: Aggregates -->
+                                    <tr class="bg-gray-100"><td colspan="3" class="p-1.5 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Aggregates</td></tr>
+                                    <tr v-for="(val, key) in detailFamily.computed" :key="'agg-'+key" class="border-t">
+                                        <td class="p-1.5 font-mono text-gray-600">{{ key }}</td>
+                                        <td class="p-1.5 font-bold">{{ val }}</td>
+                                        <td class="p-1.5 text-gray-400">-</td>
+                                    </tr>
+                                    <!-- Section: Member-specific -->
+                                    <tr class="bg-gray-100"><td colspan="3" class="p-1.5 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Members</td></tr>
+                                    <template v-for="(m, i) in detailFamily.members" :key="'mem-'+i">
+                                        <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">child{{ i+1 }}:name</td><td class="p-1.5">{{ m.nameDisplay || m.name || '-' }}</td><td class="p-1.5 text-gray-400">-</td></tr>
+                                        <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">child{{ i+1 }}:age</td><td class="p-1.5">{{ m.age || '-' }}</td><td class="p-1.5 text-gray-400">-</td></tr>
+                                        <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">child{{ i+1 }}:gender</td><td class="p-1.5">{{ m.gender || '-' }}</td><td class="p-1.5 text-gray-400">-</td></tr>
+                                        <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">child{{ i+1 }}:role</td><td class="p-1.5">{{ getMemberRole(m) }}</td><td class="p-1.5 text-gray-400">-</td></tr>
+                                        <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">child{{ i+1 }}:pronoun_sub</td><td class="p-1.5">{{ m.gender === 'Male' ? 'he' : 'she' }}</td><td class="p-1.5 text-gray-400">-</td></tr>
+                                        <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">child{{ i+1 }}:status</td><td class="p-1.5">{{ m.status }}</td><td class="p-1.5 text-gray-400">-</td></tr>
+                                        <tr v-if="m.medical_condition || m.condition" class="border-t"><td class="p-1.5 font-mono text-gray-600">child{{ i+1 }}:medical</td><td class="p-1.5">{{ m.medical_condition || m.condition }}</td><td class="p-1.5 text-gray-400">-</td></tr>
+                                        <tr v-if="m.disability === 'yes'" class="border-t"><td class="p-1.5 font-mono text-gray-600">child{{ i+1 }}:disabled</td><td class="p-1.5">yes</td><td class="p-1.5 text-gray-400">-</td></tr>
+                                    </template>
+                                    <!-- Section: Numeric Ranges -->
+                                    <tr class="bg-gray-100"><td colspan="3" class="p-1.5 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Numeric Ranges</td></tr>
+                                    <tr v-for="v in numericVars" :key="'num-'+v.name" class="border-t">
+                                        <td class="p-1.5 font-mono text-gray-600">{{ v.name }}</td>
+                                        <td class="p-1.5">[{{ v.min }} - {{ v.max }}]</td>
+                                        <td class="p-1.5">
+                                            <div class="flex gap-1">
+                                                <input v-model.number="v.overrideMin" type="number" step="any" :placeholder="''+v.min" class="w-14 border p-0.5 rounded text-xs" @change="setNumericOverride(v)">
+                                                <input v-model.number="v.overrideMax" type="number" step="any" :placeholder="''+v.max" class="w-14 border p-0.5 rounded text-xs" @change="setNumericOverride(v)">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Section: Contextual -->
+                                    <tr class="bg-gray-100"><td colspan="3" class="p-1.5 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Contextual</td></tr>
+                                    <tr v-for="v in contextualVars" :key="'ctx-'+v.name" class="border-t">
+                                        <td class="p-1.5 font-mono text-gray-600">{{ v.name }}</td>
+                                        <td class="p-1.5">{{ v.value }}</td>
+                                        <td class="p-1.5 text-gray-400">-</td>
+                                    </tr>
+                                    <!-- Section: Temporal -->
+                                    <tr class="bg-gray-100"><td colspan="3" class="p-1.5 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Temporal (auto)</td></tr>
+                                    <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">month</td><td class="p-1.5">{{ new Date().toLocaleString('en', {month: 'long'}) }}</td><td class="p-1.5 text-gray-400">auto</td></tr>
+                                    <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">day_marker</td><td class="p-1.5">random</td><td class="p-1.5 text-gray-400">auto</td></tr>
+                                    <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">time_of_day</td><td class="p-1.5">random</td><td class="p-1.5 text-gray-400">auto</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <!-- Save Config -->
-                    <div class="flex justify-center">
-                        <button @click="saveConfig" class="bg-[#3274B5] text-white px-4 py-2 rounded-lg hover:bg-[#285e94] font-bold text-sm flex items-center gap-2">
-                            <span v-if="configSaved" class="text-green-300">&#10003;</span>
-                            Save Config
-                        </button>
+
+                    <!-- Template Selection (checkboxes + color-coded eligibility) -->
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-gray-700 text-sm">Templates ({{ allTemplates.length }}) — <span class="text-green-600">{{ allTemplates.filter(t => isTemplateEligible(t)).length }} eligible</span></h3>
+                            <div class="flex items-center gap-2">
+                                <button @click="generateSelected" :disabled="generating || selectedTemplates.length === 0" class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50">
+                                    {{ generating ? 'Generating...' : 'Generate Selected (' + selectedTemplates.length + ')' }}
+                                </button>
+                                <button @click="syncTemplates" class="text-xs text-gray-500 hover:text-[#3274B5] hover:underline">Sync</button>
+                            </div>
+                        </div>
+                        <div v-if="allTemplates.length === 0" class="text-xs text-gray-400">No templates loaded. Sync templates first.</div>
+                        <div v-for="(t, idx) in allTemplates" :key="t.id" class="mb-2 p-2 rounded border" :class="isTemplateEligible(t) ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'">
+                            <div class="flex items-start gap-2">
+                                <input type="checkbox" :value="t.id" v-model="selectedTemplates" class="mt-1 accent-[#3274B5]" :disabled="!isTemplateEligible(t)">
+                                <div class="flex-1">
+                                    <div class="flex items-baseline gap-2 mb-1">
+                                        <span class="text-xs font-bold text-gray-500">{{ idx + 1 }}.</span>
+                                        <span class="text-xs font-medium text-[#3274B5]">{{ t.template_id || 'T'+t.id }}</span>
+                                        <span class="text-xs text-gray-400">({{ t.category || '?' }})</span>
+                                        <span v-if="!isTemplateEligible(t)" class="text-[10px] text-red-500">{{ getMissingRequirements(t) }}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-700 leading-relaxed">{{ t.original_text || t.template_text || '-' }}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Pre-Generated Comments -->
                     <div class="bg-white rounded-lg shadow p-4">
                         <div class="flex justify-between items-center mb-3">
-                            <h3 class="font-bold text-gray-700 text-sm">Pre-Generated Comments</h3>
-                            <div class="flex items-center gap-2">
-                                <input v-model.number="generateCount" type="number" min="1" max="20" class="w-14 border p-1 rounded text-xs text-center" placeholder="5">
-                                <button @click="generateComments" :disabled="generating" class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50">
-                                    {{ generating ? 'Generating...' : 'Generate' }}
-                                </button>
-                                <select v-model="commentFilter" @change="fetchComments" class="border p-1 rounded text-xs">
-                                    <option value="">All</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="posted">Posted</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
-                            </div>
+                            <h3 class="font-bold text-gray-700 text-sm">Pre-Generated Comments ({{ generatedComments.length }})</h3>
+                            <select v-model="commentFilter" @change="fetchComments" class="border p-1 rounded text-xs">
+                                <option value="">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="posted">Posted</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
                         </div>
                         <div v-if="generatedComments.length === 0" class="text-center text-gray-400 text-sm py-4">No comments generated yet.</div>
                         <div v-for="c in generatedComments" :key="c.id" class="border rounded-lg p-3 mb-2" :class="{'bg-green-50': c.status === 'approved', 'bg-red-50': c.status === 'rejected', 'bg-blue-50': c.status === 'posted'}">
@@ -227,7 +275,6 @@
                                 <div class="flex items-center gap-2">
                                     <span class="text-xs font-mono text-gray-400">{{ c.comment_templates?.template_id || 'T' + c.template_id }}</span>
                                     <span class="text-xs px-1.5 py-0.5 rounded" :class="{'bg-yellow-100 text-yellow-700': c.status==='pending', 'bg-green-100 text-green-700': c.status==='approved', 'bg-blue-100 text-blue-700': c.status==='posted', 'bg-red-100 text-red-700': c.status==='rejected'}">{{ c.status }}</span>
-                                    <span v-if="c.comment_templates?.category" class="text-xs text-gray-400">{{ c.comment_templates.category }}</span>
                                 </div>
                                 <span class="text-xs text-gray-400">{{ formatDate(c.created_at) }}</span>
                             </div>
@@ -252,25 +299,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Template Preview — all templates listed -->
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <h3 class="font-bold text-gray-700 mb-3 text-sm">Template Preview ({{ allTemplates.length }})</h3>
-                        <div v-if="allTemplates.length === 0" class="text-xs text-gray-400">No templates loaded. Sync templates first.</div>
-                        <div v-for="(t, idx) in allTemplates" :key="t.id" class="mb-3 border-b pb-3 last:border-b-0">
-                            <div class="flex items-baseline gap-2 mb-1">
-                                <span class="text-xs font-bold text-gray-500">{{ idx + 1 }}.</span>
-                                <span class="text-xs font-medium text-[#3274B5]">{{ t.template_id || 'T'+t.id }}</span>
-                                <span class="text-xs text-gray-400">({{ t.category || 'uncategorized' }})</span>
-                            </div>
-                            <div class="bg-gray-50 p-2 rounded text-sm text-gray-700">{{ t.template_text || t.original_text || '-' }}</div>
-                        </div>
-                    </div>
-
-                    <!-- Sync Templates -->
-                    <div class="flex justify-end">
-                        <button @click="syncTemplates" class="text-xs text-gray-500 hover:text-[#3274B5] hover:underline">Sync templates.json to DB</button>
                     </div>
                 </div>
 
@@ -485,11 +513,9 @@
                     editingCommentId: null,
                     editingCommentText: '',
                     allTemplates: [],
-                    previewTemplateId: '',
-                    previewResult: null,
-                    newOverrideName: '',
-                    newLockName: '',
-                    newLockValue: null
+                    selectedTemplates: [],
+                    numericVars: [],
+                    contextualVars: []
                 }
             },
             mounted() {
@@ -728,15 +754,115 @@
                         if (!res.ok) { alert('Failed to load family config'); return; }
                         this.detailFamily = await res.json();
                         this.detailConfig = { ...this.detailFamily.config };
-                        // Ensure objects exist
                         if (!this.detailConfig.template_overrides) this.detailConfig.template_overrides = {};
                         if (!this.detailConfig.variable_locks) this.detailConfig.variable_locks = {};
                         if (!this.detailConfig.child_assignments) this.detailConfig.child_assignments = {};
-                        // Load comments + templates
+                        this.selectedTemplates = [];
+                        this.buildVariableTables();
                         await Promise.all([this.fetchComments(), this.fetchTemplates()]);
                     } catch (e) {
                         alert('Error: ' + e.message);
                     }
+                },
+                buildVariableTables() {
+                    const overrides = this.detailConfig.template_overrides || {};
+                    const DEFAULTS = {
+                        insulin_units: { min: 10, max: 20 },
+                        temp1: { min: 40.5, max: 41.5 },
+                        temp2: { min: 40.8, max: 41.8 },
+                        rice_grains: { min: 15, max: 35 },
+                        bread_pieces: { min: 1, max: 5 },
+                        water_bottles: { min: 0, max: 3 },
+                        days_since: { min: 30, max: 90 },
+                        hours: { min: 1, max: 72 },
+                        minutes: { min: 1, max: 60 },
+                        random_months: { min: 1, max: 11 },
+                        displacement_count: { min: 3, max: 10 },
+                    };
+                    this.numericVars = Object.entries(DEFAULTS).map(([name, d]) => ({
+                        name,
+                        min: d.min,
+                        max: d.max,
+                        overrideMin: overrides[name]?.min ?? null,
+                        overrideMax: overrides[name]?.max ?? null,
+                    }));
+                    const f = this.detailFamily.family;
+                    const c = this.detailFamily.computed;
+                    const members = this.detailFamily.members;
+                    const hasParent = members.find(m => ['father','mother'].includes((m.relationship||'').toLowerCase()));
+                    this.contextualVars = [
+                        { name: 'parent_role', value: hasParent ? (hasParent.gender === 'Male' ? 'baba' : 'mama') : 'mama' },
+                        { name: 'shelter_type', value: c.housing_type || 'tent' },
+                        { name: 'location', value: c.gaza_zone || 'Gaza' },
+                        { name: 'religion', value: c.religion || 'Muslim' },
+                    ];
+                },
+                setNumericOverride(v) {
+                    if (v.overrideMin != null || v.overrideMax != null) {
+                        this.detailConfig.template_overrides[v.name] = { min: v.overrideMin, max: v.overrideMax, fixed: null };
+                    } else {
+                        delete this.detailConfig.template_overrides[v.name];
+                    }
+                },
+                getMemberRole(m) {
+                    const g = (m.gender || '').toLowerCase();
+                    const r = (m.relationship || '').toLowerCase();
+                    if (r.includes('son') || r.includes('daughter') || r === 'child') return g === 'male' ? 'son' : 'daughter';
+                    if (r.includes('brother') || r.includes('sister')) return g === 'male' ? 'brother' : 'sister';
+                    if (r.includes('father') || r.includes('mother')) return g === 'male' ? 'father' : 'mother';
+                    return r || (g === 'male' ? 'son' : 'daughter');
+                },
+                isTemplateEligible(t) {
+                    const req = t.requirements;
+                    if (!req) return true;
+                    const c = this.detailFamily.computed;
+                    const members = this.detailFamily.members;
+                    const children = members.filter(m => { const r = (m.relationship||'').toLowerCase(); return !r || r.includes('son') || r.includes('daughter') || r === 'child'; });
+                    if (req.min_children && children.length < req.min_children) return false;
+                    if (req.needs_deceased_parent) {
+                        const has = members.some(m => ['father','mother'].includes((m.relationship||'').toLowerCase()) && m.status === 'Deceased');
+                        if (!has) return false;
+                    }
+                    if (req.needs_medical) {
+                        const has = members.some(m => m.medical_condition && m.medical_condition !== '' && m.medical_condition !== 'none');
+                        if (!has) return false;
+                    }
+                    if (req.needs_disabled && c.disabled_count < 1) return false;
+                    if (req.age_constraints) {
+                        for (const [ref, con] of Object.entries(req.age_constraints)) {
+                            const ages = children.map(m => parseInt(m.age)).filter(a => !isNaN(a));
+                            if (ages.length === 0) return false;
+                            if (ref === 'oldest_child') { if (Math.max(...ages) < (con.min||0) || Math.max(...ages) > (con.max||100)) return false; }
+                            else if (ref === 'youngest_child') { if (Math.min(...ages) < (con.min||0) || Math.min(...ages) > (con.max||100)) return false; }
+                            else { if (!ages.some(a => a >= (con.min||0) && a <= (con.max||100))) return false; }
+                        }
+                    }
+                    return true;
+                },
+                getMissingRequirements(t) {
+                    const req = t.requirements;
+                    if (!req) return '';
+                    const missing = [];
+                    const c = this.detailFamily.computed;
+                    const members = this.detailFamily.members;
+                    const children = members.filter(m => { const r = (m.relationship||'').toLowerCase(); return !r || r.includes('son') || r.includes('daughter') || r === 'child'; });
+                    if (req.min_children && children.length < req.min_children) missing.push('min_children=' + req.min_children);
+                    if (req.needs_deceased_parent) {
+                        const has = members.some(m => ['father','mother'].includes((m.relationship||'').toLowerCase()) && m.status === 'Deceased');
+                        if (!has) missing.push('needs_deceased_parent');
+                    }
+                    if (req.needs_medical) {
+                        const has = members.some(m => m.medical_condition && m.medical_condition !== '' && m.medical_condition !== 'none');
+                        if (!has) missing.push('needs_medical');
+                    }
+                    if (req.needs_disabled && c.disabled_count < 1) missing.push('needs_disabled');
+                    if (req.age_constraints) {
+                        for (const [ref, con] of Object.entries(req.age_constraints)) {
+                            const ages = children.map(m => parseInt(m.age)).filter(a => !isNaN(a));
+                            if (ages.length === 0 || !ages.some(a => a >= (con.min||0) && a <= (con.max||100))) missing.push(ref + ':age[' + (con.min||0) + '-' + (con.max||100) + ']');
+                        }
+                    }
+                    return missing.length ? 'Missing: ' + missing.join(', ') : '';
                 },
                 async saveConfig() {
                     try {
@@ -753,33 +879,18 @@
                         }
                     } catch (e) { alert('Error: ' + e.message); }
                 },
-                addOverride() {
-                    if (!this.newOverrideName) return;
-                    this.detailConfig.template_overrides[this.newOverrideName] = { min: null, max: null, fixed: null };
-                    this.newOverrideName = '';
-                },
-                removeOverride(name) {
-                    delete this.detailConfig.template_overrides[name];
-                },
-                addLock() {
-                    if (!this.newLockName) return;
-                    this.detailConfig.variable_locks[this.newLockName] = this.newLockValue || 0;
-                    this.newLockName = '';
-                    this.newLockValue = null;
-                },
-                removeLock(name) {
-                    delete this.detailConfig.variable_locks[name];
-                },
-                async generateComments() {
+                async generateSelected() {
+                    if (this.selectedTemplates.length === 0) return;
                     this.generating = true;
                     try {
-                        const res = await fetch(`/api/admin/family/${this.detailFamily.family.id}/generate`, {
+                        const res = await fetch(`/api/admin/family/${this.detailFamily.family.id}/generate-selected`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'x-admin-token': this.authToken },
-                            body: JSON.stringify({ count: this.generateCount })
+                            body: JSON.stringify({ template_ids: this.selectedTemplates })
                         });
                         const data = await res.json();
                         if (!res.ok) { alert('Generate failed: ' + (data.error || '')); return; }
+                        this.selectedTemplates = [];
                         await this.fetchComments();
                     } catch (e) { alert('Error: ' + e.message); }
                     finally { this.generating = false; }
@@ -821,18 +932,6 @@
                         const res = await fetch('/api/admin/templates', { headers: { 'x-admin-token': this.authToken } });
                         if (res.ok) this.allTemplates = await res.json();
                     } catch (e) { console.error('Fetch templates error:', e); }
-                },
-                async previewTemplate() {
-                    if (!this.previewTemplateId || !this.detailFamily) return;
-                    try {
-                        const res = await fetch(`/api/admin/family/${this.detailFamily.family.id}/preview`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'x-admin-token': this.authToken },
-                            body: JSON.stringify({ template_id: this.previewTemplateId })
-                        });
-                        if (res.ok) this.previewResult = await res.json();
-                        else alert('Preview failed');
-                    } catch (e) { alert('Error: ' + e.message); }
                 },
                 async syncTemplates() {
                     try {

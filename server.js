@@ -2551,6 +2551,44 @@ app.post('/api/admin/family/:id/generate', adminAuth, async (req, res) => {
   }
 });
 
+// Generate comments from hand-picked template IDs
+app.post('/api/admin/family/:id/generate-selected', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+    const { template_ids } = req.body;
+    if (!template_ids || !Array.isArray(template_ids) || template_ids.length === 0) {
+      return res.status(400).json({ error: 'No template_ids provided' });
+    }
+
+    const { data: family } = await supabase.from('families').select('*').eq('id', familyId).single();
+    if (!family) return res.status(404).json({ error: 'Family not found' });
+
+    const { data: config } = await supabase.from('family_template_config').select('*').eq('family_id', familyId).single();
+
+    const { data: templates } = await supabase.from('comment_templates').select('*').in('id', template_ids);
+    if (!templates || templates.length === 0) return res.status(400).json({ error: 'No templates found' });
+
+    const generated = [];
+    for (const template of templates) {
+      const { text, variables } = renderTemplate(template.template_text, family, config || {});
+      const { error: insertErr } = await supabase.from('family_generated_comments').insert({
+        family_id: familyId,
+        template_id: template.id,
+        rendered_text: text,
+        variables_used: variables,
+        status: 'pending',
+      });
+      if (!insertErr) generated.push({ template_id: template.id, text, variables });
+    }
+
+    res.json({ generated: generated.length, comments: generated });
+  } catch (e) {
+    console.error('[Admin] Generate selected error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Get generated comments for a family
 app.get('/api/admin/family/:id/comments', adminAuth, async (req, res) => {
   if (!supabase) return res.status(500).json({ error: 'Database not configured' });
