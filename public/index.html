@@ -171,7 +171,7 @@
                 <!-- Admin Impersonation Banner -->
                 <div v-if="isImpersonating" class="bg-purple-600 text-white text-center py-2 px-4 mb-4 rounded-lg max-w-[350px] mx-auto flex items-center justify-between">
                     <span class="text-sm font-medium">👁️ Viewing as: {{ profile?.name || profile?.email }}</span>
-                    <button @click="signOut" class="text-xs bg-white/20 px-2 py-1 rounded hover:bg-white/30">Exit</button>
+                    <button @click="exitImpersonation" class="text-xs bg-white/20 px-2 py-1 rounded hover:bg-white/30">Exit</button>
                 </div>
 
                 <div class="flex border-b mb-6 w-full max-w-[350px] mx-auto">
@@ -1101,8 +1101,8 @@
             },
             watch: {
                 tab(newTab, oldTab) {
-                    // Validate IG username before leaving profile tab
-                    if (oldTab === 'profile' && !this.profile.instagram_handle && !this.igUsernameInput.trim()) {
+                    // Validate IG username before leaving profile tab (skip for admin impersonation)
+                    if (!this.isImpersonating && oldTab === 'profile' && !this.profile.instagram_handle && !this.igUsernameInput.trim()) {
                         this.igUsernameMissing = true;
                         this.tab = 'profile';
                         return;
@@ -1171,6 +1171,11 @@
                     this.authMode = 'login';
                     sessionStorage.removeItem('portal_token');
                     sessionStorage.removeItem('current_tab');
+                },
+                exitImpersonation() {
+                    sessionStorage.removeItem('portal_token');
+                    sessionStorage.removeItem('current_tab');
+                    window.location.href = '/admin';
                 },
                 async handlePortalLogin() {
                     this.loading = true; this.error = null;
