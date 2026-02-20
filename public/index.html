@@ -474,7 +474,7 @@
                                                                     </div>
                                                                     <!-- Section: Mobility -->
                                                                     <div class="flex items-center gap-1.5 mb-2 mt-2 border-b border-[#3274B5]/20 pb-1">
-                                                                        <img src="icons/wheelchair.png" style="width: 14px; height: 14px;" class="object-contain inline-block">
+                                                                        <img src="icons/wheelchair.png" style="width: 18px; height: 18px;" class="object-contain inline-block">
                                                                         <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">حركة وإدراك | MOBILITY</span>
                                                                     </div>
                                                                     <!-- Row 2: Mobility + Cognitive -->
@@ -539,9 +539,14 @@
                                                                         <label class="block text-xs font-bold mb-1 text-[#3274B5]">وصف الملابس</label>
                                                                         <input v-model="member.clothing_description" @blur="updateProfile()" type="text" class="w-full border py-0 px-2 rounded text-xs h-[28px]" placeholder="مثال: بلوزة رمادية كبيرة، بنطلون ممزق">
                                                                     </div>
-                                                                    <!-- Row 6: Clothing photos -->
+                                                                    <!-- Section: Media (all uploads) -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 border-b border-[#3274B5]/20 pb-1">
+                                                                        <span class="text-sm">📸</span>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">صور وفيديو | MEDIA</span>
+                                                                    </div>
+                                                                    <!-- Clothing photos -->
                                                                     <div class="mb-2" dir="ltr">
-                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Clothing | صور الملابس</label>
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Clothing of {{ member.name }} | صور الملابس</label>
                                                                         <input type="file" multiple accept="image/*" @change="handleMemberFileUpload($event, index, 'clothing_photos')" class="w-full text-xs">
                                                                         <div v-if="member.clothing_photos && member.clothing_photos.length" class="flex gap-2 mt-2 flex-wrap">
                                                                             <div v-for="(url, pi) in member.clothing_photos" :key="pi" class="relative group">
@@ -550,12 +555,7 @@
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <!-- Section: Media -->
-                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 border-b border-[#3274B5]/20 pb-1">
-                                                                        <span class="text-sm">📸</span>
-                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">صور وفيديو | MEDIA</span>
-                                                                    </div>
-                                                                    <!-- Row 7: Photos of [Name] -->
+                                                                    <!-- Photos of [Name] -->
                                                                     <div class="mb-2" dir="ltr">
                                                                         <label class="block text-xs font-bold mb-1 text-[#3274B5]">Pictures of {{ member.name }}</label>
                                                                         <input type="file" multiple accept="image/*" @change="handleMemberFileUpload($event, index, 'photo_refs')" class="w-full text-xs">
@@ -566,7 +566,7 @@
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <!-- Row 8: Videos of [Name] -->
+                                                                    <!-- Videos of [Name] -->
                                                                     <div class="mb-2" dir="ltr">
                                                                         <label class="block text-xs font-bold mb-1 text-[#3274B5]">Videos of {{ member.name }}</label>
                                                                         <input type="file" multiple accept="video/*" @change="handleMemberFileUpload($event, index, 'video_refs')" class="w-full text-xs">
