@@ -1950,25 +1950,8 @@ app.post('/api/login', async (req, res) => {
 
         if (portalUser) {
             // Update the currently logged-in family's row
-            // First, check if this handle is already taken by ANOTHER row
-            const { data: existingHandles } = await supabase
-                .from('families')
-                .select('id, email')
-                .eq('instagram_handle', username)
-                .neq('email', portalUser.email)
-                .limit(1);
-
-            if (existingHandles && existingHandles.length > 0) {
-                const existingHandle = existingHandles[0];
-                console.log(`⚠️ Handle ${username} is claimed by another row. Merging/Overwriting...`);
-                // Option A: Clear the handle from the old row to free it up
-                await supabase.from('families').update({ instagram_handle: null }).eq('id', existingHandle.id);
-                // Now update current user
-                query = supabase.from('families').update(updateData).eq('email', portalUser.email);
-            } else {
-                // Normal update
-                query = supabase.from('families').update(updateData).eq('email', portalUser.email);
-            }
+            // Multiple families can share the same IG handle
+            query = supabase.from('families').update(updateData).eq('email', portalUser.email);
         } else {
             // Fallback: Update by handle (legacy/admin behavior)
             query = supabase.from('families').update(updateData).eq('instagram_handle', username);

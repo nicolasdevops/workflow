@@ -6,7 +6,7 @@
  *
  * Variable categories:
  *   1. Family aggregates: {child_count}, {alive_count}, {deceased_count}, etc.
- *   2. Member-specific:   {child1:age|6}, {child1:pronoun_sub|She}, {oldest_child:name}
+ *   2. Member-specific:   {child1:age|6}, {parent1:name}, {grand_child1:age}, {oldest_child:name}
  *   3. Numeric ranges:    {temp1|41.2}, {insulin_units|15}, {random[1-60]}, {fixed:29}
  *   4. Temporal:          {month}, {season}, {time_of_day}, {day_marker}
  *   5. Contextual:        {parent_role}, {shelter_type}, {location}, {religious_context}
@@ -86,19 +86,40 @@ function pick(arr) {
 
 /**
  * Build member lookup from children_details array.
- * Returns indexed members (child1, child2, ...) and special refs
- * (oldest_child, youngest_child, oldest_alive, youngest_alive, deceased1, etc.)
+ * Returns indexed members by role: child1/child2 (descendants), parent1/parent2 (father/mother),
+ * grand_child1 (grandchildren), plus special refs (oldest_child, youngest_child, etc.)
  */
 function buildMemberLookup(members) {
     if (!members || !Array.isArray(members) || members.length === 0) return {};
 
     const lookup = {};
 
-    // Index all members as child1, child2, ...
+    // Categorize members by relationship type
+    // child1, child2... = descendants (son/daughter/child or unspecified)
+    // parent1, parent2... = father/mother
+    // grand_child1... = grandchild
+    const counters = { child: 0, parent: 0, grand_child: 0 };
+    const memberKeys = []; // track assigned key per member index
+
     members.forEach((m, i) => {
-        const key = `child${i + 1}`;
         const derived = deriveFromGender(m.gender);
         const rel = (m.relationship || '').toLowerCase();
+
+        // Determine prefix based on relationship
+        let prefix;
+        if (rel === 'father' || rel === 'mother') {
+            prefix = 'parent';
+        } else if (rel === 'grandchild' || rel === 'grandson' || rel === 'granddaughter') {
+            prefix = 'grand_child';
+        } else {
+            // Default: all other members are children (son, daughter, child, brother, sister, unspecified)
+            prefix = 'child';
+        }
+
+        counters[prefix]++;
+        const key = `${prefix}${counters[prefix]}`;
+        memberKeys.push(key);
+
         let role = derived.role_child;
         if (rel === 'brother' || rel === 'sister' || rel === 'sibling') {
             role = derived.role_sibling;
@@ -125,34 +146,30 @@ function buildMemberLookup(members) {
         };
     });
 
-    // Special references — filter to children only (son/daughter)
-    const children = members
-        .map((m, i) => ({ ...m, _idx: i + 1 }))
-        .filter(m => {
-            const rel = (m.relationship || '').toLowerCase();
-            return !rel || rel === 'son' || rel === 'daughter' || rel === 'child';
-        });
+    // Special references — filter to children only (child prefix)
+    const childEntries = members
+        .map((m, i) => ({ ...m, _key: memberKeys[i] }))
+        .filter((_m, i) => memberKeys[i].startsWith('child'));
 
-    const alive = children.filter(m => (m.status || 'Alive') === 'Alive');
-    const deceased = children.filter(m => (m.status || '') === 'Deceased');
+    const alive = childEntries.filter(m => (m.status || 'Alive') === 'Alive');
+    const deceased = childEntries.filter(m => (m.status || '') === 'Deceased');
 
     // Sort by age
     const byAgeDesc = (a, b) => (parseInt(b.age) || 0) - (parseInt(a.age) || 0);
-    const byAgeAsc = (a, b) => (parseInt(a.age) || 0) - (parseInt(b.age) || 0);
 
-    const sortedChildren = [...children].sort(byAgeDesc);
+    const sortedChildren = [...childEntries].sort(byAgeDesc);
     const sortedAlive = [...alive].sort(byAgeDesc);
 
     if (sortedChildren.length > 0) {
-        lookup['oldest_child'] = lookup[`child${sortedChildren[0]._idx}`];
-        lookup['youngest_child'] = lookup[`child${sortedChildren[sortedChildren.length - 1]._idx}`];
+        lookup['oldest_child'] = lookup[sortedChildren[0]._key];
+        lookup['youngest_child'] = lookup[sortedChildren[sortedChildren.length - 1]._key];
     }
     if (sortedAlive.length > 0) {
-        lookup['oldest_alive'] = lookup[`child${sortedAlive[0]._idx}`];
-        lookup['youngest_alive'] = lookup[`child${sortedAlive[sortedAlive.length - 1]._idx}`];
+        lookup['oldest_alive'] = lookup[sortedAlive[0]._key];
+        lookup['youngest_alive'] = lookup[sortedAlive[sortedAlive.length - 1]._key];
     }
     deceased.forEach((m, i) => {
-        lookup[`deceased${i + 1}`] = lookup[`child${m._idx}`];
+        lookup[`deceased${i + 1}`] = lookup[m._key];
     });
 
     return lookup;
@@ -326,16 +343,14 @@ function renderTemplate(templateText, familyProfile, config) {
             const ageMin = parseInt(anyChildMatch[1]);
             const ageMax = parseInt(anyChildMatch[2]);
             const attr = anyChildMatch[3];
-            // Find children in age range
-            const candidates = members
-                .map((m, i) => ({ ...m, _idx: i + 1 }))
-                .filter(m => {
-                    const age = parseInt(m.age);
-                    return !isNaN(age) && age >= ageMin && age <= ageMax;
-                });
+            // Find children in age range from lookup (child-prefixed keys only)
+            const childKeys = Object.keys(memberLookup).filter(k => /^child\d+$/.test(k));
+            const candidates = childKeys.filter(k => {
+                const age = parseInt(memberLookup[k].age);
+                return !isNaN(age) && age >= ageMin && age <= ageMax;
+            });
             if (candidates.length > 0) {
-                const chosen = pick(candidates);
-                const ref = `child${chosen._idx}`;
+                const ref = pick(candidates);
                 value = resolveMemberVar(ref, attr, pipeDefault, memberLookup);
             } else {
                 value = pipeDefault;
@@ -345,7 +360,7 @@ function renderTemplate(templateText, familyProfile, config) {
         }
 
         // 6. Member-specific: {child1:attr} or {oldest_child:attr}
-        const memberMatch = varExpr.match(/^(child\d+|oldest_child|youngest_child|oldest_alive|youngest_alive|deceased\d+):(\w+)$/);
+        const memberMatch = varExpr.match(/^(child\d+|parent\d+|grand_child\d+|oldest_child|youngest_child|oldest_alive|youngest_alive|deceased\d+):(\w+)$/);
         if (memberMatch) {
             let ref = memberMatch[1];
             const attr = memberMatch[2];
