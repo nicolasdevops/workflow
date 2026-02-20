@@ -6,7 +6,7 @@
  *
  * Variable categories:
  *   1. Family aggregates: {child_count}, {alive_count}, {deceased_count}, etc.
- *   2. Member-specific:   {child1:age|6}, {parent1:name}, {grand_child1:age}, {oldest_child:name}
+ *   2. Member-specific:   {child1:age|6}, {adult1:name}, {oldest_child:name}
  *   3. Numeric ranges:    {temp1|41.2}, {insulin_units|15}, {random[1-60]}, {fixed:29}
  *   4. Temporal:          {month}, {season}, {time_of_day}, {day_marker}
  *   5. Contextual:        {parent_role}, {shelter_type}, {location}, {religious_context}
@@ -86,45 +86,42 @@ function pick(arr) {
 
 /**
  * Build member lookup from children_details array.
- * Returns indexed members by role: child1/child2 (descendants), parent1/parent2 (father/mother),
- * grand_child1 (grandchildren), plus special refs (oldest_child, youngest_child, etc.)
+ * Returns indexed members: child1/child2 (Son/Daughter or unspecified),
+ * adult1/adult2 (Husband/Wife, Mother/Father, Brother/Sister, etc.),
+ * plus special refs (oldest_child, youngest_child, etc.)
  */
 function buildMemberLookup(members) {
     if (!members || !Array.isArray(members) || members.length === 0) return {};
 
     const lookup = {};
 
-    // Categorize members by relationship type
-    // child1, child2... = descendants (son/daughter/child or unspecified)
-    // parent1, parent2... = father/mother
-    // grand_child1... = grandchild
-    const counters = { child: 0, parent: 0, grand_child: 0 };
+    // Categorize: child = Son/Daughter or unspecified, adult = everything else
+    const counters = { child: 0, adult: 0 };
     const memberKeys = []; // track assigned key per member index
 
     members.forEach((m, i) => {
         const derived = deriveFromGender(m.gender);
         const rel = (m.relationship || '').toLowerCase();
 
-        // Determine prefix based on relationship
-        let prefix;
-        if (rel === 'father' || rel === 'mother') {
-            prefix = 'parent';
-        } else if (rel === 'grandchild' || rel === 'grandson' || rel === 'granddaughter') {
-            prefix = 'grand_child';
-        } else {
-            // Default: all other members are children (son, daughter, child, brother, sister, unspecified)
-            prefix = 'child';
-        }
+        // Son/Daughter or unspecified → child; everything else → adult
+        const isChild = !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
+        const prefix = isChild ? 'child' : 'adult';
 
         counters[prefix]++;
         const key = `${prefix}${counters[prefix]}`;
         memberKeys.push(key);
 
         let role = derived.role_child;
-        if (rel === 'brother' || rel === 'sister' || rel === 'sibling') {
+        if (rel === 'brother' || rel === 'sister' || rel === 'sibling' || rel === 'brother/sister') {
             role = derived.role_sibling;
-        } else if (rel === 'mother' || rel === 'father' || rel === 'grandparent') {
-            role = rel;
+        } else if (rel === 'mother' || rel === 'father' || rel === 'mother/father') {
+            role = m.gender === 'Male' ? 'father' : 'mother';
+        } else if (rel === 'husband' || rel === 'wife' || rel === 'husband/wife') {
+            role = m.gender === 'Male' ? 'husband' : 'wife';
+        } else if (rel === 'nephew' || rel === 'niece' || rel === 'nephew/niece') {
+            role = m.gender === 'Male' ? 'nephew' : 'niece';
+        } else if (rel === 'aunt' || rel === 'uncle' || rel === 'aunt/uncle') {
+            role = m.gender === 'Male' ? 'uncle' : 'aunt';
         }
 
         lookup[key] = {
@@ -360,7 +357,7 @@ function renderTemplate(templateText, familyProfile, config) {
         }
 
         // 6. Member-specific: {child1:attr} or {oldest_child:attr}
-        const memberMatch = varExpr.match(/^(child\d+|parent\d+|grand_child\d+|oldest_child|youngest_child|oldest_alive|youngest_alive|deceased\d+):(\w+)$/);
+        const memberMatch = varExpr.match(/^(child\d+|adult\d+|oldest_child|youngest_child|oldest_alive|youngest_alive|deceased\d+):(\w+)$/);
         if (memberMatch) {
             let ref = memberMatch[1];
             const attr = memberMatch[2];

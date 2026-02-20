@@ -811,14 +811,12 @@
                         'rgba(239,68,68,0.08)',    // red
                         'rgba(107,114,128,0.08)',  // gray
                     ];
-                    const counters = { child: 0, parent: 0, grand_child: 0 };
+                    const counters = { child: 0, adult: 0 };
                     const rows = [];
                     members.forEach((m, i) => {
                         const rel = (m.relationship || '').toLowerCase();
-                        let prefix;
-                        if (rel === 'father' || rel === 'mother') prefix = 'parent';
-                        else if (rel === 'grandchild' || rel === 'grandson' || rel === 'granddaughter') prefix = 'grand_child';
-                        else prefix = 'child';
+                        const isChild = !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
+                        const prefix = isChild ? 'child' : 'adult';
                         counters[prefix]++;
                         const idx = counters[prefix];
                         const varPrefix = `${prefix}${idx}`;
