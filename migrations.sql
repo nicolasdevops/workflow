@@ -96,3 +96,63 @@ ALTER TABLE families
 ADD COLUMN IF NOT EXISTS instagram_password_enabled BOOLEAN DEFAULT FALSE;
 
 COMMENT ON COLUMN families.instagram_password_enabled IS 'Admin toggle to allow family to enter Instagram password (for account recovery/limited accounts)';
+
+-- ============================================================================
+-- MIGRATION 13: Comment Template Engine + Pre-Generated Comments
+-- Purpose: Rich template variable system, per-family config, pre-generated comments
+-- Date: 2026-02-20
+-- ============================================================================
+
+-- Extend comment_templates with richer metadata
+ALTER TABLE comment_templates
+ADD COLUMN IF NOT EXISTS template_id TEXT UNIQUE,
+ADD COLUMN IF NOT EXISTS original_text TEXT,
+ADD COLUMN IF NOT EXISTS category TEXT,
+ADD COLUMN IF NOT EXISTS requirements JSONB DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS word_count INTEGER;
+
+COMMENT ON COLUMN comment_templates.template_id IS 'Unique string ID matching templates.json (e.g. fever_mathematics)';
+COMMENT ON COLUMN comment_templates.original_text IS 'Original untemplatized version of the comment';
+COMMENT ON COLUMN comment_templates.category IS 'Category: death_loss, medical_crisis, hunger, cold, displacement, innocence, daily_survival';
+COMMENT ON COLUMN comment_templates.requirements IS 'Template eligibility requirements (min_children, needs_deceased_parent, age_constraints, etc.)';
+
+-- Per-family template configuration (overrides, locks, child assignments)
+CREATE TABLE IF NOT EXISTS family_template_config (
+    id SERIAL PRIMARY KEY,
+    family_id INTEGER REFERENCES families(id) ON DELETE CASCADE,
+    template_overrides JSONB DEFAULT '{}',
+    variable_locks JSONB DEFAULT '{}',
+    child_assignments JSONB DEFAULT '{}',
+    notes TEXT,
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(family_id)
+);
+
+COMMENT ON TABLE family_template_config IS 'Per-family template variable overrides and locks for comment generation';
+COMMENT ON COLUMN family_template_config.template_overrides IS 'Numeric range overrides: {"insulin_units": {"min": 12, "max": 18}}';
+COMMENT ON COLUMN family_template_config.variable_locks IS 'Locked variable values: {"classmates_count": 29}';
+COMMENT ON COLUMN family_template_config.child_assignments IS 'Manual child->slot mapping: {"child1": 2, "child2": 0}';
+
+-- Pre-generated comments pool (admin reviews before scheduler posts)
+CREATE TABLE IF NOT EXISTS family_generated_comments (
+    id SERIAL PRIMARY KEY,
+    family_id INTEGER REFERENCES families(id) ON DELETE CASCADE,
+    template_id INTEGER REFERENCES comment_templates(id),
+    rendered_text TEXT NOT NULL,
+    variables_used JSONB,
+    status TEXT DEFAULT 'pending',  -- pending, approved, posted, rejected
+    posted_to_url TEXT,
+    posted_at TIMESTAMPTZ,
+    target_account_id INTEGER,
+    likes_count INTEGER DEFAULT 0,
+    likes_last_checked_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_fgc_family ON family_generated_comments(family_id);
+CREATE INDEX IF NOT EXISTS idx_fgc_status ON family_generated_comments(status);
+CREATE INDEX IF NOT EXISTS idx_fgc_posted ON family_generated_comments(posted_at) WHERE status = 'posted';
+
+COMMENT ON TABLE family_generated_comments IS 'Pre-generated comments awaiting admin approval before posting';
+COMMENT ON COLUMN family_generated_comments.status IS 'Lifecycle: pending -> approved -> posted (or rejected)';
+COMMENT ON COLUMN family_generated_comments.likes_count IS 'Number of likes on the posted comment, checked periodically';

@@ -5,7 +5,7 @@
  * Checks every minute if it's time to post based on day-specific schedules.
  */
 
-const { renderTemplate, selectUnusedTemplate, incrementUsageCount } = require('./template-renderer');
+const { incrementUsageCount } = require('./template-renderer');
 
 // Check interval (1 minute)
 const CHECK_INTERVAL_MS = 60 * 1000;
@@ -225,13 +225,41 @@ class CommentScheduler {
     /**
      * Run a single commenting round for one family
      */
+    /**
+     * Get next approved pre-generated comment for a family
+     */
+    async getNextApprovedComment(familyId) {
+        const { data, error } = await this.supabase
+            .from('family_generated_comments')
+            .select('*')
+            .eq('family_id', familyId)
+            .eq('status', 'approved')
+            .is('posted_to_url', null)
+            .order('created_at', { ascending: true })
+            .limit(1);
+
+        if (error || !data || data.length === 0) return null;
+        return data[0];
+    }
+
+    /**
+     * Run a single commenting round for one family.
+     * Pulls from pre-generated approved comments instead of rendering on-the-fly.
+     */
     async runForFamily(family) {
         console.log(`[CommentScheduler] Processing family: ${family.name || family.id}`);
 
         let bot = null;
 
         try {
-            // 1. Select target account
+            // 1. Get next approved comment from pool
+            const comment = await this.getNextApprovedComment(family.id);
+            if (!comment) {
+                console.log(`[CommentScheduler] No approved comments for family ${family.id}`);
+                return;
+            }
+
+            // 2. Select target account
             const target = await this.selectTargetAccount();
             if (!target) {
                 console.log('[CommentScheduler] No target account available');
@@ -240,7 +268,7 @@ class CommentScheduler {
 
             console.log(`[CommentScheduler] Selected target: @${target.handle}`);
 
-            // 2. Initialize browser with family's proxy config
+            // 3. Initialize browser with family's proxy config
             bot = new this.InstagramAutomation(
                 family.ig_username,
                 {
@@ -254,13 +282,13 @@ class CommentScheduler {
 
             await bot.init();
 
-            // 3. Restore session cookies
+            // 4. Restore session cookies
             if (family.cookies) {
                 const cookies = JSON.parse(family.cookies);
                 await bot.page.context().addCookies(cookies);
             }
 
-            // 4. Get latest post from target
+            // 5. Get latest post from target
             const postInfo = await bot.getLatestPostInfo(target.handle);
 
             if (!postInfo || !postInfo.url) {
@@ -272,7 +300,7 @@ class CommentScheduler {
 
             console.log(`[CommentScheduler] Found post: ${postInfo.url}`);
 
-            // 5. Check if post is fresh
+            // 6. Check if post is fresh
             if (!this.isPostFresh(postInfo.timestamp)) {
                 console.log(`[CommentScheduler] Post too old: ${postInfo.timestamp}`);
                 await this.updateTargetLastChecked(target.id, postInfo.url);
@@ -280,67 +308,69 @@ class CommentScheduler {
                 return;
             }
 
-            // 6. Check if we already commented on this post with this family
-            const { data: existingComment } = await this.supabase
-                .from('posted_comments')
+            // 7. Check if we already posted to this URL (dedup across all families)
+            const { data: existingOnPost } = await this.supabase
+                .from('family_generated_comments')
                 .select('id')
-                .eq('post_url', postInfo.url)
+                .eq('posted_to_url', postInfo.url)
                 .eq('family_id', family.id)
                 .eq('status', 'posted')
                 .limit(1);
 
-            if (existingComment && existingComment.length > 0) {
-                console.log(`[CommentScheduler] Already commented on this post with this family`);
+            if (existingOnPost && existingOnPost.length > 0) {
+                console.log(`[CommentScheduler] Already posted to this URL with this family`);
                 await bot.close();
                 return;
             }
 
-            // 7. Select unused template
-            const template = await selectUnusedTemplate(this.supabase, postInfo.url, family);
+            console.log(`[CommentScheduler] Posting comment (gen #${comment.id}, template ${comment.template_id})`);
+            console.log(`[CommentScheduler] Comment preview: ${comment.rendered_text.substring(0, 100)}...`);
 
-            if (!template) {
-                console.log(`[CommentScheduler] No unused templates for this post`);
-                await bot.close();
-                return;
-            }
+            // 8. Post the comment
+            const result = await bot.postComment(postInfo.url, comment.rendered_text);
 
-            // 8. Render template with family data
-            const renderedComment = renderTemplate(template.template_text, family);
-
-            console.log(`[CommentScheduler] Posting comment (template ${template.id})`);
-            console.log(`[CommentScheduler] Comment preview: ${renderedComment.substring(0, 100)}...`);
-
-            // 9. Post the comment
-            const result = await bot.postComment(postInfo.url, renderedComment);
-
-            // 10. Record result
+            // 9. Update generated comment record
             if (result.success) {
                 console.log(`[CommentScheduler] Comment posted successfully!`);
+                await this.supabase
+                    .from('family_generated_comments')
+                    .update({
+                        status: 'posted',
+                        posted_to_url: postInfo.url,
+                        posted_at: new Date().toISOString(),
+                        target_account_id: target.id,
+                    })
+                    .eq('id', comment.id);
+
+                // Also record in posted_comments for legacy audit
                 await this.recordComment(
                     family.id,
                     target.id,
-                    template.id,
+                    comment.template_id,
                     postInfo.url,
-                    renderedComment,
+                    comment.rendered_text,
                     'posted'
                 );
+
+                // Increment template usage
+                await incrementUsageCount(this.supabase, comment.template_id);
             } else {
                 console.error(`[CommentScheduler] Comment failed: ${result.error}`);
                 await this.recordComment(
                     family.id,
                     target.id,
-                    template.id,
+                    comment.template_id,
                     postInfo.url,
-                    renderedComment,
+                    comment.rendered_text,
                     'failed',
                     result.error
                 );
             }
 
-            // 11. Update target's last checked
+            // 10. Update target's last checked
             await this.updateTargetLastChecked(target.id, postInfo.url);
 
-            // 12. Close browser
+            // 11. Close browser
             await bot.close();
 
         } catch (error) {

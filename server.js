@@ -19,6 +19,7 @@ const { runAllWarmups, runWarmupSession, getWarmupDay, getWarmupPhase } = requir
 const { checkAccountPublic, scrapeProfile, checkScrapeCooldown, saveScrapedData, scrapeEngagedFollowers, saveEngagedFollowers } = require('./apify-scraper');
 const { initB2Client, isB2Configured, uploadFamilyMedia, deleteFromB2, uploadProfilePic } = require('./b2-storage');
 const { CommentScheduler } = require('./comment-scheduler');
+const { renderTemplate, canRenderTemplate, selectUnusedTemplate, incrementUsageCount } = require('./template-renderer');
 const { EngagementTracker } = require('./engagement-tracker');
 const deepl = require('deepl-node');
 const { transliterate } = require('transliteration');
@@ -2363,6 +2364,328 @@ app.get('/api/admin/stats', adminAuth, async (req, res) => {
     });
   } catch (e) {
     console.error('[Admin] Stats error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ============================================================================
+// TEMPLATE ENGINE ADMIN ENDPOINTS
+// ============================================================================
+
+// Get family config + computed variables + members
+app.get('/api/admin/family/:id/config', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+
+    // Get family profile
+    const { data: family, error: fErr } = await supabase
+      .from('families')
+      .select('id, name, email, children_count, children_details, housing_type, displacement_count, gaza_zone, religion, profile_pic_url, instagram_handle')
+      .eq('id', familyId)
+      .single();
+    if (fErr || !family) return res.status(404).json({ error: 'Family not found' });
+
+    // Get template config (or empty defaults)
+    const { data: config } = await supabase
+      .from('family_template_config')
+      .select('*')
+      .eq('family_id', familyId)
+      .single();
+
+    // Compute aggregate variables from members
+    const members = family.children_details || [];
+    const children = members.filter(m => {
+      const rel = (m.relationship || '').toLowerCase();
+      return !rel || rel === 'son' || rel === 'daughter' || rel === 'child';
+    });
+    const computed = {
+      member_count: members.length,
+      child_count: children.length,
+      alive_count: members.filter(m => (m.status || 'Alive') === 'Alive').length,
+      deceased_count: members.filter(m => (m.status || '') === 'Deceased').length,
+      disabled_count: members.filter(m => m.disability === 'yes').length,
+      housing_type: family.housing_type || 'unknown',
+      gaza_zone: family.gaza_zone || 'unknown',
+      religion: family.religion || 'unknown',
+      displacement_count: family.displacement_count || 0,
+    };
+
+    res.json({
+      family: { id: family.id, name: family.name, email: family.email, profile_pic_url: family.profile_pic_url, instagram_handle: family.instagram_handle },
+      members: members.map((m, i) => ({
+        index: i,
+        name: m.name || '',
+        age: m.age || '',
+        gender: m.gender || '',
+        relationship: m.relationship || '',
+        status: m.status || 'Alive',
+        medical_condition: m.medical_condition || '',
+        mobility: m.mobility || '',
+        physical_state: m.physical_state || '',
+        medication_name: m.medication_name || '',
+        disability: m.disability || 'no',
+        cognitive: m.cognitive || '',
+      })),
+      computed,
+      config: config || { template_overrides: {}, variable_locks: {}, child_assignments: {}, notes: '' },
+    });
+  } catch (e) {
+    console.error('[Admin] Family config error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Save family template config
+app.post('/api/admin/family/:id/config', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+    const { template_overrides, variable_locks, child_assignments, notes } = req.body;
+
+    const { error } = await supabase
+      .from('family_template_config')
+      .upsert({
+        family_id: familyId,
+        template_overrides: template_overrides || {},
+        variable_locks: variable_locks || {},
+        child_assignments: child_assignments || {},
+        notes: notes || '',
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'family_id' });
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('[Admin] Save config error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Generate N comments for a family
+app.post('/api/admin/family/:id/generate', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+    const count = Math.min(parseInt(req.body.count) || 5, 20);
+
+    // Get family
+    const { data: family } = await supabase
+      .from('families')
+      .select('*')
+      .eq('id', familyId)
+      .single();
+    if (!family) return res.status(404).json({ error: 'Family not found' });
+
+    // Get config
+    const { data: config } = await supabase
+      .from('family_template_config')
+      .select('*')
+      .eq('family_id', familyId)
+      .single();
+
+    // Get all active templates
+    const { data: templates } = await supabase
+      .from('comment_templates')
+      .select('*')
+      .eq('is_active', true);
+
+    if (!templates || templates.length === 0) {
+      return res.status(400).json({ error: 'No active templates available' });
+    }
+
+    // Filter to compatible templates
+    const compatible = templates.filter(t => canRenderTemplate(t, family));
+    if (compatible.length === 0) {
+      return res.status(400).json({ error: 'No compatible templates for this family' });
+    }
+
+    // Get already-generated template IDs for this family (avoid duplicates)
+    const { data: existing } = await supabase
+      .from('family_generated_comments')
+      .select('template_id')
+      .eq('family_id', familyId)
+      .in('status', ['pending', 'approved']);
+    const existingTemplateIds = new Set((existing || []).map(e => e.template_id));
+
+    // Pick templates (prefer unused, then lowest usage_count)
+    const unused = compatible.filter(t => !existingTemplateIds.has(t.id));
+    const pool = unused.length >= count ? unused : compatible;
+    pool.sort((a, b) => (a.usage_count || 0) - (b.usage_count || 0));
+
+    const selected = pool.slice(0, count);
+    const generated = [];
+
+    for (const template of selected) {
+      const { text, variables } = renderTemplate(template.template_text, family, config || {});
+      const { error: insertErr } = await supabase
+        .from('family_generated_comments')
+        .insert({
+          family_id: familyId,
+          template_id: template.id,
+          rendered_text: text,
+          variables_used: variables,
+          status: 'pending',
+        });
+      if (!insertErr) {
+        generated.push({ template_id: template.id, template_name: template.template_id, text, variables });
+      }
+    }
+
+    res.json({ generated: generated.length, comments: generated });
+  } catch (e) {
+    console.error('[Admin] Generate comments error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get generated comments for a family
+app.get('/api/admin/family/:id/comments', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+    const status = req.query.status; // optional filter
+
+    let query = supabase
+      .from('family_generated_comments')
+      .select('*, comment_templates(template_id, category)')
+      .eq('family_id', familyId)
+      .order('created_at', { ascending: false });
+
+    if (status) query = query.eq('status', status);
+
+    const { data, error } = await query;
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
+  } catch (e) {
+    console.error('[Admin] Get comments error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Update a generated comment (status, text)
+app.post('/api/admin/family/:id/comments/:commentId', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const commentId = parseInt(req.params.commentId);
+    const { status, rendered_text } = req.body;
+
+    const update = {};
+    if (status) update.status = status;
+    if (rendered_text) update.rendered_text = rendered_text;
+
+    const { error } = await supabase
+      .from('family_generated_comments')
+      .update(update)
+      .eq('id', commentId);
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('[Admin] Update comment error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Preview: render a specific template for a family (dry run)
+app.post('/api/admin/family/:id/preview', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+    const { template_id } = req.body; // DB id or template_id string
+
+    // Get family
+    const { data: family } = await supabase
+      .from('families')
+      .select('*')
+      .eq('id', familyId)
+      .single();
+    if (!family) return res.status(404).json({ error: 'Family not found' });
+
+    // Get config
+    const { data: config } = await supabase
+      .from('family_template_config')
+      .select('*')
+      .eq('family_id', familyId)
+      .single();
+
+    // Get template
+    let query = supabase.from('comment_templates').select('*');
+    if (typeof template_id === 'number') {
+      query = query.eq('id', template_id);
+    } else {
+      query = query.eq('template_id', template_id);
+    }
+    const { data: templates } = await query;
+    const template = templates && templates[0];
+    if (!template) return res.status(404).json({ error: 'Template not found' });
+
+    const eligible = canRenderTemplate(template, family);
+    const { text, variables } = renderTemplate(template.template_text, family, config || {});
+
+    res.json({
+      eligible,
+      original: template.original_text || '',
+      rendered: text,
+      variables,
+      template_name: template.template_id,
+      category: template.category,
+    });
+  } catch (e) {
+    console.error('[Admin] Preview error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Sync templates.json → Supabase
+app.post('/api/admin/sync-templates', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const templatesPath = path.join(__dirname, 'templates.json');
+    const raw = fs.readFileSync(templatesPath, 'utf8');
+    const templates = JSON.parse(raw);
+
+    let synced = 0;
+    for (const t of templates) {
+      const { error } = await supabase
+        .from('comment_templates')
+        .upsert({
+          template_id: t.id,
+          template_text: t.template,
+          original_text: t.original,
+          category: t.category,
+          requirements: t.requirements || {},
+          word_count: t.word_count || 0,
+          has_fields: true,
+          field_requirements: t.requirements || {},
+          is_active: true,
+        }, { onConflict: 'template_id' });
+
+      if (!error) synced++;
+      else console.error(`[Sync] Error syncing template ${t.id}:`, error.message);
+    }
+
+    res.json({ synced, total: templates.length });
+  } catch (e) {
+    console.error('[Admin] Sync templates error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// List all templates
+app.get('/api/admin/templates', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const { data, error } = await supabase
+      .from('comment_templates')
+      .select('id, template_id, template_text, original_text, category, requirements, word_count, usage_count, is_active')
+      .order('category')
+      .order('template_id');
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
+  } catch (e) {
+    console.error('[Admin] List templates error:', e);
     res.status(500).json({ error: e.message });
   }
 });

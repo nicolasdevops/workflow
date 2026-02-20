@@ -1,173 +1,486 @@
 /**
- * Template Renderer Module
+ * Template Renderer Module v2
  *
- * Renders comment templates with family profile data.
- * Handles replacement fields like [AGE], [X], [OLDER], [NUMBER].
+ * Rich variable resolution engine for comment templates.
+ * Syntax: {variable|default} — curly braces with optional pipe default.
  *
- * Supports pipe syntax for explicit defaults: [AGE|5], [X|3], etc.
- * When no pipe default is provided, sensible fallbacks are used.
+ * Variable categories:
+ *   1. Family aggregates: {child_count}, {alive_count}, {deceased_count}, etc.
+ *   2. Member-specific:   {child1:age|6}, {child1:pronoun_sub|She}, {oldest_child:name}
+ *   3. Numeric ranges:    {temp1|41.2}, {insulin_units|15}, {random[1-60]}, {fixed:29}
+ *   4. Temporal:          {month}, {season}, {time_of_day}, {day_marker}
+ *   5. Contextual:        {parent_role}, {shelter_type}, {location}, {religious_context}
  */
 
-// Default values when family data is missing (sensible fallbacks)
-const FIELD_DEFAULTS = {
-    AGE: 5,       // Middle childhood age
-    OLDER: 10,    // Older child age
-    YOUNGER: 2,   // Toddler age
-    X: 3,         // Average family size
-    NUMBER: 3,    // Same as X
-    'X-1': 2,     // X minus 1
+// Default numeric ranges (can be overridden per-family)
+const NUMERIC_DEFAULTS = {
+    insulin_units:    { min: 10, max: 20 },
+    temp1:            { min: 40.5, max: 41.5, float: true },
+    temp2:            { min: 40.8, max: 41.8, float: true },
+    rice_grains:      { min: 15, max: 35 },
+    bread_pieces:     { min: 1, max: 5 },
+    water_bottles:    { min: 0, max: 3 },
+    days_since:       { min: 30, max: 90 },
+    hours:            { min: 1, max: 72 },
+    minutes:          { min: 1, max: 60 },
+    random_months:    { min: 1, max: 11 },
+    displacement_count: { min: 3, max: 10, suffix: true }, // adds ordinal suffix
+};
+
+// Temporal options
+const TEMPORAL = {
+    time_of_day: ['morning', 'afternoon', 'evening', 'night'],
+    day_marker:  ['Yesterday', 'Today', 'Last night', 'This morning'],
+};
+
+// Month/season mapping
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const SEASON_MAP = {
+    0: 'winter', 1: 'winter', 2: 'spring', 3: 'spring', 4: 'spring',
+    5: 'summer', 6: 'summer', 7: 'summer', 8: 'fall', 9: 'fall', 10: 'fall', 11: 'winter',
 };
 
 /**
- * Render a comment template with family profile data
- * @param {string} templateText - The template text with placeholders
- * @param {object} familyProfile - Family profile data from database
- * @returns {string} Rendered comment text
+ * Derive pronoun and role from gender
  */
-function renderTemplate(templateText, familyProfile) {
-    if (!templateText) return '';
+function deriveFromGender(gender) {
+    const isMale = gender && gender.toLowerCase() === 'male';
+    return {
+        role_child: isMale ? 'son' : 'daughter',
+        role_sibling: isMale ? 'brother' : 'sister',
+        pronoun_sub: isMale ? 'He' : 'She',
+        pronoun_obj: isMale ? 'him' : 'her',
+        pronoun_poss: isMale ? 'his' : 'her',
+    };
+}
 
+/**
+ * Add ordinal suffix to a number (1st, 2nd, 3rd, 4th...)
+ */
+function ordinal(n) {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+/**
+ * Random integer in [min, max] inclusive
+ */
+function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * Random float in [min, max] with 1 decimal place
+ */
+function randFloat(min, max) {
+    return (Math.random() * (max - min) + min).toFixed(1);
+}
+
+/**
+ * Pick random element from array
+ */
+function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+/**
+ * Build member lookup from children_details array.
+ * Returns indexed members (child1, child2, ...) and special refs
+ * (oldest_child, youngest_child, oldest_alive, youngest_alive, deceased1, etc.)
+ */
+function buildMemberLookup(members) {
+    if (!members || !Array.isArray(members) || members.length === 0) return {};
+
+    const lookup = {};
+
+    // Index all members as child1, child2, ...
+    members.forEach((m, i) => {
+        const key = `child${i + 1}`;
+        const derived = deriveFromGender(m.gender);
+        const rel = (m.relationship || '').toLowerCase();
+        let role = derived.role_child;
+        if (rel === 'brother' || rel === 'sister' || rel === 'sibling') {
+            role = derived.role_sibling;
+        } else if (rel === 'mother' || rel === 'father' || rel === 'grandparent') {
+            role = rel;
+        }
+
+        lookup[key] = {
+            age: m.age || '',
+            name: m.name || '',
+            gender: m.gender || '',
+            role: role,
+            pronoun_sub: derived.pronoun_sub,
+            pronoun_obj: derived.pronoun_obj,
+            pronoun_poss: derived.pronoun_poss,
+            status: m.status || 'Alive',
+            days_since_death: m.days_deceased || '',
+            medical_condition: m.medical_condition || '',
+            mobility: m.mobility || '',
+            physical_state: m.physical_state || '',
+            medication_name: m.medication_name || '',
+            cognitive: m.cognitive || '',
+            disabled: m.disability === 'yes' ? 'yes' : 'no',
+        };
+    });
+
+    // Special references — filter to children only (son/daughter)
+    const children = members
+        .map((m, i) => ({ ...m, _idx: i + 1 }))
+        .filter(m => {
+            const rel = (m.relationship || '').toLowerCase();
+            return !rel || rel === 'son' || rel === 'daughter' || rel === 'child';
+        });
+
+    const alive = children.filter(m => (m.status || 'Alive') === 'Alive');
+    const deceased = children.filter(m => (m.status || '') === 'Deceased');
+
+    // Sort by age
+    const byAgeDesc = (a, b) => (parseInt(b.age) || 0) - (parseInt(a.age) || 0);
+    const byAgeAsc = (a, b) => (parseInt(a.age) || 0) - (parseInt(b.age) || 0);
+
+    const sortedChildren = [...children].sort(byAgeDesc);
+    const sortedAlive = [...alive].sort(byAgeDesc);
+
+    if (sortedChildren.length > 0) {
+        lookup['oldest_child'] = lookup[`child${sortedChildren[0]._idx}`];
+        lookup['youngest_child'] = lookup[`child${sortedChildren[sortedChildren.length - 1]._idx}`];
+    }
+    if (sortedAlive.length > 0) {
+        lookup['oldest_alive'] = lookup[`child${sortedAlive[0]._idx}`];
+        lookup['youngest_alive'] = lookup[`child${sortedAlive[sortedAlive.length - 1]._idx}`];
+    }
+    deceased.forEach((m, i) => {
+        lookup[`deceased${i + 1}`] = lookup[`child${m._idx}`];
+    });
+
+    return lookup;
+}
+
+/**
+ * Resolve a member-specific variable like {child1:age} or {oldest_child:pronoun_sub}
+ */
+function resolveMemberVar(ref, attr, fallback, memberLookup) {
+    const member = memberLookup[ref];
+    if (!member) return fallback || '';
+    const val = member[attr];
+    if (val === undefined || val === null || val === '') return fallback || '';
+    return String(val);
+}
+
+/**
+ * Resolve a numeric variable with override chain:
+ *   family override > NUMERIC_DEFAULTS > pipe default
+ */
+function resolveNumeric(varName, pipeDefault, overrides, locks) {
+    // Check locks first (exact value)
+    if (locks && locks[varName] !== undefined) {
+        return String(locks[varName]);
+    }
+
+    // Check overrides (custom range)
+    const override = overrides && overrides[varName];
+    const numDefault = NUMERIC_DEFAULTS[varName];
+
+    let min, max, isFloat = false, addSuffix = false;
+
+    if (override) {
+        if (override.fixed !== undefined) return String(override.fixed);
+        min = override.min;
+        max = override.max;
+        isFloat = override.float || (numDefault && numDefault.float) || false;
+        addSuffix = override.suffix || (numDefault && numDefault.suffix) || false;
+    } else if (numDefault) {
+        min = numDefault.min;
+        max = numDefault.max;
+        isFloat = numDefault.float || false;
+        addSuffix = numDefault.suffix || false;
+    } else {
+        // No known range — use pipe default ± 20%
+        const base = parseFloat(pipeDefault) || 0;
+        if (base === 0) return pipeDefault || '0';
+        const isDecimal = String(pipeDefault).includes('.');
+        min = Math.round(base * 0.8 * (isDecimal ? 10 : 1)) / (isDecimal ? 10 : 1);
+        max = Math.round(base * 1.2 * (isDecimal ? 10 : 1)) / (isDecimal ? 10 : 1);
+        isFloat = isDecimal;
+    }
+
+    const result = isFloat ? randFloat(min, max) : randInt(min, max);
+    return addSuffix ? ordinal(Number(result)) : String(result);
+}
+
+/**
+ * Main render function.
+ *
+ * @param {string} templateText - Template with {var|default} placeholders
+ * @param {object} familyProfile - Full family profile from DB
+ * @param {object} [config] - Per-family template config (overrides, locks, child_assignments)
+ * @returns {{ text: string, variables: object }} Rendered text + snapshot of resolved variables
+ */
+function renderTemplate(templateText, familyProfile, config) {
+    if (!templateText) return { text: '', variables: {} };
+
+    const overrides = (config && config.template_overrides) || {};
+    const locks = (config && config.variable_locks) || {};
+    const childAssignments = (config && config.child_assignments) || {};
+
+    const members = familyProfile.children_details || [];
+    const memberLookup = buildMemberLookup(members);
+
+    // Aggregate stats
+    const allChildren = members.filter(m => {
+        const rel = (m.relationship || '').toLowerCase();
+        return !rel || rel === 'son' || rel === 'daughter' || rel === 'child';
+    });
+    const stats = {
+        member_count: members.length,
+        child_count: allChildren.length,
+        alive_count: members.filter(m => (m.status || 'Alive') === 'Alive').length,
+        deceased_count: members.filter(m => (m.status || '') === 'Deceased').length,
+        disabled_count: members.filter(m => m.disability === 'yes').length,
+    };
+
+    // Contextual from profile
+    const contextual = {
+        parent_role: 'mama',
+        shelter_type: familyProfile.housing_type || 'tent',
+        location: familyProfile.gaza_zone || 'Gaza',
+        religious_context: familyProfile.religion || 'Muslim',
+        prayer_reference: (familyProfile.religion || '').toLowerCase() === 'christian' ? 'prayer' : 'dua',
+        displacement_count: familyProfile.displacement_count || 5,
+    };
+
+    // Check if any parent is in members
+    const parentMember = members.find(m => {
+        const rel = (m.relationship || '').toLowerCase();
+        return rel === 'father' || rel === 'mother';
+    });
+    if (parentMember) {
+        const rel = (parentMember.relationship || '').toLowerCase();
+        contextual.parent_role = rel === 'father' ? 'baba' : 'mama';
+    }
+
+    // Temporal
+    const now = new Date();
+    const temporal = {
+        month: MONTHS[now.getMonth()],
+        season: SEASON_MAP[now.getMonth()],
+        time_of_day: pick(TEMPORAL.time_of_day),
+        day_marker: pick(TEMPORAL.day_marker),
+    };
+
+    // Track resolved variables
+    const resolved = {};
+
+    // Main replacement pass
     let text = templateText;
 
-    // Get family data
-    const childrenCount = familyProfile.children_count || 0;
-    const childrenAges = parseChildrenAges(familyProfile.children_ages || []);
-    const hasChildrenData = childrenCount > 0;
-    const hasAgeData = childrenAges.length > 0;
+    // Replace all {var|default} and {var} patterns
+    text = text.replace(/\{([^}]+)\}/g, (match, expr) => {
+        // Parse pipe default
+        const parts = expr.split('|');
+        const varExpr = parts[0].trim();
+        const pipeDefault = parts.length > 1 ? parts.slice(1).join('|').trim() : '';
 
-    // Calculate derived values
-    const oldestAge = hasAgeData ? Math.max(...childrenAges) : null;
-    const youngestAge = hasAgeData ? Math.min(...childrenAges) : null;
+        let value;
 
-    // First pass: Handle pipe syntax [FIELD|default] - explicit defaults override
-    text = text.replace(/\[(\w+(?:-\d+)?)\|(\d+)\]/g, (match, field, explicitDefault) => {
-        const defaultVal = parseInt(explicitDefault, 10);
-        return resolveField(field, defaultVal, {
-            childrenCount,
-            childrenAges,
-            hasChildrenData,
-            hasAgeData,
-            oldestAge,
-            youngestAge,
-        });
-    });
-
-    // Second pass: Handle standard syntax [FIELD] - uses sensible defaults
-    // [X] - Children count
-    text = text.replace(/\[X\]/g, () => {
-        return hasChildrenData ? String(childrenCount) : String(FIELD_DEFAULTS.X);
-    });
-
-    // [X-1] - Children count minus 1
-    text = text.replace(/\[X-1\]/g, () => {
-        if (hasChildrenData) {
-            return String(Math.max(0, childrenCount - 1));
+        // 1. Check locks
+        if (locks[varExpr] !== undefined) {
+            value = String(locks[varExpr]);
+            resolved[varExpr] = value;
+            return value;
         }
-        return String(FIELD_DEFAULTS['X-1']);
+
+        // 2. Fixed value syntax: {fixed:29}
+        const fixedMatch = varExpr.match(/^fixed:(.+)$/);
+        if (fixedMatch) {
+            value = fixedMatch[1];
+            resolved[varExpr] = value;
+            return value;
+        }
+
+        // 3. Random range syntax: {random[min-max]}
+        const randomMatch = varExpr.match(/^random\[(\d+)-(\d+)\]$/);
+        if (randomMatch) {
+            const rMin = parseInt(randomMatch[1]);
+            const rMax = parseInt(randomMatch[2]);
+            value = String(randInt(rMin, rMax));
+            resolved[varExpr] = value;
+            return value;
+        }
+
+        // 4. Random months: {random_months[min-max]}
+        const randomMonthsMatch = varExpr.match(/^random_months\[(\d+)-(\d+)\]$/);
+        if (randomMonthsMatch) {
+            const rMin = parseInt(randomMonthsMatch[1]);
+            const rMax = parseInt(randomMonthsMatch[2]);
+            value = String(randInt(rMin, rMax));
+            resolved[varExpr] = value;
+            return value;
+        }
+
+        // 5. any_child[min-max]:attr syntax
+        const anyChildMatch = varExpr.match(/^any_child\[(\d+)-(\d+)\]:(\w+)$/);
+        if (anyChildMatch) {
+            const ageMin = parseInt(anyChildMatch[1]);
+            const ageMax = parseInt(anyChildMatch[2]);
+            const attr = anyChildMatch[3];
+            // Find children in age range
+            const candidates = members
+                .map((m, i) => ({ ...m, _idx: i + 1 }))
+                .filter(m => {
+                    const age = parseInt(m.age);
+                    return !isNaN(age) && age >= ageMin && age <= ageMax;
+                });
+            if (candidates.length > 0) {
+                const chosen = pick(candidates);
+                const ref = `child${chosen._idx}`;
+                value = resolveMemberVar(ref, attr, pipeDefault, memberLookup);
+            } else {
+                value = pipeDefault;
+            }
+            resolved[varExpr] = value;
+            return value;
+        }
+
+        // 6. Member-specific: {child1:attr} or {oldest_child:attr}
+        const memberMatch = varExpr.match(/^(child\d+|oldest_child|youngest_child|oldest_alive|youngest_alive|deceased\d+):(\w+)$/);
+        if (memberMatch) {
+            let ref = memberMatch[1];
+            const attr = memberMatch[2];
+
+            // Apply child assignments (remap child1 → child3 etc.)
+            if (childAssignments[ref] !== undefined) {
+                ref = `child${childAssignments[ref] + 1}`;
+            }
+
+            value = resolveMemberVar(ref, attr, pipeDefault, memberLookup);
+            resolved[`${memberMatch[1]}:${attr}`] = value;
+            return value;
+        }
+
+        // 7. Aggregate stats: {child_count}, {alive_count}, etc.
+        if (stats[varExpr] !== undefined) {
+            value = String(stats[varExpr]);
+            resolved[varExpr] = value;
+            return value;
+        }
+
+        // 8. child_count-N pattern
+        const countMinusMatch = varExpr.match(/^child_count-(\d+)$/);
+        if (countMinusMatch) {
+            const n = parseInt(countMinusMatch[1]);
+            value = String(Math.max(0, stats.child_count - n));
+            resolved[varExpr] = value;
+            return value;
+        }
+
+        // 9. Temporal variables
+        if (temporal[varExpr] !== undefined) {
+            value = temporal[varExpr];
+            resolved[varExpr] = value;
+            return value;
+        }
+
+        // 10. Contextual variables
+        if (contextual[varExpr] !== undefined) {
+            const ctxVal = contextual[varExpr];
+            // displacement_count gets special handling (ordinal)
+            if (varExpr === 'displacement_count') {
+                value = resolveNumeric(varExpr, pipeDefault || String(ctxVal), overrides, locks);
+            } else {
+                value = String(ctxVal);
+            }
+            resolved[varExpr] = value;
+            return value;
+        }
+
+        // 11. Known numeric ranges
+        if (NUMERIC_DEFAULTS[varExpr] || overrides[varExpr]) {
+            value = resolveNumeric(varExpr, pipeDefault, overrides, locks);
+            resolved[varExpr] = value;
+            return value;
+        }
+
+        // 12. Unknown variable with numeric default — treat as numeric range
+        if (pipeDefault && !isNaN(parseFloat(pipeDefault))) {
+            value = resolveNumeric(varExpr, pipeDefault, overrides, locks);
+            resolved[varExpr] = value;
+            return value;
+        }
+
+        // 13. Fallback to pipe default or leave as-is
+        value = pipeDefault || match;
+        resolved[varExpr] = value;
+        return value;
     });
 
-    // [NUMBER] - Same as children count
-    text = text.replace(/\[NUMBER\]/g, () => {
-        return hasChildrenData ? String(childrenCount) : String(FIELD_DEFAULTS.NUMBER);
-    });
-
-    // [AGE] - Random child's age (pick different ones for multiple occurrences)
-    let ageIndex = 0;
-    text = text.replace(/\[AGE\]/g, () => {
-        if (!hasAgeData) return String(FIELD_DEFAULTS.AGE);
-        const age = childrenAges[ageIndex % childrenAges.length];
-        ageIndex++;
-        return String(age);
-    });
-
-    // [OLDER] - Oldest child's age
-    text = text.replace(/\[OLDER\]/g, () => {
-        return hasAgeData ? String(oldestAge) : String(FIELD_DEFAULTS.OLDER);
-    });
-
-    // [YOUNGER] - Youngest child's age
-    text = text.replace(/\[YOUNGER\]/g, () => {
-        return hasAgeData ? String(youngestAge) : String(FIELD_DEFAULTS.YOUNGER);
-    });
-
-    return text;
+    return { text, variables: resolved };
 }
 
 /**
- * Resolve a field with an explicit default value (from pipe syntax)
- * @param {string} field - Field name (AGE, X, OLDER, etc.)
- * @param {number} explicitDefault - The default specified in [FIELD|default]
- * @param {object} data - Computed family data
- * @returns {string} Resolved value
- */
-function resolveField(field, explicitDefault, data) {
-    const { childrenCount, childrenAges, hasChildrenData, hasAgeData, oldestAge, youngestAge } = data;
-
-    switch (field.toUpperCase()) {
-        case 'AGE':
-            return hasAgeData ? String(childrenAges[0]) : String(explicitDefault);
-        case 'OLDER':
-            return hasAgeData ? String(oldestAge) : String(explicitDefault);
-        case 'YOUNGER':
-            return hasAgeData ? String(youngestAge) : String(explicitDefault);
-        case 'X':
-        case 'NUMBER':
-            return hasChildrenData ? String(childrenCount) : String(explicitDefault);
-        case 'X-1':
-            return hasChildrenData ? String(Math.max(0, childrenCount - 1)) : String(explicitDefault);
-        default:
-            return String(explicitDefault);
-    }
-}
-
-/**
- * Parse children ages from various formats
- * @param {string|array} ages - Ages as array or comma-separated string
- * @returns {number[]} Array of ages as numbers
- */
-function parseChildrenAges(ages) {
-    if (!ages) return [];
-
-    // If already an array
-    if (Array.isArray(ages)) {
-        return ages.map(a => parseInt(a, 10)).filter(a => !isNaN(a) && a > 0);
-    }
-
-    // If string (comma or space separated)
-    if (typeof ages === 'string') {
-        return ages
-            .split(/[,\s]+/)
-            .map(a => parseInt(a.trim(), 10))
-            .filter(a => !isNaN(a) && a > 0);
-    }
-
-    return [];
-}
-
-/**
- * Check if a template can be rendered with given family data
- * @param {object} template - Template object with field_requirements
- * @param {object} familyProfile - Family profile data
- * @returns {boolean} True if template can be rendered
+ * Check if a template can be rendered with given family data.
+ * Uses the full requirements object from templates.json.
  */
 function canRenderTemplate(template, familyProfile) {
-    if (!template.has_fields) return true;
-    if (!template.field_requirements) return true;
+    const requirements = template.requirements || template.field_requirements;
+    if (!requirements) return true;
 
-    const requirements = template.field_requirements;
+    const members = familyProfile.children_details || [];
+    const children = members.filter(m => {
+        const rel = (m.relationship || '').toLowerCase();
+        return !rel || rel === 'son' || rel === 'daughter' || rel === 'child';
+    });
 
-    // Check children_count requirement
-    if (requirements.children_count) {
-        if (!familyProfile.children_count || familyProfile.children_count < 1) {
-            return false;
-        }
+    // min_children
+    if (requirements.min_children && children.length < requirements.min_children) {
+        return false;
     }
 
-    // Check children_ages requirement
-    if (requirements.children_ages) {
-        const ages = parseChildrenAges(familyProfile.children_ages);
-        if (ages.length === 0) {
-            return false;
+    // needs_deceased_parent
+    if (requirements.needs_deceased_parent) {
+        const hasDeceasedParent = members.some(m => {
+            const rel = (m.relationship || '').toLowerCase();
+            return (rel === 'father' || rel === 'mother') && (m.status || '') === 'Deceased';
+        });
+        if (!hasDeceasedParent) return false;
+    }
+
+    // needs_medical
+    if (requirements.needs_medical) {
+        const hasMedical = members.some(m =>
+            m.medical_condition && m.medical_condition !== '' && m.medical_condition !== 'none'
+        );
+        if (!hasMedical) return false;
+    }
+
+    // needs_disabled
+    if (requirements.needs_disabled) {
+        const hasDisabled = members.some(m => m.disability === 'yes');
+        if (!hasDisabled) return false;
+    }
+
+    // age_constraints
+    if (requirements.age_constraints) {
+        for (const [ref, constraint] of Object.entries(requirements.age_constraints)) {
+            const ageMin = constraint.min || 0;
+            const ageMax = constraint.max || 100;
+
+            // For special refs like oldest_child, youngest_child — check if matching member exists
+            if (ref === 'oldest_child' || ref === 'youngest_child') {
+                const ages = children.map(m => parseInt(m.age)).filter(a => !isNaN(a));
+                if (ages.length === 0) return false;
+                const targetAge = ref === 'oldest_child' ? Math.max(...ages) : Math.min(...ages);
+                if (targetAge < ageMin || targetAge > ageMax) return false;
+            } else {
+                // childN — check if any child fits the constraint
+                const fittingChild = children.find(m => {
+                    const age = parseInt(m.age);
+                    return !isNaN(age) && age >= ageMin && age <= ageMax;
+                });
+                if (!fittingChild) return false;
+            }
         }
     }
 
@@ -175,23 +488,20 @@ function canRenderTemplate(template, familyProfile) {
 }
 
 /**
- * Select a random template that hasn't been used on this post
- * @param {object} supabase - Supabase client
- * @param {string} postUrl - URL of the target post
- * @param {object} familyProfile - Family profile for checking compatibility
- * @returns {object|null} Selected template or null if none available
+ * Select an unused template from the database.
+ * Checks eligibility against family data and avoids templates already used on the target post.
  */
 async function selectUnusedTemplate(supabase, postUrl, familyProfile) {
     // Get templates already used on this post
-    const { data: usedTemplates } = await supabase
-        .from('posted_comments')
+    const { data: usedComments } = await supabase
+        .from('family_generated_comments')
         .select('template_id')
-        .eq('post_url', postUrl)
+        .eq('posted_to_url', postUrl)
         .eq('status', 'posted');
 
-    const usedIds = (usedTemplates || []).map(t => t.template_id);
+    const usedIds = (usedComments || []).map(t => t.template_id);
 
-    // Get all active templates not used on this post
+    // Get all active templates
     let query = supabase
         .from('comment_templates')
         .select('*')
@@ -208,34 +518,26 @@ async function selectUnusedTemplate(supabase, postUrl, familyProfile) {
         return null;
     }
 
-    // Filter to templates that can be rendered with this family's data
-    const compatibleTemplates = availableTemplates.filter(t =>
-        canRenderTemplate(t, familyProfile)
-    );
+    // Filter to templates compatible with this family
+    const compatible = availableTemplates.filter(t => canRenderTemplate(t, familyProfile));
 
-    if (compatibleTemplates.length === 0) {
+    if (compatible.length === 0) {
         console.log('[TemplateRenderer] No compatible templates for this family');
         return null;
     }
 
-    // Prefer templates with lower usage count (balanced distribution)
-    // Sort by usage_count ascending, then pick randomly from bottom 20%
-    compatibleTemplates.sort((a, b) => a.usage_count - b.usage_count);
-
-    const bottomPercentile = Math.max(1, Math.ceil(compatibleTemplates.length * 0.2));
-    const candidates = compatibleTemplates.slice(0, bottomPercentile);
-
-    // Random selection from candidates
+    // Prefer lower usage count (balanced distribution)
+    compatible.sort((a, b) => (a.usage_count || 0) - (b.usage_count || 0));
+    const bottomPercentile = Math.max(1, Math.ceil(compatible.length * 0.2));
+    const candidates = compatible.slice(0, bottomPercentile);
     const selected = candidates[Math.floor(Math.random() * candidates.length)];
 
-    console.log(`[TemplateRenderer] Selected template ${selected.id} (usage: ${selected.usage_count})`);
+    console.log(`[TemplateRenderer] Selected template ${selected.template_id || selected.id} (usage: ${selected.usage_count || 0})`);
     return selected;
 }
 
 /**
  * Increment usage count for a template
- * @param {object} supabase - Supabase client
- * @param {number} templateId - Template ID
  */
 async function incrementUsageCount(supabase, templateId) {
     await supabase.rpc('increment_template_usage', { template_id: templateId });
@@ -243,8 +545,9 @@ async function incrementUsageCount(supabase, templateId) {
 
 module.exports = {
     renderTemplate,
-    parseChildrenAges,
     canRenderTemplate,
     selectUnusedTemplate,
     incrementUsageCount,
+    buildMemberLookup,
+    NUMERIC_DEFAULTS,
 };
