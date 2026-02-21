@@ -528,6 +528,25 @@ async function saveScrapedData(supabase, familyId, scrapeResult) {
                 console.error('[Apify] Content save error:', contentError);
                 // Don't fail the whole operation for content errors
             }
+
+            // Auto-fill description from caption for rows that don't have one yet
+            const { data: needsDesc } = await supabase
+                .from('mothers_content')
+                .select('id, caption')
+                .eq('family_id', familyId)
+                .is('description', null)
+                .neq('caption', '');
+            if (needsDesc && needsDesc.length > 0) {
+                for (const row of needsDesc) {
+                    if (row.caption) {
+                        await supabase
+                            .from('mothers_content')
+                            .update({ description: row.caption })
+                            .eq('id', row.id);
+                    }
+                }
+                console.log(`[Apify] Auto-filled description from caption for ${needsDesc.length} posts`);
+            }
         }
 
         // 3. Update families table with profile info

@@ -116,10 +116,11 @@
                         <input v-model="form.family_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="e.g. Al-Masri Family | مثال: عائلة المصري">
                     </div>
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Email Address | البريد الإلكتروني</label>
-                        <input v-model="form.email" type="email" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" title="Must be a valid email address" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="family@example.com">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">{{ isIgAuth ? 'Instagram Username | اسم حساب الانستغرام' : 'Email Address | البريد الإلكتروني' }}</label>
+                        <input v-model="form.email" :type="isIgAuth ? 'text' : 'email'" :pattern="isIgAuth ? null : '[^@\\s]+@[^@\\s]+\\.[^@\\s]+'" :title="isIgAuth ? '' : 'Must be a valid email address'" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required :placeholder="isIgAuth ? '@instagram_username' : 'family@example.com'">
+                        <p v-if="isIgAuth && authMode === 'register'" class="text-xs text-gray-500 mt-1">Admin quick-create: no password needed</p>
                     </div>
-                    <div class="mb-6">
+                    <div v-if="!isIgAuth" class="mb-6">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Password | كلمة المرور</label>
                         <input v-model="form.password" type="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="••••••••">
                     </div>
@@ -212,14 +213,15 @@
                         <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
                         <div class="flex-1">
                             <p class="font-bold text-lg leading-tight">{{ profile.name || profile.family_name || 'Family Profile' }} <span class="font-normal text-xs text-gray-500">({{ profile.email }})</span></p>
-                            <!-- IG username: hidden once profile pic is scraped -->
-                            <div v-if="!profile.profile_pic_url" class="mt-1.5">
+                            <!-- IG username: hidden once profile pic is scraped (unless validation warning) -->
+                            <div v-if="!profile.profile_pic_url || igValidationWarning" class="mt-1.5">
                                 <label class="block text-xs font-bold mb-1 text-[#3274B5]">اسم حساب الانستغرام | IG username</label>
                                 <div class="flex gap-1.5 items-center">
-                                    <input v-model="igUsernameInput" @keyup.enter="saveIgUsername" type="text" class="flex-1 border p-1.5 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing}" placeholder="@username">
+                                    <input v-model="igUsernameInput" @keyup.enter="saveIgUsername" type="text" class="flex-1 border p-1.5 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing || igValidationWarning}" placeholder="@instagram_username">
                                     <button type="button" @click="saveIgUsername" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
                                 </div>
-                                <p v-if="igUsernameMissing" class="text-red-500 text-xs mt-0.5">مطلوب | Required</p>
+                                <p v-if="igUsernameMissing && !igValidationWarning" class="text-red-500 text-xs mt-0.5">مطلوب | Required</p>
+                                <p v-if="igValidationWarning" class="text-red-600 text-xs mt-1 font-bold leading-snug">مهم: لازم تدخل اسم حسابك على انستغرام (اللي ظاهر بملفك الشخصي) أولاً! أو تواصل مع الإدارة للمساعدة</p>
                                 <p v-if="igScrapeProgress" class="text-xs text-[#3274B5] mt-1">{{ igScrapeProgress }}</p>
                             </div>
                         </div>
@@ -660,6 +662,17 @@
                             </div>
                         </div>
 
+                        <!-- WhatsApp Number -->
+                        <div class="mb-6 border-t pt-4">
+                            <div class="mb-4">
+                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
+                                    <span class="text-base text-[#3274B5]">رقم الواتساب</span>
+                                    <span class="text-[10px]">| WhatsApp Number (Optional)</span>
+                                </label>
+                                <input v-model="profile.whatsapp_phone" type="tel" class="w-full border p-2 rounded text-sm h-[30px]" placeholder="e.g. +972599123456">
+                            </div>
+                        </div>
+
                         <div class="flex items-center justify-center gap-2">
                             <button type="submit" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px]">
                                 <span class="text-base">حفظ الملف</span>
@@ -784,7 +797,7 @@
                                     <span class="text-base font-bold leading-none">اسم حساب الانستغرام</span>
                                     <span class="text-xs font-normal leading-none">IG username</span>
                                 </label>
-                                <input v-model="form.insta_username" type="text" class="w-full border p-2 rounded text-sm" placeholder="e.g. @ahmed_gaza">
+                                <input v-model="form.insta_username" type="text" class="w-full border p-2 rounded text-sm" placeholder="@instagram_username">
                             </div>
                             <div class="mb-4">
                                 <label class="block mb-1 flex flex-col items-start gap-[5px] text-[#3274B5]">
@@ -1076,6 +1089,7 @@
                     igUsernameMissing: false,
                     igScrapeProgress: '',
                     igScrapeTimer: null,
+                    igValidationWarning: false,
                     profileSaved: false,
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
@@ -1155,6 +1169,11 @@
                     window.history.replaceState({}, document.title, "/");
                 }
             },
+            computed: {
+                isIgAuth() {
+                    return this.form.email && this.form.email.startsWith('@');
+                }
+            },
             methods: {
                 getRunningTime() {
                     if (!this.profile.created_at) return '0';
@@ -1180,14 +1199,17 @@
                 async handlePortalLogin() {
                     this.loading = true; this.error = null;
                     try {
+                        const body = this.isIgAuth
+                            ? { email: this.form.email } // @username login, no password
+                            : { email: this.form.email, password: this.form.password };
                         const res = await fetch('/api/portal/login', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: this.form.email, password: this.form.password })
+                            body: JSON.stringify(body)
                         });
                         const data = await res.json();
                         if (data.error) throw new Error(data.error);
-                        
+
                         this.token = data.token;
                         sessionStorage.setItem('portal_token', data.token);
                         this.profile = data.user;
@@ -1200,19 +1222,30 @@
                 async handlePortalRegister() {
                     this.loading = true; this.error = null;
                     try {
+                        const body = this.isIgAuth
+                            ? { ig_username: this.form.email, family_name: this.form.family_name }
+                            : { email: this.form.email, password: this.form.password, family_name: this.form.family_name };
                         const res = await fetch('/api/portal/register', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: this.form.email, password: this.form.password, family_name: this.form.family_name })
+                            body: JSON.stringify(body)
                         });
                         const data = await res.json();
                         if (data.error) throw new Error(data.error);
-                        
+
                         this.token = data.token;
                         sessionStorage.setItem('portal_token', data.token);
                         this.profile = data.user;
                         this.step = 'dashboard';
                         this.fetchProfile(); // Get full details
+
+                        // If registered with @username, auto-trigger IG scrape
+                        if (this.isIgAuth) {
+                            const handle = this.form.email.replace(/^@/, '').trim();
+                            this.igUsernameInput = handle;
+                            this.form.insta_username = handle;
+                            this.$nextTick(() => this.saveIgUsername());
+                        }
                     } catch (e) { this.error = e.message; } finally { this.loading = false; }
                 },
                 async handleForgotPassword() {
@@ -1285,7 +1318,7 @@
                     const handle = this.igUsernameInput.replace(/^@/, '').trim();
                     this.profile.instagram_handle = handle;
                     this.form.insta_username = handle;
-                    await this.updateProfile();
+                    await this.updateProfile(true);
 
                     // Start animated dots
                     let dotCount = 0;
@@ -1345,7 +1378,15 @@
                         console.error('IG scrape from profile:', e);
                     }
                 },
-                async updateProfile() {
+                async updateProfile(skipIgCheck) {
+                    // Validate IG username is linked (unless called internally)
+                    if (!skipIgCheck && !this.profile.instagram_handle) {
+                        this.igValidationWarning = true;
+                        this.igUsernameMissing = true;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        setTimeout(() => { this.igValidationWarning = false; this.igUsernameMissing = false; }, 8000);
+                        return;
+                    }
                     // Sync count
                     this.profile.children_count = this.profile.children_details.length;
                     const res = await fetch('/api/portal/profile', {
@@ -1375,6 +1416,14 @@
                     }
                 },
                 async addMember() {
+                    // Validate IG username is linked
+                    if (!this.profile.instagram_handle) {
+                        this.igValidationWarning = true;
+                        this.igUsernameMissing = true;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        setTimeout(() => { this.igValidationWarning = false; this.igUsernameMissing = false; }, 8000);
+                        return;
+                    }
                     // Validate required fields
                     if (!this.newMember.name || !this.newMember.age || !this.newMember.relationship || !this.newMember.status) {
                         // Show validation errors for 4 seconds
@@ -1408,11 +1457,11 @@
                     }, 5000);
 
                     // Update profile in background
-                    await this.updateProfile();
+                    await this.updateProfile(true);
                 },
                 async removeChild(index) {
                     this.profile.children_details.splice(index, 1);
-                    await this.updateProfile();
+                    await this.updateProfile(true);
                 },
                 toggleMemberDetails(index) {
                     const member = this.profile.children_details[index];
@@ -1449,18 +1498,18 @@
                             console.error('Member file upload error:', err);
                         }
                     }
-                    await this.updateProfile();
+                    await this.updateProfile(true);
                     e.target.value = '';
                 },
                 async removeMemberFile(memberIndex, fieldName, fileIndex) {
                     const member = this.profile.children_details[memberIndex];
                     if (member[fieldName]) {
                         member[fieldName].splice(fileIndex, 1);
-                        await this.updateProfile();
+                        await this.updateProfile(true);
                     }
                 },
                 async saveMemberDetails(index) {
-                    await this.updateProfile();
+                    await this.updateProfile(true);
                     this.toggleMemberDetails(index);
                 },
                 async addUrgentNeed() {
@@ -1477,11 +1526,11 @@
                     }, 5000);
 
                     // Update profile in background
-                    await this.updateProfile();
+                    await this.updateProfile(true);
                 },
                 async removeUrgentNeed(index) {
                     this.profile.urgent_needs.splice(index, 1);
-                    await this.updateProfile();
+                    await this.updateProfile(true);
                 },
                 getUrgentNeedLabel(value) {
                     const option = this.urgentNeedOptions.find(o => o.value === value);

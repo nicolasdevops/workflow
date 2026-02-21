@@ -1045,23 +1045,45 @@ app.post('/api/transliterate', portalAuth, async (req, res) => {
 
 // Portal Register
 app.post('/api/portal/register', async (req, res) => {
-  const { password, family_name } = req.body;
-  const email = req.body.email.toLowerCase();
+  const { family_name, ig_username } = req.body;
 
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
 
+  let email, passwordHash, instagramHandle;
+
+  if (ig_username) {
+    // @username registration (admin quick-create, no password)
+    instagramHandle = ig_username.replace(/^@/, '').trim().toLowerCase();
+    email = `${instagramHandle}@ig.local`;
+    passwordHash = crypto.randomBytes(32).toString('hex'); // random, unused
+
+    // Check if IG handle already exists
+    const { data: existingIg } = await supabase.from('families').select('id').eq('instagram_handle', instagramHandle).single();
+    if (existingIg) return res.status(400).json({ error: 'Instagram username already registered' });
+  } else {
+    // Standard email+password registration
+    email = req.body.email.toLowerCase();
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ error: 'Password required' });
+    passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+    instagramHandle = null;
+  }
+
   // Check if email exists
   const { data: existing } = await supabase.from('families').select('email').eq('email', email).single();
-  if (existing) return res.status(400).json({ error: 'Email already registered' });
+  if (existing) return res.status(400).json({ error: ig_username ? 'Instagram username already registered' : 'Email already registered' });
+
+  const insertData = {
+    email,
+    password: passwordHash,
+    name: family_name,
+    status: 'active'
+  };
+  if (instagramHandle) insertData.instagram_handle = instagramHandle;
 
   const { data, error } = await supabase
     .from('families')
-    .insert([{
-      email,
-      password: crypto.createHash('sha256').update(password).digest('hex'),
-      name: family_name,
-      status: 'active'
-    }])
+    .insert([insertData])
     .select()
     .single();
 
@@ -1076,18 +1098,35 @@ app.post('/api/portal/register', async (req, res) => {
 
 // Portal Login
 app.post('/api/portal/login', async (req, res) => {
-  const { password } = req.body;
-  const email = req.body.email.toLowerCase();
-  
+  const emailInput = (req.body.email || '').trim();
+
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
 
-  // Check credentials in families table
-  const { data, error } = await supabase
-    .from('families')
-    .select('*')
-    .eq('email', email)
-    .eq('password', crypto.createHash('sha256').update(password).digest('hex'))
-    .single();
+  let data, error;
+
+  if (emailInput.startsWith('@')) {
+    // @username login (no password required)
+    const handle = emailInput.replace(/^@/, '').toLowerCase();
+    const result = await supabase
+      .from('families')
+      .select('*')
+      .eq('instagram_handle', handle)
+      .single();
+    data = result.data;
+    error = result.error;
+  } else {
+    // Standard email+password login
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ error: 'Password required' });
+    const result = await supabase
+      .from('families')
+      .select('*')
+      .eq('email', emailInput.toLowerCase())
+      .eq('password', crypto.createHash('sha256').update(password).digest('hex'))
+      .single();
+    data = result.data;
+    error = result.error;
+  }
 
   if (error || !data) {
     return res.status(401).json({ error: 'Invalid portal credentials' });
@@ -1097,7 +1136,7 @@ app.post('/api/portal/login', async (req, res) => {
   const token = crypto.randomBytes(16).toString('hex');
   portalSessions.set(token, data);
 
-  res.json({ status: 'SUCCESS', token, user: { 
+  res.json({ status: 'SUCCESS', token, user: {
     email: data.email,
     handle: data.instagram_handle,
     housing: data.housing_type,
@@ -1121,7 +1160,7 @@ app.post('/api/portal/profile', portalAuth, async (req, res) => {
   const updates = req.body;
   
   // Whitelist allowed fields
-  const allowed = ['name', 'housing_type', 'displacement_count', 'children_count', 'children_details', 'medical_conditions', 'facing_cold', 'facing_hunger', 'urgent_need', 'urgent_needs', 'urgent_need_amount', 'palpay_phone', 'palpay_name', 'gaza_zone', 'religion', 'instagram_handle'];
+  const allowed = ['name', 'housing_type', 'displacement_count', 'children_count', 'children_details', 'medical_conditions', 'facing_cold', 'facing_hunger', 'urgent_need', 'urgent_needs', 'urgent_need_amount', 'palpay_phone', 'palpay_name', 'whatsapp_phone', 'gaza_zone', 'religion', 'instagram_handle'];
   const cleanUpdates = {};
   
   Object.keys(updates).forEach(key => {
