@@ -2724,6 +2724,78 @@ app.get('/api/admin/templates', adminAuth, async (req, res) => {
   }
 });
 
+// API: Sync templates from JSON — replaces all templates
+// Accepts JSON body (array of template objects) or reads from screenshot/comments.json
+app.post('/api/admin/templates/sync', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    let templates = req.body;
+
+    // If no body provided, try reading from file
+    if (!Array.isArray(templates) || templates.length === 0) {
+      const fs = require('fs');
+      const path = require('path');
+      const filePath = path.join(__dirname, 'screenshot', 'comments.json');
+      if (fs.existsSync(filePath)) {
+        templates = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      } else {
+        return res.status(400).json({ error: 'No templates provided and comments.json not found' });
+      }
+    }
+
+    // Deactivate all existing templates
+    await supabase.from('comment_templates').update({ is_active: false }).neq('id', 0);
+
+    let inserted = 0, updated = 0, errors = [];
+    for (let i = 0; i < templates.length; i++) {
+      const t = templates[i];
+      if (!t.id || !t.template) {
+        errors.push(`Skipped template at index ${i}: missing id or template field`);
+        continue;
+      }
+      const templateNumber = i + 1;
+      const row = {
+        template_id: t.id,
+        template_text: t.template,
+        original_text: t.original || null,
+        category: t.category || null,
+        requirements: t.requirements || {},
+        word_count: t.word_count || null,
+        is_active: true,
+        usage_count: 0,
+      };
+
+      // Try upsert by template_id
+      const { data: existing } = await supabase
+        .from('comment_templates')
+        .select('id')
+        .eq('template_id', t.id)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('comment_templates')
+          .update({ ...row, usage_count: undefined })
+          .eq('id', existing.id);
+        if (error) errors.push(`#${templateNumber} ${t.id}: ${error.message}`);
+        else updated++;
+      } else {
+        const { error } = await supabase
+          .from('comment_templates')
+          .insert(row);
+        if (error) errors.push(`#${templateNumber} ${t.id}: ${error.message}`);
+        else inserted++;
+      }
+    }
+
+    console.log(`[Admin] Template sync: ${inserted} inserted, ${updated} updated, ${errors.length} errors`);
+    res.json({ inserted, updated, errors, total: templates.length, synced: inserted + updated });
+  } catch (e) {
+    console.error('[Admin] Template sync error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // API: 2FA
 app.post('/api/2fa', async (req, res) => {
   const { username, code } = req.body;

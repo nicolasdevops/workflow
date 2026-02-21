@@ -1,0 +1,1269 @@
+[
+  {
+    "id": "rice_grain_math",
+    "original": "My daughter counted the rice grains in our last meal. 47. She divided them among her siblings. 8 each. She kept 7 for herself. She said the youngest needs more to grow. She's 9. I don't know when she learned mathematics of hunger",
+    "template": "My {child1:role|daughter} counted the rice grains in our last meal. {random[40-55]|47}. {child1:pronoun_sub|She} divided them among {child1:pronoun_poss|her} siblings. {random[6-10]|8} each. {child1:pronoun_sub|She} kept {random[5-9]|7} for herself. {child1:pronoun_sub|She} said the youngest needs more to grow. {child1:pronoun_sub|She}'s {child1:age|9}. I don't know when {child1:pronoun_sub|she} learned mathematics of hunger",
+    "category": "hunger_scarcity",
+    "requirements": {
+      "min_children": 3,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 11, "ideal": 9}
+      }
+    },
+    "keywords": ["rice", "grains", "counting", "sharing", "siblings", "hunger", "mathematics", "division", "sacrifice", "food scarcity", "rationing"],
+    "word_count": 48
+  },
+  
+  {
+    "id": "drawing_house_twice",
+    "original": "Last night my son drew our old house from memory. Perfect details. The kitchen where I made his birthday cake. The tree he climbed. Then he drew it again. This time on fire. \"So I remember both,\" he said. He's 6.",
+    "template": "Last night my {child1:role|son} drew our old house from memory. Perfect details. The kitchen where I made {child1:pronoun_poss|his} birthday cake. The tree {child1:pronoun_sub|he} climbed. Then {child1:pronoun_sub|he} drew it again. This time on fire. \"So I remember both,\" {child1:pronoun_sub|he} said. {child1:pronoun_sub|He}'s {child1:age|6}.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 5, "max": 8, "ideal": 6}
+      }
+    },
+    "keywords": ["home", "house", "memory", "drawing", "fire", "destruction", "birthday", "before after", "art", "remembering", "loss"],
+    "word_count": 42
+  },
+  
+  {
+    "id": "period_in_tent",
+    "original": "My 11-year-old daughter started her period yesterday. In a tent. In winter. No privacy. No supplies. She apologized for becoming a woman at the wrong time. I had nothing to give her but torn fabric and silence.",
+    "template": "My {child1:age|11}-year-old {child1:role|daughter} started her period yesterday. In a tent. In winter. No privacy. No supplies. {child1:pronoun_sub|She} apologized for becoming a woman at the wrong time. I had nothing to give {child1:pronoun_obj|her} but torn fabric and silence.",
+    "category": "childhood_end",
+    "requirements": {
+      "min_children": 1,
+      "needs_daughter": true,
+      "age_constraints": {
+        "child1": {"min": 10, "max": 14, "ideal": 11}
+      }
+    },
+    "keywords": ["period", "menstruation", "girl", "woman", "tent", "winter", "privacy", "supplies", "growing up", "womanhood", "fabric"],
+    "word_count": 37
+  },
+  
+  {
+    "id": "playing_restaurant",
+    "original": "Today my children played \"restaurant.\" They served invisible food on broken plates. Took turns being the customer who could afford to eat. The winner was whoever could describe the food best without crying. Nobody won.",
+    "template": "Today my children played \"restaurant.\" They served invisible food on broken plates. Took turns being the customer who could afford to eat. The winner was whoever could describe the food best without crying. Nobody won.",
+    "category": "hunger_scarcity",
+    "requirements": {
+      "min_children": 2
+    },
+    "keywords": ["game", "playing", "restaurant", "imagination", "invisible food", "hunger", "pretend", "children", "crying", "empty plates"],
+    "note": "No personalization needed - universal statement about all children",
+    "word_count": 36
+  },
+  
+  {
+    "id": "holding_sisters_hand",
+    "original": "My son sleeps holding his baby sister's hand. Not from love. From fear. If the tent collapses in the night, he doesn't want to lose her in the dark. He practiced finding her by touch. Eyes closed. Counting seconds.",
+    "template": "My {child1:role|son} sleeps holding {child1:pronoun_poss|his} baby {child2:role|sister}'s hand. Not from love. From fear. If the tent collapses in the night, {child1:pronoun_sub|he} doesn't want to lose {child2:pronoun_obj|her} in the dark. {child1:pronoun_sub|He} practiced finding {child2:pronoun_obj|her} by touch. Eyes closed. Counting seconds.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 2,
+      "needs_gender_mix": true,
+      "age_constraints": {
+        "child1": {"min": 5, "max": 10},
+        "child2": {"min": 1, "max": 4, "ideal": 2}
+      }
+    },
+    "keywords": ["tent", "collapse", "siblings", "fear", "darkness", "protection", "brother sister", "holding hands", "practice", "night", "safety"],
+    "word_count": 40
+  },
+
+   {
+    "id": "prescriptions_behind_glass",
+    "original": "The doctor wrote three prescriptions yesterday. For three of my children. Then he looked at me. We both knew. The pharmacy has the medicine. Behind glass. Like their futures. $30, $25, $40. He wrote them anyway. Hope on paper.",
+    "template": "The doctor wrote {random[2-4]|three} prescriptions yesterday. For {random[2-4]|three} of my children. Then he looked at me. We both knew. The pharmacy has the medicine. Behind glass. Like their futures. ${random[20-40]|30}, ${random[20-35]|25}, ${random[30-50]|40}. He wrote them anyway. Hope on paper.",
+    "category": "medical_crisis",
+    "requirements": {
+      "min_children": 3
+    },
+    "keywords": ["doctor", "prescriptions", "medicine", "pharmacy", "medical", "cost", "money", "glass", "hope", "treatment", "sick children", "healthcare"],
+    "word_count": 40
+  },
+  
+  {
+    "id": "saving_electricity",
+    "original": "My 5-year-old asked why we don't turn on the lights anymore. I said we're saving electricity. She said \"for what?\" I couldn't answer. She said \"it's okay mama, I see better in the dark now anyway.\" She does.",
+    "template": "My {child1:age|5}-year-old asked why we don't turn on the lights anymore. I said we're saving electricity. {child1:pronoun_sub|She} said \"for what?\" I couldn't answer. {child1:pronoun_sub|She} said \"it's okay mama, I see better in the dark now anyway.\" {child1:pronoun_sub|She} does.",
+    "category": "infrastructure",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 4, "max": 7, "ideal": 5}
+      }
+    },
+    "keywords": ["electricity", "lights", "darkness", "power", "saving", "blackout", "night", "adaptation", "vision", "infrastructure", "utilities"],
+    "word_count": 39
+  },
+  
+  {
+    "id": "bread_chain_sharing",
+    "original": "This morning my daughter gave her bread to her brother. He gave it to the baby. The baby can't eat bread yet. We all watched it get soft in her tiny hands. Nobody took it back. Hunger has its own honor.",
+    "template": "This morning my {child1:role|daughter} gave {child1:pronoun_poss|her} bread to {child1:pronoun_poss|her} {child2:role|brother}. {child2:pronoun_sub|He} gave it to the baby. The baby can't eat bread yet. We all watched it get soft in {child3:pronoun_poss|her} tiny hands. Nobody took it back. Hunger has its own honor.",
+    "category": "hunger_scarcity",
+    "requirements": {
+      "min_children": 3,
+      "needs_baby": true,
+      "age_constraints": {
+        "child3": {"min": 0, "max": 2, "ideal": 1}
+      }
+    },
+    "keywords": ["bread", "sharing", "hunger", "baby", "siblings", "sacrifice", "food", "honor", "giving", "solidarity", "morning"],
+    "word_count": 42
+  },
+  
+  {
+    "id": "dates_on_tent_wall",
+    "original": "Found my son writing numbers on the tent wall. Not random. Dates. Every time someone leaves and doesn't come back. He said he's keeping count so God doesn't have to. 47 dates. He ran out of wall.",
+    "template": "Found my {child1:role|son} writing numbers on the tent wall. Not random. Dates. Every time someone leaves and doesn't come back. {child1:pronoun_sub|He} said {child1:pronoun_sub|he}'s keeping count so God doesn't have to. {random[40-60]|47} dates. {child1:pronoun_sub|He} ran out of wall.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 12}
+      }
+    },
+    "keywords": ["dates", "counting", "tent", "wall", "missing", "disappeared", "numbers", "memorial", "record", "death", "God", "memory"],
+    "word_count": 38
+  },
+  
+  {
+    "id": "braiding_in_darkness",
+    "original": "My daughter learned to braid her sister's hair in complete darkness. By touch. She said bombs teach you to love without needing light. Yesterday she braided my hair too. First time since October. We pretended morning would come.",
+    "template": "My {child1:role|daughter} learned to braid {child1:pronoun_poss|her} sister's hair in complete darkness. By touch. {child1:pronoun_sub|She} said bombs teach you to love without needing light. Yesterday {child1:pronoun_sub|she} braided my hair too. First time since {month|October}. We pretended morning would come.",
+    "category": "resilience",
+    "requirements": {
+      "min_children": 2,
+      "needs_daughters": 2,
+      "age_constraints": {
+        "child1": {"min": 6, "max": 12}
+      }
+    },
+    "keywords": ["braiding", "hair", "darkness", "sisters", "touch", "bombs", "love", "night", "morning", "October", "bonding", "tenderness"],
+    "word_count": 39
+  },
+
+    {
+    "id": "hospital_from_rubble",
+    "original": "My 4-year-old built a hospital from rubble yesterday. Put her doll inside. Said the doll has what daddy had. I asked what medicine the doll needs. She said \"the kind that exists.\" Then she buried it. Said sometimes that's the medicine.",
+    "template": "My {child1:age|4}-year-old built a hospital from rubble yesterday. Put {child1:pronoun_poss|her} doll inside. Said the doll has what daddy had. I asked what medicine the doll needs. {child1:pronoun_sub|She} said \"the kind that exists.\" Then {child1:pronoun_sub|she} buried it. Said sometimes that's the medicine.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "needs_deceased_father": true,
+      "age_constraints": {
+        "child1": {"min": 3, "max": 6, "ideal": 4}
+      }
+    },
+    "keywords": ["hospital", "rubble", "doll", "medicine", "daddy", "death", "burial", "play", "grief", "exists", "healing"],
+    "word_count": 42
+  },
+  
+  {
+    "id": "writing_times_charcoal",
+    "original": "Found my son teaching himself to write with charcoal on concrete. Not the alphabet. Times of day. \"For when I have a watch,\" he said. It's been 6 months since he's seen a working clock. He still believes in \"when.\" I don't correct him.",
+    "template": "Found my {child1:role|son} teaching himself to write with charcoal on concrete. Not the alphabet. Times of day. \"For when I have a watch,\" {child1:pronoun_sub|he} said. It's been {random[5-8]|6} months since {child1:pronoun_sub|he}'s seen a working clock. {child1:pronoun_sub|He} still believes in \"when.\" I don't correct {child1:pronoun_obj|him}.",
+    "category": "hope_future",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 6, "max": 10}
+      }
+    },
+    "keywords": ["charcoal", "writing", "time", "clock", "watch", "concrete", "learning", "future", "hope", "when", "months"],
+    "word_count": 46
+  },
+  
+  {
+    "id": "baby_survival_sounds",
+    "original": "The baby learned to sleep through explosions but wakes when her brother coughs. Nature programs survival in ways that break you. She knows which sound means danger now. A cough. In winter. In a tent. Her survival instinct is perfect and useless.",
+    "template": "The baby learned to sleep through explosions but wakes when {child2:pronoun_poss|her} {child2:role|brother} coughs. Nature programs survival in ways that break you. {child1:pronoun_sub|She} knows which sound means danger now. A cough. In winter. In a tent. {child1:pronoun_poss|Her} survival instinct is perfect and useless.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 2,
+      "age_constraints": {
+        "child1": {"min": 0, "max": 2, "ideal": 1}
+      }
+    },
+    "keywords": ["baby", "explosions", "cough", "survival", "instinct", "winter", "tent", "danger", "sleep", "brother", "adaptation"],
+    "word_count": 43
+  },
+  
+  {
+    "id": "one_dress_47_holes",
+    "original": "My daughter asked why we wash the same dress every day. I said it's her favorite. She said no, it's her only. Asked if she minded. She said \"I mind that you lie about it.\" She's 8. The dress has 47 carefully mended holes. She counts them like stars.",
+    "template": "My {child1:role|daughter} asked why we wash the same dress every day. I said it's {child1:pronoun_poss|her} favorite. {child1:pronoun_sub|She} said no, it's {child1:pronoun_poss|her} only. Asked if {child1:pronoun_sub|she} minded. {child1:pronoun_sub|She} said \"I mind that you lie about it.\" {child1:pronoun_sub|She}'s {child1:age|8}. The dress has {random[40-55]|47} carefully mended holes. {child1:pronoun_sub|She} counts them like stars.",
+    "category": "poverty",
+    "requirements": {
+      "min_children": 1,
+      "needs_daughter": true,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 10, "ideal": 8}
+      }
+    },
+    "keywords": ["dress", "clothes", "washing", "holes", "mending", "poverty", "honesty", "lying", "stars", "counting", "only"],
+    "word_count": 52
+  },
+  
+  {
+    "id": "mud_cake_birthday",
+    "original": "Today would have been my son's 10th birthday. His siblings made a cake from mud. Sang the song. Blew out pretend candles. The 5-year-old asked when he's coming back from heaven for his cake. Nobody answered. She wrapped a piece in paper for later.",
+    "template": "Today would have been my {child1:role|son}'s {child1:age|10}th birthday. {child1:pronoun_poss|His} siblings made a cake from mud. Sang the song. Blew out pretend candles. The {child2:age|5}-year-old asked when {child1:pronoun_sub|he}'s coming back from heaven for {child1:pronoun_poss|his} cake. Nobody answered. {child2:pronoun_sub|She} wrapped a piece in paper for later.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 2,
+      "needs_deceased_child": true,
+      "age_constraints": {
+        "child1": {"min": 4, "max": 6, "ideal": 5}
+      }
+    },
+    "keywords": ["birthday", "cake", "mud", "heaven", "death", "siblings", "song", "candles", "celebration", "grief", "remembrance"],
+    "word_count": 47
+  },
+  
+  {
+    "id": "planning_last_words",
+    "original": "My son stopped asking for food. Stopped crying. Doctor said it's the final stage before the body shuts down. I begged him to cry. To ask. To demand. He said \"I'm saving my energy to say goodbye properly.\" He's 6. He's planning his last words.",
+    "template": "My {child1:role|son} stopped asking for food. Stopped crying. Doctor said it's the final stage before the body shuts down. I begged {child1:pronoun_obj|him} to cry. To ask. To demand. {child1:pronoun_sub|He} said \"I'm saving my energy to say goodbye properly.\" {child1:pronoun_sub|He}'s {child1:age|6}. {child1:pronoun_sub|He}'s planning {child1:pronoun_poss|his} last words.",
+    "category": "hunger_critical",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 5, "max": 8, "ideal": 6}
+      }
+    },
+    "keywords": ["starvation", "hunger", "dying", "doctor", "goodbye", "food", "crying", "energy", "last words", "shutdown"],
+    "word_count": 47
+  },
+  
+  {
+    "id": "school_bag_survived",
+    "original": "The school bag survived the bombing. Nothing else. My daughter carries it everywhere. Empty. Says she's keeping it ready for when school comes back. Yesterday I found her teaching math to the bag. \"So it doesn't forget its purpose,\" she said.",
+    "template": "The school bag survived the bombing. Nothing else. My {child1:role|daughter} carries it everywhere. Empty. Says {child1:pronoun_sub|she}'s keeping it ready for when school comes back. Yesterday I found {child1:pronoun_obj|her} teaching math to the bag. \"So it doesn't forget its purpose,\" {child1:pronoun_sub|she} said.",
+    "category": "education_loss",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 12}
+      }
+    },
+    "keywords": ["school", "bag", "bombing", "education", "math", "teaching", "empty", "purpose", "learning", "hope", "survival"],
+    "word_count": 42
+  },
+  
+  {
+    "id": "insulin_math_hearts",
+    "original": "My diabetic son counts his insulin units like a banker. 14 left. Each one is 3 days if he eats nothing. 5 days if he \"sleeps more.\" He made a chart. Drew hearts next to the days he thinks are worth staying awake for. His sister's birthday has three hearts.",
+    "template": "My diabetic {child1:role|son} counts {child1:pronoun_poss|his} insulin units like a banker. {random[12-18]|14} left. Each one is {var1:days|3} days if {child1:pronoun_sub|he} eats nothing. {var1:days+2|5} days if {child1:pronoun_sub|he} \"sleeps more.\" {child1:pronoun_sub|He} made a chart. Drew hearts next to the days {child1:pronoun_sub|he} thinks are worth staying awake for. {child1:pronoun_poss|His} sister's birthday has three hearts.",
+    "category": "medical_crisis",
+    "requirements": {
+      "min_children": 2,
+      "needs_medical_condition": "diabetes",
+      "needs_gender_mix": true,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 12}
+      }
+    },
+    "keywords": ["diabetes", "insulin", "counting", "chart", "hearts", "birthday", "rationing", "medical", "survival", "calculation", "banker"],
+    "word_count": 52
+  },
+  
+  {
+    "id": "playing_normal_day",
+    "original": "My children play a game called \"normal day.\" They pretend to miss the school bus. Complain about homework. Fight over TV channels that don't exist. Yesterday the youngest said \"I don't want to play anymore. I forgot how it ends.\" None of us remember how normal days ended.",
+    "template": "My children play a game called \"normal day.\" They pretend to miss the school bus. Complain about homework. Fight over TV channels that don't exist. Yesterday the youngest said \"I don't want to play anymore. I forgot how it ends.\" None of us remember how normal days ended.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 3
+    },
+    "keywords": ["game", "normal", "school bus", "homework", "TV", "pretend", "memory", "childhood", "playing", "forget", "yesterday"],
+    "note": "No personalization needed - universal statement",
+    "word_count": 50
+  },
+  
+  {
+    "id": "funeral_for_childhood",
+    "original": "Last night my daughter held a funeral for her childhood. Said it died at 7 years and 3 months. Made a speech. \"It was beautiful while it lasted. It believed in tomorrow.\" Then she asked me to help bury her toys. Said dead things shouldn't have to see what comes next.",
+    "template": "Last night my {child1:role|daughter} held a funeral for {child1:pronoun_poss|her} childhood. Said it died at {child1:age|7} years and {random[1-11]|3} months. Made a speech. \"It was beautiful while it lasted. It believed in tomorrow.\" Then {child1:pronoun_sub|she} asked me to help bury {child1:pronoun_poss|her} toys. Said dead things shouldn't have to see what comes next.",
+    "category": "childhood_end",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 6, "max": 9, "ideal": 7}
+      }
+    },
+    "keywords": ["funeral", "childhood", "toys", "burial", "speech", "tomorrow", "death", "growing up", "innocence lost", "age"],
+    "word_count": 53
+  },
+
+    {
+    "id": "wedding_dance_alone",
+    "original": "My daughter practices her future wedding dance alone in the tent. No music. Just humming. She's 10. Yesterday she asked if dead girls can still get married in heaven. I said yes. She looked relieved.",
+    "template": "My {child1:role|daughter} practices {child1:pronoun_poss|her} future wedding dance alone in the tent. No music. Just humming. {child1:pronoun_sub|She}'s {child1:age|10}. Yesterday {child1:pronoun_sub|she} asked if dead girls can still get married in heaven. I said yes. {child1:pronoun_sub|She} looked relieved.",
+    "category": "childhood_end",
+    "requirements": {
+      "min_children": 1,
+      "needs_daughter": true,
+      "age_constraints": {
+        "child1": {"min": 8, "max": 12, "ideal": 10}
+      }
+    },
+    "keywords": ["wedding", "dance", "tent", "music", "humming", "heaven", "marriage", "future", "death", "girls", "relieved"],
+    "word_count": 37
+  },
+  
+  {
+    "id": "prayer_for_forgetting",
+    "original": "My children invented a new prayer. Not for food or safety. For forgetting. \"Make us forget ice cream existed. Make us forget our beds. Make us forget.\" They're 5 and 7. Memory hurts more than hunger.",
+    "template": "My children invented a new prayer. Not for food or safety. For forgetting. \"Make us forget ice cream existed. Make us forget our beds. Make us forget.\" They're {child1:age|5} and {child2:age|7}. Memory hurts more than hunger.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 2,
+      "age_constraints": {
+        "child1": {"min": 4, "max": 6},
+        "child2": {"min": 6, "max": 9}
+      }
+    },
+    "keywords": ["prayer", "forgetting", "memory", "ice cream", "beds", "hunger", "safety", "pain", "children", "hurt"],
+    "word_count": 38
+  },
+  
+  {
+    "id": "counting_seconds_since_bomb",
+    "original": "The bomb took our neighbors at 3:47 AM. My daughter knows the exact time. Not because she has a watch. Because she counts. Every second since. She's at 97,000. Still counting.",
+    "template": "The bomb took our neighbors at 3:47 AM. My {child1:role|daughter} knows the exact time. Not because {child1:pronoun_sub|she} has a watch. Because {child1:pronoun_sub|she} counts. Every second since. {child1:pronoun_sub|She}'s at {random[90000-120000]|97000}. Still counting.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 12}
+      }
+    },
+    "keywords": ["bomb", "neighbors", "time", "counting", "seconds", "3:47", "watch", "death", "numbers", "obsession"],
+    "word_count": 32
+  },
+  
+  {
+    "id": "refugees_or_humans",
+    "original": "My 4-year-old asked if we're refugees or humans. I said both. She said \"No mama, pick one.\" I couldn't. She picked for me: \"Today we're humans.\" I didn't ask about tomorrow.",
+    "template": "My {child1:age|4}-year-old asked if we're refugees or humans. I said both. {child1:pronoun_sub|She} said \"No mama, pick one.\" I couldn't. {child1:pronoun_sub|She} picked for me: \"Today we're humans.\" I didn't ask about tomorrow.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 3, "max": 5, "ideal": 4}
+      }
+    },
+    "keywords": ["refugees", "humans", "identity", "choice", "today", "tomorrow", "dignity", "displacement", "philosophy", "childhood"],
+    "word_count": 32
+  },
+  
+  {
+    "id": "shoes_for_medicine",
+    "original": "My son traded his shoes for antibiotics. For his sister. The medicine was expired. We gave it anyway. She lived. Now he measures distances by how much his feet bleed. School is 500 drops away.",
+    "template": "My {child1:role|son} traded {child1:pronoun_poss|his} shoes for antibiotics. For {child1:pronoun_poss|his} {child2:role|sister}. The medicine was expired. We gave it anyway. {child2:pronoun_sub|She} lived. Now {child1:pronoun_sub|he} measures distances by how much {child1:pronoun_poss|his} feet bleed. School is {random[400-600]|500} drops away.",
+    "category": "medical_crisis",
+    "requirements": {
+      "min_children": 2,
+      "needs_gender_mix": true,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 12}
+      }
+    },
+    "keywords": ["shoes", "antibiotics", "medicine", "expired", "trade", "sacrifice", "bleeding", "feet", "distance", "school", "sister"],
+    "word_count": 37
+  },
+  
+  {
+    "id": "practice_people",
+    "original": "\"Are we practice people?\" my daughter asked. \"For God to learn what not to do?\" She's 8. I said no, we're real. She touched her ribs, counting. \"These feel like practice bones.\"",
+    "template": "\"Are we practice people?\" my {child1:role|daughter} asked. \"For God to learn what not to do?\" {child1:pronoun_sub|She}'s {child1:age|8}. I said no, we're real. {child1:pronoun_sub|She} touched {child1:pronoun_poss|her} ribs, counting. \"These feel like practice bones.\"",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 10, "ideal": 8}
+      }
+    },
+    "keywords": ["practice", "God", "philosophy", "bones", "ribs", "counting", "real", "existence", "theology", "hunger"],
+    "word_count": 33
+  },
+  
+  {
+    "id": "evacuation_practice",
+    "original": "My children don't play \"house\" anymore. They play \"evacuation.\" Each knows what to grab. The 4-year-old's job is the baby. Yesterday she practiced carrying him while running. Dropped him twice. Cried both times. Not because she hurt him. Because in real evacuation, twice means dead.",
+    "template": "My children don't play \"house\" anymore. They play \"evacuation.\" Each knows what to grab. The {child1:age|4}-year-old's job is the baby. Yesterday {child1:pronoun_sub|she} practiced carrying {child2:pronoun_obj|him} while running. Dropped {child2:pronoun_obj|him} twice. Cried both times. Not because {child1:pronoun_sub|she} hurt {child2:pronoun_obj|him}. Because in real evacuation, twice means dead.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 2,
+      "age_constraints": {
+        "child1": {"min": 3, "max": 5, "ideal": 4},
+        "child2": {"min": 0, "max": 2, "ideal": 1}
+      }
+    },
+    "keywords": ["evacuation", "practice", "game", "baby", "carrying", "running", "dropped", "survival", "preparation", "play"],
+    "word_count": 48
+  },
+  
+  {
+    "id": "hunger_diary",
+    "original": "Found my daughter's notebook. She's keeping a \"hunger diary.\" Day 1: stomach hurts. Day 15: stopped hurting. Day 30: forgot what full means. Day 47: decided hungry is normal. She's 9. I burned the notebook. She started a new one.",
+    "template": "Found my {child1:role|daughter}'s notebook. {child1:pronoun_sub|She}'s keeping a \"hunger diary.\" Day 1: stomach hurts. Day {random[12-18]|15}: stopped hurting. Day {random[25-35]|30}: forgot what full means. Day {random[40-55]|47}: decided hungry is normal. {child1:pronoun_sub|She}'s {child1:age|9}. I burned the notebook. {child1:pronoun_sub|She} started a new one.",
+    "category": "hunger_scarcity",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 8, "max": 11, "ideal": 9}
+      }
+    },
+    "keywords": ["diary", "hunger", "notebook", "stomach", "normal", "documentation", "days", "adaptation", "burning", "writing"],
+    "word_count": 42
+  },
+  
+  {
+    "id": "washing_dignity",
+    "original": "\"Why do we wash dead people but not live ones?\" my son asked. We haven't bathed properly in weeks. I said the dead deserve dignity. He said \"So do we.\" He's 6. He won. We used drinking water. Just this once.",
+    "template": "\"Why do we wash dead people but not live ones?\" my {child1:role|son} asked. We haven't bathed properly in weeks. I said the dead deserve dignity. {child1:pronoun_sub|He} said \"So do we.\" {child1:pronoun_sub|He}'s {child1:age|6}. {child1:pronoun_sub|He} won. We used drinking water. Just this once.",
+    "category": "water_scarcity",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 5, "max": 8, "ideal": 6}
+      }
+    },
+    "keywords": ["washing", "bathing", "dignity", "death", "water", "drinking water", "hygiene", "weeks", "bodies", "ritual"],
+    "word_count": 43
+  },
+  
+  {
+    "id": "birthday_card_from_dead",
+    "original": "My daughter made herself a birthday card. From her dead friend. \"I know she would remember,\" she explained. Inside: \"Sorry I can't come. I'm busy being dead. Save me cake.\" She saved a piece. It molded. She saved that too.",
+    "template": "My {child1:role|daughter} made herself a birthday card. From {child1:pronoun_poss|her} dead friend. \"I know she would remember,\" {child1:pronoun_sub|she} explained. Inside: \"Sorry I can't come. I'm busy being dead. Save me cake.\" {child1:pronoun_sub|She} saved a piece. It molded. {child1:pronoun_sub|She} saved that too.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 6, "max": 10}
+      }
+    },
+    "keywords": ["birthday", "card", "friend", "death", "cake", "memory", "mold", "saving", "remembrance", "grief"],
+    "word_count": 42
+  },
+
+    {
+    "id": "burying_international_law",
+    "original": "My son buried a paper that said \"International Law\" on it. I asked why. \"It was already dead. I'm just being polite.\" He made a speech: \"It protected nobody. It saved nobody. But it tried to exist. That's something.\" He's 7. He understands mercy better than judges.",
+    "template": "My {child1:role|son} buried a paper that said \"International Law\" on it. I asked why. \"It was already dead. I'm just being polite.\" {child1:pronoun_sub|He} made a speech: \"It protected nobody. It saved nobody. But it tried to exist. That's something.\" {child1:pronoun_sub|He}'s {child1:age|7}. {child1:pronoun_sub|He} understands mercy better than judges.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 6, "max": 9, "ideal": 7}
+      }
+    },
+    "keywords": ["international law", "burial", "speech", "mercy", "judges", "justice", "polite", "dead", "protected", "nobody"],
+    "word_count": 48
+  },
+  
+  {
+    "id": "angels_language",
+    "original": "My daughter asked what language angels speak. I said all languages. She said \"Then why don't they understand 'help'?\" She's 7. She's been praying in 3 languages. Still waiting.",
+    "template": "My {child1:role|daughter} asked what language angels speak. I said all languages. {child1:pronoun_sub|She} said \"Then why don't they understand 'help'?\" {child1:pronoun_sub|She}'s {child1:age|7}. {child1:pronoun_sub|She}'s been praying in {random[2-4]|3} languages. Still waiting.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 6, "max": 9, "ideal": 7}
+      }
+    },
+    "keywords": ["angels", "language", "prayer", "help", "waiting", "God", "multilingual", "faith", "unanswered", "theology"],
+    "word_count": 30
+  },
+  
+  {
+    "id": "before_and_after_game",
+    "original": "Found my daughters playing \"before and after.\" They take turns remembering things. The one who cries first loses. They always tie. They're 6 and 8. Memory is their only toy.",
+    "template": "Found my daughters playing \"before and after.\" They take turns remembering things. The one who cries first loses. They always tie. They're {child1:age|6} and {child2:age|8}. Memory is their only toy.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 2,
+      "needs_daughters": 2,
+      "age_constraints": {
+        "child1": {"min": 5, "max": 7},
+        "child2": {"min": 7, "max": 10}
+      }
+    },
+    "keywords": ["game", "memory", "before", "after", "crying", "remembering", "sisters", "toy", "tie", "loss"],
+    "word_count": 31
+  },
+  
+  {
+    "id": "forgetting_child",
+    "original": "I have X children. This morning I counted X-1. For three seconds I couldn't remember who was missing. Then I did. The brain protects itself in ways that break you later. My AGE-year-old said \"It's okay mama, sometimes I forget too.\" We were talking about her sister. Dead 40 days.",
+    "template": "I have {child_count} children. This morning I counted {alive_count}. For three seconds I couldn't remember who was missing. Then I did. The brain protects itself in ways that break you later. My {child2:age|7}-year-old said \"It's okay mama, sometimes I forget too.\" We were talking about {child1:pronoun_poss|her} {child1:role|sister}. Dead {child1:days_since_death|40} days.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 3,
+      "needs_deceased_child": true
+    },
+    "keywords": ["counting", "forgetting", "memory", "protection", "brain", "sister", "death", "missing", "days", "grief"],
+    "word_count": 52
+  },
+
+    {
+    "id": "disabled_child_goodbye",
+    "original": "My AGE-year-old can't walk. Can't speak. But understands everything. When the bombs fall, his eyes ask questions I can't answer. Yesterday he grabbed my hand during an explosion. First time in months. Not from love. From knowing. He knows what we don't say out loud. He's already said goodbye in his own way.",
+    "template": "My {child1:age|8}-year-old can't walk. Can't speak. But understands everything. When the bombs fall, {child1:pronoun_poss|his} eyes ask questions I can't answer. Yesterday {child1:pronoun_sub|he} grabbed my hand during an explosion. First time in months. Not from love. From knowing. {child1:pronoun_sub|He} knows what we don't say out loud. {child1:pronoun_sub|He}'s already said goodbye in {child1:pronoun_poss|his} own way.",
+    "category": "disability",
+    "requirements": {
+      "min_children": 1,
+      "needs_disabled": true,
+      "age_constraints": {
+        "child1": {"min": 6, "max": 12}
+      }
+    },
+    "keywords": ["disabled", "non-verbal", "wheelchair", "understanding", "bombs", "goodbye", "communication", "explosion", "knowing", "silence"],
+    "word_count": 56
+  },
+  
+  {
+    "id": "heart_condition_nebulizer",
+    "original": "Born with a hole in her heart. AGE years old. Needs a nebulizer. In America: $60. In Egypt: $90. In Gaza: $300. My daughter's heart costs more here because hearts are bad for business during genocide. She breathes 30 times per minute. Normal is 20. I count every extra breath as theft.",
+    "template": "Born with a hole in {child1:pronoun_poss|her} heart. {child1:age|4} years old. Needs a nebulizer. In America: ${random[50-70]|60}. In Egypt: ${random[80-100]|90}. In Gaza: ${random[250-350]|300}. My {child1:role|daughter}'s heart costs more here because hearts are bad for business during genocide. {child1:pronoun_sub|She} breathes {random[28-35]|30} times per minute. Normal is 20. I count every extra breath as theft.",
+    "category": "medical_crisis",
+    "requirements": {
+      "min_children": 1,
+      "needs_medical_condition": "heart",
+      "age_constraints": {
+        "child1": {"min": 2, "max": 8}
+      }
+    },
+    "keywords": ["heart", "hole", "nebulizer", "breathing", "medical", "cost", "price", "genocide", "theft", "minute"],
+    "word_count": 54
+  },
+  
+  {
+    "id": "aid_truck_statistics",
+    "original": "My AGE-year-old memorized which aid trucks have medicine. Not from hope. From pattern recognition. \"The white ones never do. The green sometimes. The red ones used to.\" She's creating survival statistics. Yesterday she said \"We have 0% chance today mama. All trucks are white.\" She was right.",
+    "template": "My {child1:age|9}-year-old memorized which aid trucks have medicine. Not from hope. From pattern recognition. \"The white ones never do. The green sometimes. The red ones used to.\" {child1:pronoun_sub|She}'s creating survival statistics. Yesterday {child1:pronoun_sub|she} said \"We have 0% chance today mama. All trucks are white.\" {child1:pronoun_sub|She} was right.",
+    "category": "survival",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 11, "ideal": 9}
+      }
+    },
+    "keywords": ["aid", "trucks", "medicine", "pattern", "statistics", "white", "green", "red", "chance", "recognition"],
+    "word_count": 48
+  },
+  
+  {
+    "id": "different_hungers",
+    "original": "NUMBER children. NUMBER different ways to be hungry. The AGE-year-old cries. The AGE-year-old goes silent. The AGE-year-old makes jokes that aren't funny. \"My stomach is practicing being empty for when I'm dead.\" We laughed. What else could we do?",
+    "template": "{child_count} children. {child_count} different ways to be hungry. The {child1:age[3-6]|4}-year-old cries. The {child2:age[6-9,>child1:age]|7}-year-old goes silent. The {child3:age[9-13,>child2:age]|10}-year-old makes jokes that aren't funny. \"My stomach is practicing being empty for when I'm dead.\" We laughed. What else could we do?",
+    "category": "hunger_scarcity",
+    "requirements": {
+      "min_children": 3,
+      "age_ordering": "ascending"
+    },
+    "keywords": ["hunger", "children", "crying", "silence", "jokes", "stomach", "empty", "death", "laughing", "coping"],
+    "word_count": 40
+  },
+
+  {
+    "id": "father_lengths_measurement",
+    "original": "The children measure distance in \"father-lengths.\" The tent is six father-lengths wide. The water queue is fifty father-lengths. He's been gone 200 days. They've forgotten meters exist. Memory becomes measurement.",
+    "template": "The children measure distance in \"father-lengths.\" The tent is {random[5-8]|six} father-lengths wide. The water queue is {random[40-60]|fifty} father-lengths. He's been gone {adult2:days_since_death|200} days. They've forgotten meters exist. Memory becomes measurement.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "adult2_status": "deceased"
+    },
+    "keywords": ["father", "distance", "measurement", "tent", "water", "queue", "memory", "meters", "gone", "length"],
+    "word_count": 31
+  },
+  
+  {
+    "id": "bury_facing_east",
+    "original": "My daughter asked why we bury people facing east. So they can see sunrise, I said. \"But their eyes are closed.\" I had no answer. She's 7. Theology ends where children's logic begins.",
+    "template": "My {child1:role|daughter} asked why we bury people facing east. So they can see sunrise, I said. \"But their eyes are closed.\" I had no answer. {child1:pronoun_sub|She}'s {child1:age|7}. Theology ends where children's logic begins.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 6, "max": 9, "ideal": 7}
+      }
+    },
+    "keywords": ["burial", "east", "sunrise", "eyes", "theology", "logic", "death", "ritual", "children", "question"],
+    "word_count": 34
+  },
+  
+  {
+    "id": "three_ways_disappearing",
+    "original": "Three children. Three different ways of disappearing. The oldest stops talking. The middle one stops eating. The youngest stops sleeping. They're practicing absence. Getting ready. They're 11, 8, and 4.",
+    "template": "Three children. Three different ways of disappearing. The oldest stops talking. The middle one stops eating. The youngest stops sleeping. They're practicing absence. Getting ready. They're {child1:age[9-13]|11}, {child2:age[6-10,<child1:age]|8}, and {child3:age[3-6,<child2:age]|4}.",
+    "category": "childhood_end",
+    "requirements": {
+      "min_children": 3,
+      "age_ordering": "descending"
+    },
+    "keywords": ["disappearing", "silence", "eating", "sleeping", "absence", "practicing", "ready", "coping", "withdrawal", "trauma"],
+    "word_count": 31
+  },
+  
+    {
+    "id": "childhood_expiry_date",
+    "original": "\"When does childhood expire?\" my daughter asked. Checking dates on aid packages. Everything expires. She thinks childhood has a best-before date too. \"Mine expired in October,\" she concluded. She's 10. October was yesterday and forever ago.",
+    "template": "\"When does childhood expire?\" my {child1:role|daughter} asked. Checking dates on aid packages. Everything expires. {child1:pronoun_sub|She} thinks childhood has a best-before date too. \"Mine expired in {var1:month|October},\" {child1:pronoun_sub|she} concluded. {child1:pronoun_sub|She}'s {child1:age|10}. {var1:month} was yesterday and forever ago.",
+    "category": "childhood_end",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 8, "max": 12, "ideal": 10}
+      }
+    },
+    "keywords": ["expire", "childhood", "aid", "packages", "dates", "October", "best-before", "time", "loss", "age"],
+    "word_count": 37
+  },
+  
+  {
+    "id": "god_quota",
+    "original": "My son asked if God has a quota. \"For how many He saves per day.\" I said no. He said \"Then He's behind schedule.\" We're Christians. The Holy Family church has 300 of us left. My son counts. \"299 tomorrow,\" he predicts. He's usually right.",
+    "template": "My {child1:role|son} asked if God has a quota. \"For how many He saves per day.\" I said no. {child1:pronoun_sub|He} said \"Then He's behind schedule.\" We're Christians. The Holy Family church has {var1:church_count|300} of us left. My {child1:role|son} counts. \"{var1:church_count-1|299} tomorrow,\" {child1:pronoun_sub|he} predicts. {child1:pronoun_sub|He}'s usually right.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 7, "max": 12}
+      }
+    },
+    "keywords": ["God", "quota", "saves", "Christians", "Holy Family", "church", "counting", "schedule", "prediction", "faith"],
+    "word_count": 46
+  },
+  
+  {
+    "id": "communion_wafers",
+    "original": "The priest ran out of communion wafers last Sunday. Now he breaks one piece into 40. My daughter said \"Like the loaves and fishes, but backwards.\" She's 8. Even miracles are shrinking in Gaza.",
+    "template": "The priest ran out of communion wafers last Sunday. Now he breaks one piece into {random[30-50]|40}. My {child1:role|daughter} said \"Like the loaves and fishes, but backwards.\" {child1:pronoun_sub|She}'s {child1:age|8}. Even miracles are shrinking in Gaza.",
+    "category": "hunger_scarcity",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 6, "max": 10, "ideal": 8}
+      }
+    },
+    "keywords": ["priest", "communion", "wafers", "loaves", "fishes", "miracles", "church", "Sunday", "shrinking", "backwards"],
+    "word_count": 35
+  },
+  
+  {
+    "id": "cemetery_grass",
+    "original": "My 6-year-old asked why we eat grass soup but not the grass in the cemetery. \"Because the dead fed it first,\" I said. She understood. Started picking grass from between the graves. \"They won't mind sharing.\" The dead are generous here.",
+    "template": "My {child1:age|6}-year-old asked why we eat grass soup but not the grass in the cemetery. \"Because the dead fed it first,\" I said. {child1:pronoun_sub|She} understood. Started picking grass from between the graves. \"They won't mind sharing.\" The dead are generous here.",
+    "category": "hunger_scarcity",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 5, "max": 8, "ideal": 6}
+      }
+    },
+    "keywords": ["grass", "soup", "cemetery", "graves", "dead", "sharing", "generous", "hunger", "picking", "food"],
+    "word_count": 43
+  },
+  
+  {
+    "id": "angels_tired",
+    "original": "\"Do angels get tired?\" my daughter asked. I said no. \"Then why don't they carry us out?\" She's 5. She drew wings on her shoes. \"To help them remember.\" Still wearing them. Still here. The shoes are falling apart. The wings remain perfect.",
+    "template": "\"Do angels get tired?\" my {child1:role|daughter} asked. I said no. \"Then why don't they carry us out?\" {child1:pronoun_sub|She}'s {child1:age|5}. {child1:pronoun_sub|She} drew wings on {child1:pronoun_poss|her} shoes. \"To help them remember.\" Still wearing them. Still here. The shoes are falling apart. The wings remain perfect.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 4, "max": 7, "ideal": 5}
+      }
+    },
+    "keywords": ["angels", "tired", "wings", "shoes", "carry", "remember", "falling apart", "perfect", "escape", "faith"],
+    "word_count": 45
+  },
+  
+  {
+    "id": "lords_prayer_languages",
+    "original": "My son learned the Lord's Prayer in three languages. Arabic, English, Latin. \"So God can't pretend He doesn't understand,\" he explained. He's 7. Prays all three every night. Still no bread. Daily or otherwise.",
+    "template": "My {child1:role|son} learned the Lord's Prayer in three languages. Arabic, English, Latin. \"So God can't pretend He doesn't understand,\" {child1:pronoun_sub|he} explained. {child1:pronoun_sub|He}'s {child1:age|7}. Prays all three every night. Still no bread. Daily or otherwise.",
+    "category": "hunger_scarcity",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 6, "max": 9, "ideal": 7}
+      }
+    },
+    "keywords": ["Lord's Prayer", "languages", "Arabic", "English", "Latin", "God", "bread", "daily", "prayer", "understand"],
+    "word_count": 35
+  },
+
+    {
+    "id": "dolls_from_rubble",
+    "original": "Found my daughter singing lullabies to the dolls she made from rubble. \"They were real children before,\" she explained. \"They remember sleeping.\" She's 6. She made 19 dolls. One for each friend. Sleeps surrounded by concrete children.",
+    "template": "Found my {child1:role|daughter} singing lullabies to the dolls {child1:pronoun_sub|she} made from rubble. \"They were real children before,\" {child1:pronoun_sub|she} explained. \"They remember sleeping.\" {child1:pronoun_sub|She}'s {child1:age|6}. {child1:pronoun_sub|She} made {random[15-25]|19} dolls. One for each friend. Sleeps surrounded by concrete children.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 5, "max": 8, "ideal": 6}
+      }
+    },
+    "keywords": ["dolls", "rubble", "lullabies", "concrete", "friends", "sleeping", "death", "memory", "children", "singing"],
+    "word_count": 39
+  },
+  
+  {
+    "id": "medicine_expires",
+    "original": "My son asked why medicine expires but suffering doesn't. The expired antibiotics are all we have. Gave them anyway. Worked halfway. Now he's half-sick forever. \"Better than full dead,\" he says. He's 10. Masters degrees in compromise.",
+    "template": "My {child1:role|son} asked why medicine expires but suffering doesn't. The expired antibiotics are all we have. Gave them anyway. Worked halfway. Now {child1:pronoun_sub|he}'s half-sick forever. \"Better than full dead,\" {child1:pronoun_sub|he} says. {child1:pronoun_sub|He}'s {child1:age|10}. Masters degrees in compromise.",
+    "category": "medical_crisis",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 8, "max": 12, "ideal": 10}
+      }
+    },
+    "keywords": ["medicine", "expired", "antibiotics", "suffering", "sick", "compromise", "halfway", "dead", "treatment", "philosophy"],
+    "word_count": 38
+  },
+  
+  {
+    "id": "invisible_church_bell",
+    "original": "The church bell doesn't ring anymore. My daughter rings an invisible one every Sunday. Makes the sound with her mouth. \"God hears the ones that don't exist better,\" she said. She's 9. Nobody told her to stop. Her invisible bell is the loudest sound here.",
+    "template": "The church bell doesn't ring anymore. My {child1:role|daughter} rings an invisible one every Sunday. Makes the sound with {child1:pronoun_poss|her} mouth. \"God hears the ones that don't exist better,\" {child1:pronoun_sub|she} said. {child1:pronoun_sub|She}'s {child1:age|9}. Nobody told {child1:pronoun_obj|her} to stop. {child1:pronoun_poss|Her} invisible bell is the loudest sound here.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 7, "max": 11, "ideal": 9}
+      }
+    },
+    "keywords": ["church", "bell", "Sunday", "invisible", "God", "sound", "faith", "worship", "ritual", "ringing"],
+    "word_count": 47
+  },
+  
+  {
+    "id": "naming_rats",
+    "original": "My children named the rats in our shelter. Give them personalities. Stories. \"This one's the father. He brings food.\" Yesterday they found him dead. Held a funeral. \"Even rats don't survive here,\" my 7-year-old concluded. The truth has no age limit.",
+    "template": "My children named the rats in our shelter. Give them personalities. Stories. \"This one's the father. He brings food.\" Yesterday they found him dead. Held a funeral. \"Even rats don't survive here,\" my {child1:age|7}-year-old concluded. The truth has no age limit.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 6, "max": 9, "ideal": 7}
+      }
+    },
+    "keywords": ["rats", "shelter", "funeral", "death", "survival", "truth", "pets", "stories", "personalities", "children"],
+    "word_count": 43
+  },
+  
+  {
+    "id": "rationing_halos",
+    "original": "My daughter's fever dream: \"Angels were rationing halos. One per family.\" She woke up crying. Not from fever. From fairness. \"We're five people, Mama. Who gets it?\" She's 8. In her dreams, even God has to choose.",
+    "template": "My {child1:role|daughter}'s fever dream: \"Angels were rationing halos. One per family.\" {child1:pronoun_sub|She} woke up crying. Not from fever. From fairness. \"We're {family_size|five} people, Mama. Who gets it?\" {child1:pronoun_sub|She}'s {child1:age|8}. In {child1:pronoun_poss|her} dreams, even God has to choose.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 6, "max": 10, "ideal": 8}
+      }
+    },
+    "keywords": ["angels", "halos", "fever", "dream", "rationing", "fairness", "God", "family", "choosing", "scarcity"],
+    "word_count": 39
+  },
+  
+  {
+    "id": "calculating_meals",
+    "original": "\"If we eat one meal every three days, how long until summer?\" my son calculated. \"We'll make it,\" he announced. It's January. He's 11. His math is perfect. His body is eating itself. Summer is six thousand hours away.",
+    "template": "\"If we eat one meal every {var1:days|three} days, how long until summer?\" my {child1:role|son} calculated. \"We'll make it,\" {child1:pronoun_sub|he} announced. It's {var2:month|January}. {child1:pronoun_sub|He}'s {child1:age|11}. {child1:pronoun_poss|His} math is perfect. {child1:pronoun_poss|His} body is eating itself. Summer is {random[5000-7000]|six thousand} hours away.",
+    "category": "hunger_critical",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 9, "max": 13, "ideal": 11}
+      }
+    },
+    "keywords": ["calculation", "meals", "summer", "math", "hunger", "rationing", "body", "starvation", "hours", "January"],
+    "word_count": 40
+  },
+  
+  {
+    "id": "mary_fled_once",
+    "original": "My daughter asked why Mary only had to flee to Egypt once. \"We fled seven times and still nowhere safe.\" She's 6. Carrying baby Jesus in her pocket. A burnt picture from our bombed church. Says He understands homelessness better now.",
+    "template": "My {child1:role|daughter} asked why Mary only had to flee to Egypt once. \"We fled {random[5-10]|seven} times and still nowhere safe.\" {child1:pronoun_sub|She}'s {child1:age|6}. Carrying baby Jesus in {child1:pronoun_poss|her} pocket. A burnt picture from our bombed church. Says He understands homelessness better now.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 5, "max": 8, "ideal": 6}
+      }
+    },
+    "keywords": ["Mary", "Egypt", "flee", "Jesus", "picture", "church", "bombed", "homeless", "displacement", "biblical"],
+    "word_count": 43
+  },
+  
+  {
+    "id": "church_construction",
+    "original": "300 Christians left in Gaza. My son did the subtraction: \"We lost 1,200.\" Then he asked where souls go when churches are rubble. I said heaven. He said \"It must be crowded.\" Started building a church from debris. \"Practice for heaven's construction crew.\"",
+    "template": "{var1:christians_left|300} Christians left in Gaza. My {child1:role|son} did the subtraction: \"We lost {var2:christians_lost|1,200}.\" Then {child1:pronoun_sub|he} asked where souls go when churches are rubble. I said heaven. {child1:pronoun_sub|He} said \"It must be crowded.\" Started building a church from debris. \"Practice for heaven's construction crew.\"",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 7, "max": 12}
+      }
+    },
+    "keywords": ["Christians", "Gaza", "subtraction", "souls", "churches", "rubble", "heaven", "construction", "debris", "building"],
+    "word_count": 45
+  },
+  
+  {
+    "id": "matchbox_cathedral",
+    "original": "My daughter saves breadcrumbs in a matchbox. \"For communion when the priest comes back.\" He died 47 days ago. She doesn't know. Still saves crumbs. The matchbox is her cathedral. She's 5. Faith weighs nothing and everything.",
+    "template": "My {child1:role|daughter} saves breadcrumbs in a matchbox. \"For communion when the priest comes back.\" He died {random[40-60]|47} days ago. {child1:pronoun_sub|She} doesn't know. Still saves crumbs. The matchbox is {child1:pronoun_poss|her} cathedral. {child1:pronoun_sub|She}'s {child1:age|5}. Faith weighs nothing and everything.",
+    "category": "resilience",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 4, "max": 7, "ideal": 5}
+      }
+    },
+    "keywords": ["breadcrumbs", "matchbox", "communion", "priest", "cathedral", "faith", "death", "saving", "ritual", "innocence"],
+    "word_count": 38
+  },
+  
+  {
+    "id": "stars_or_angels",
+    "original": "Last night my son asked if dead children become stars or angels. \"Stars,\" I said. \"Angels have jobs.\" He counted the sky. \"Gaza's making too many stars. God's running out of sky.\" He's 9. Astronomy of genocide.",
+    "template": "Last night my {child1:role|son} asked if dead children become stars or angels. \"Stars,\" I said. \"Angels have jobs.\" {child1:pronoun_sub|He} counted the sky. \"Gaza's making too many stars. God's running out of sky.\" {child1:pronoun_sub|He}'s {child1:age|9}. Astronomy of genocide.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 7, "max": 11, "ideal": 9}
+      }
+    },
+    "keywords": ["stars", "angels", "dead children", "sky", "God", "counting", "astronomy", "genocide", "heaven", "death"],
+    "word_count": 39
+  },
+
+    {
+    "id": "watching_or_recording",
+    "original": "My daughter asked if the world is watching or just recording. I didn't understand. She said \"Watching means you stop it. Recording means you make a movie after we're dead.\" She's 8. She knows which one we are.",
+    "template": "My {child1:role|daughter} asked if the world is watching or just recording. I didn't understand. {child1:pronoun_sub|She} said \"Watching means you stop it. Recording means you make a movie after we're dead.\" {child1:pronoun_sub|She}'s {child1:age|8}. {child1:pronoun_sub|She} knows which one we are.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 10, "ideal": 8}
+      }
+    },
+    "keywords": ["watching", "recording", "world", "movie", "death", "observation", "media", "witness", "documentation", "awareness"],
+    "word_count": 38
+  },
+  
+  {
+    "id": "writing_will",
+    "original": "Found my son writing his will. He's 10. Left his shoes to his brother \"because his feet are still growing.\" Left his jacket to his sister \"for next winter if she makes it.\" Asked who he's leaving his memories to. He said \"Nobody wants those.\"",
+    "template": "Found my {child1:role|son} writing his will. {child1:pronoun_sub|He}'s {child1:age|10}. Left {child1:pronoun_poss|his} shoes to {child1:pronoun_poss|his} brother \"because his feet are still growing.\" Left {child1:pronoun_poss|his} jacket to {child1:pronoun_poss|his} sister \"for next winter if she makes it.\" Asked who {child1:pronoun_sub|he}'s leaving {child1:pronoun_poss|his} memories to. {child1:pronoun_sub|He} said \"Nobody wants those.\"",
+    "category": "childhood_end",
+    "requirements": {
+      "min_children": 3,
+      "needs_gender_mix": true,
+      "age_constraints": {
+        "child1": {"min": 8, "max": 12, "ideal": 10}
+      }
+    },
+    "keywords": ["will", "inheritance", "shoes", "jacket", "memories", "siblings", "death", "planning", "growing", "winter"],
+    "word_count": 47
+  },
+  
+  {
+    "id": "counting_bombs_closer",
+    "original": "My 5-year-old doesn't cry when bombs fall anymore. She counts. \"That's 73 closer to us, mama.\" I asked closer to what? \"To our turn.\" She keeps a notebook. We're at 1,847. She's very precise about death.",
+    "template": "My {child1:age|5}-year-old doesn't cry when bombs fall anymore. {child1:pronoun_sub|She} counts. \"That's {random[50-100]|73} closer to us, mama.\" I asked closer to what? \"To our turn.\" {child1:pronoun_sub|She} keeps a notebook. We're at {random[1500-2500]|1847}. {child1:pronoun_sub|She}'s very precise about death.",
+    "category": "childhood_end",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 4, "max": 7, "ideal": 5}
+      }
+    },
+    "keywords": ["bombs", "counting", "notebook", "death", "precision", "turn", "crying", "documentation", "numbers", "fear"],
+    "word_count": 38
+  },
+  
+  {
+    "id": "body_eating_muscles",
+    "original": "The doctor said my daughter's body is eating her muscles to stay alive. She asked if it hurts the muscles. Not if it hurts her. If it hurts the muscles. She's 7. She apologizes to her own body for being hungry.",
+    "template": "The doctor said my {child1:role|daughter}'s body is eating {child1:pronoun_poss|her} muscles to stay alive. {child1:pronoun_sub|She} asked if it hurts the muscles. Not if it hurts {child1:pronoun_obj|her}. If it hurts the muscles. {child1:pronoun_sub|She}'s {child1:age|7}. {child1:pronoun_sub|She} apologizes to {child1:pronoun_poss|her} own body for being hungry.",
+    "category": "hunger_critical",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 6, "max": 9, "ideal": 7}
+      }
+    },
+    "keywords": ["muscles", "starvation", "doctor", "body", "eating", "apologize", "hunger", "pain", "alive", "medical"],
+    "word_count": 43
+  },
+  
+  {
+    "id": "photo_happy_boy",
+    "original": "My son found a photo of himself from before. Fat cheeks. Clean clothes. Smiled. He asked \"Who's this happy boy?\" I said it's you. He said \"No mama, I've never been happy. You're confused.\" The photo is 8 months old. He's 6.",
+    "template": "My {child1:role|son} found a photo of himself from before. Fat cheeks. Clean clothes. Smiled. {child1:pronoun_sub|He} asked \"Who's this happy boy?\" I said it's you. {child1:pronoun_sub|He} said \"No mama, I've never been happy. You're confused.\" The photo is {random[6-12]|8} months old. {child1:pronoun_sub|He}'s {child1:age|6}.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 5, "max": 8, "ideal": 6}
+      }
+    },
+    "keywords": ["photo", "before", "happy", "memory", "identity", "forgotten", "cheeks", "clothes", "smile", "confusion"],
+    "word_count": 44
+  },
+  
+  {
+    "id": "funeral_preferences",
+    "original": "\"When I die, don't wash me,\" my daughter said. \"Save the water for the living.\" She's 9. She spent an hour explaining her funeral preferences. Small hole. No flowers. Quick prayer. \"Don't make it complicated, mama. Death should be efficient here.\"",
+    "template": "\"When I die, don't wash me,\" my {child1:role|daughter} said. \"Save the water for the living.\" {child1:pronoun_sub|She}'s {child1:age|9}. {child1:pronoun_sub|She} spent an hour explaining {child1:pronoun_poss|her} funeral preferences. Small hole. No flowers. Quick prayer. \"Don't make it complicated, mama. Death should be efficient here.\"",
+    "category": "water_scarcity",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 11, "ideal": 9}
+      }
+    },
+    "keywords": ["funeral", "water", "death", "washing", "efficient", "preferences", "burial", "prayer", "flowers", "planning"],
+    "word_count": 43
+  },
+  
+  {
+    "id": "distance_in_bodies",
+    "original": "My son asked why we measure distance in meters instead of bodies. \"The school is 50 bodies away. The hospital is 200 bodies.\" He's 11. He said bodies are more accurate than meters now. He's right.",
+    "template": "My {child1:role|son} asked why we measure distance in meters instead of bodies. \"The school is {random[40-70]|50} bodies away. The hospital is {random[150-250]|200} bodies.\" {child1:pronoun_sub|He}'s {child1:age|11}. {child1:pronoun_sub|He} said bodies are more accurate than meters now. {child1:pronoun_sub|He}'s right.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 9, "max": 13, "ideal": 11}
+      }
+    },
+    "keywords": ["distance", "bodies", "meters", "measurement", "school", "hospital", "death", "accuracy", "mathematics", "geography"],
+    "word_count": 37
+  },
+  
+  {
+    "id": "still_alive_game",
+    "original": "My 4-year-old daughter plays a game called \"Still Alive.\" She touches everyone in the tent each morning. \"Still alive, still alive, still alive.\" When she gets to daddy's photo she whispers \"Not alive\" very quietly. Like it's a secret death hasn't noticed yet.",
+    "template": "My {child1:age|4}-year-old {child1:role|daughter} plays a game called \"Still Alive.\" {child1:pronoun_sub|She} touches everyone in the tent each morning. \"Still alive, still alive, still alive.\" When {child1:pronoun_sub|she} gets to daddy's photo {child1:pronoun_sub|she} whispers \"Not alive\" very quietly. Like it's a secret death hasn't noticed yet.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "adult2_status": "deceased",
+      "age_constraints": {
+        "child1": {"min": 3, "max": 5, "ideal": 4}
+      }
+    },
+    "keywords": ["game", "alive", "death", "daddy", "photo", "morning", "tent", "whisper", "secret", "ritual"],
+    "word_count": 46
+  },
+  
+  {
+    "id": "biscuits_expiration",
+    "original": "The UN sent biscuits. My son read the expiration date: 2027. He laughed until he cried. \"We expire before the biscuits, mama.\" He's 10. He taped the wrapper to the tent wall. \"Proof that something believes in 2027,\" he said.",
+    "template": "The UN sent biscuits. My {child1:role|son} read the expiration date: {random[2026-2029]|2027}. {child1:pronoun_sub|He} laughed until {child1:pronoun_sub|he} cried. \"We expire before the biscuits, mama.\" {child1:pronoun_sub|He}'s {child1:age|10}. {child1:pronoun_sub|He} taped the wrapper to the tent wall. \"Proof that something believes in {var1:year|2027},\" {child1:pronoun_sub|he} said.",
+    "category": "aid_supplies",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 8, "max": 12, "ideal": 10}
+      }
+    },
+    "keywords": ["UN", "biscuits", "expiration", "2027", "future", "laughing", "crying", "wrapper", "tent", "belief"],
+    "word_count": 41
+  },
+  
+  {
+    "id": "how_will_this_end",
+    "original": "My daughter stopped asking \"When will this end?\" Now she asks \"How will this end?\" I said I don't know. She said \"I do. One by one. That's how everything ends here. One by one.\" She's marked 47 \"one by ones\" on our tent wall. She's 8.",
+    "template": "My {child1:role|daughter} stopped asking \"When will this end?\" Now {child1:pronoun_sub|she} asks \"How will this end?\" I said I don't know. {child1:pronoun_sub|She} said \"I do. One by one. That's how everything ends here. One by one.\" {child1:pronoun_sub|She}'s marked {random[40-60]|47} \"one by ones\" on our tent wall. {child1:pronoun_sub|She}'s {child1:age|8}.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": {"min": 7, "max": 10, "ideal": 8}
+      }
+    },
+    "keywords": ["ending", "when", "how", "one by one", "death", "marking", "tent", "wall", "counting", "prediction"],
+    "word_count": 50
+  },
+
+  {
+    "id": "priest_hands_shake",
+    "original": "The priest's hands shake during communion now. Not from age. From hunger. My daughter noticed. \"Even God's servant is starving, Mama.\" She's 7. She saved her bread for him. He cried. We all did.",
+    "template": "The priest's hands shake during communion now. Not from age. From hunger. My {child1:role|daughter} noticed. \"Even God's servant is starving, Mama.\" {child1:pronoun_sub|She}'s {child1:age|7}. {child1:pronoun_sub|She} saved {child1:pronoun_poss|her} bread for him. He cried. We all did.",
+    "category": "hunger_scarcity",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 6, "max": 9, "ideal": 7}
+      }
+    },
+    "keywords": ["priest", "communion", "hands", "shake", "hunger", "bread", "servant", "starving", "sharing", "crying"],
+    "word_count": 36
+  },
+  
+  {
+    "id": "red_crosses_bible",
+    "original": "300 Christians left in Gaza. My son does the math: \"One dies every 3 days.\" He marks them in his Bible. Red crosses. Like the one Christ carried. \"We're all carrying crosses now,\" he said. He's 9.",
+    "template": "{var1:christians_left|300} Christians left in Gaza. My {child1:role|son} does the math: \"One dies every {random[2-4]|3} days.\" {child1:pronoun_sub|He} marks them in {child1:pronoun_poss|his} Bible. Red crosses. Like the one Christ carried. \"We're all carrying crosses now,\" {child1:pronoun_sub|he} said. {child1:pronoun_sub|He}'s {child1:age|9}.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 7, "max": 11, "ideal": 9}
+      }
+    },
+    "keywords": ["Christians", "Gaza", "math", "Bible", "crosses", "Christ", "death", "marking", "carrying", "suffering"],
+    "word_count": 38
+  },
+  
+  {
+    "id": "bombed_churches_heaven",
+    "original": "My daughter asked if bombed churches go to heaven. All of them, I said. \"Good, ours is waiting for us there.\" She draws it from memory every night. Perfect details. Even the altar we'll never see again.",
+    "template": "My {child1:role|daughter} asked if bombed churches go to heaven. All of them, I said. \"Good, ours is waiting for us there.\" {child1:pronoun_sub|She} draws it from memory every night. Perfect details. Even the altar we'll never see again.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 6, "max": 10}
+      }
+    },
+    "keywords": ["churches", "bombed", "heaven", "drawing", "memory", "altar", "waiting", "details", "destruction", "faith"],
+    "word_count": 38
+  },
+  
+  {
+    "id": "tent_service_dark",
+    "original": "Sunday service in a tent. 47 of us. No electricity. We sing hymns by memory in the dark. My 5-year-old whispers: \"God can see us without lights, right?\" Right, baby. He sees everything. Especially this.",
+    "template": "Sunday service in a tent. {random[30-60]|47} of us. No electricity. We sing hymns by memory in the dark. My {child1:age|5}-year-old whispers: \"God can see us without lights, right?\" Right, baby. He sees everything. Especially this.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 4, "max": 7, "ideal": 5}
+      }
+    },
+    "keywords": ["Sunday", "service", "tent", "hymns", "memory", "darkness", "electricity", "God", "lights", "worship"],
+    "word_count": 37
+  },
+  
+  {
+    "id": "holy_family_bell",
+    "original": "The Holy Family church had a bell that rang for 400 years. It stopped October 19th. My daughter counts the silent Sundays. \"31 so far, Mama.\" She rings an invisible bell with her hands. The sound of faith without sound.",
+    "template": "The Holy Family church had a bell that rang for {random[300-500]|400} years. It stopped {var1:date|October 19th}. My {child1:role|daughter} counts the silent Sundays. \"{random[25-40]|31} so far, Mama.\" {child1:pronoun_sub|She} rings an invisible bell with {child1:pronoun_poss|her} hands. The sound of faith without sound.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 7, "max": 11}
+      }
+    },
+    "keywords": ["Holy Family", "church", "bell", "400 years", "October", "silent", "Sundays", "counting", "invisible", "faith"],
+    "word_count": 41
+  },
+  
+  {
+    "id": "pray_for_daily_bread",
+    "original": "My son asked why we pray for daily bread when there isn't any. I said we pray for tomorrow's bread. He said \"What if tomorrow doesn't come?\" I said then we'll eat at God's table. He's 6. He looked relieved.",
+    "template": "My {child1:role|son} asked why we pray for daily bread when there isn't any. I said we pray for tomorrow's bread. {child1:pronoun_sub|He} said \"What if tomorrow doesn't come?\" I said then we'll eat at God's table. {child1:pronoun_sub|He}'s {child1:age|6}. {child1:pronoun_sub|He} looked relieved.",
+    "category": "hunger_scarcity",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 5, "max": 8, "ideal": 6}
+      }
+    },
+    "keywords": ["pray", "daily bread", "tomorrow", "God's table", "hunger", "Lord's Prayer", "relief", "faith", "food", "heaven"],
+    "word_count": 41
+  },
+  
+  {
+    "id": "stations_of_cross",
+    "original": "Found my daughter teaching her doll the stations of the cross. \"This is where we are,\" pointing to the crucifixion. \"Almost at the end.\" She's 8. I didn't correct her geography of suffering.",
+    "template": "Found my {child1:role|daughter} teaching {child1:pronoun_poss|her} doll the stations of the cross. \"This is where we are,\" pointing to the crucifixion. \"Almost at the end.\" {child1:pronoun_sub|She}'s {child1:age|8}. I didn't correct {child1:pronoun_poss|her} geography of suffering.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 6, "max": 10, "ideal": 8}
+      }
+    },
+    "keywords": ["stations", "cross", "crucifixion", "doll", "teaching", "suffering", "geography", "end", "faith", "Easter"],
+    "word_count": 34
+  },
+  
+  {
+    "id": "room_for_children",
+    "original": "\"Does God have enough room for all Gaza's children?\" my son asked. Of course, I said. \"Good, He'll need it.\" He's 10. He keeps a list of his friends who went ahead. 19 names. Still counting.",
+    "template": "\"Does God have enough room for all Gaza's children?\" my {child1:role|son} asked. Of course, I said. \"Good, He'll need it.\" {child1:pronoun_sub|He}'s {child1:age|10}. {child1:pronoun_sub|He} keeps a list of {child1:pronoun_poss|his} friends who went ahead. {random[15-25]|19} names. Still counting.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 8, "max": 12, "ideal": 10}
+      }
+    },
+    "keywords": ["God", "room", "Gaza", "children", "heaven", "list", "friends", "death", "counting", "ahead"],
+    "word_count": 37
+  },
+  
+  {
+    "id": "rosary_from_rubble",
+    "original": "My daughter made rosary beads from rubble. One piece for each family member we lost. \"Now prayer and memory are the same thing,\" she explained. She's 11. She prays until her fingers bleed.",
+    "template": "My {child1:role|daughter} made rosary beads from rubble. One piece for each family member we lost. \"Now prayer and memory are the same thing,\" {child1:pronoun_sub|she} explained. {child1:pronoun_sub|She}'s {child1:age|11}. {child1:pronoun_sub|She} prays until {child1:pronoun_poss|her} fingers bleed.",
+    "category": "resilience",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 9, "max": 13, "ideal": 11}
+      }
+    },
+    "keywords": ["rosary", "beads", "rubble", "prayer", "memory", "family", "lost", "fingers", "bleeding", "devotion"],
+    "word_count": 34
+  },
+  
+  {
+    "id": "priest_mid_prayer",
+    "original": "The church bombing killed the priest mid-prayer. My son asks if God heard the half-prayer. I said God hears even unspoken prayers. \"Then He hears all of Gaza,\" he said. He's 7. Theology from the mouth of babes.",
+    "template": "The church bombing killed the priest mid-prayer. My {child1:role|son} asks if God heard the half-prayer. I said God hears even unspoken prayers. \"Then He hears all of Gaza,\" {child1:pronoun_sub|he} said. {child1:pronoun_sub|He}'s {child1:age|7}. Theology from the mouth of babes.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 6, "max": 9, "ideal": 7}
+      }
+    },
+    "keywords": ["church", "bombing", "priest", "prayer", "half-prayer", "God", "unspoken", "Gaza", "theology", "wisdom"],
+    "word_count": 39
+  },
+
+    {
+    "id": "noahs_ark_backwards",
+    "original": "My children play \"Noah's ark\" but backwards. They line up to leave the ark. \"The flood isn't ending, Mama. We need a different story.\" They're 5 and 8. They've rewritten Genesis for genocide.",
+    "template": "My children play \"Noah's ark\" but backwards. They line up to leave the ark. \"The flood isn't ending, Mama. We need a different story.\" They're {child1:age|5} and {child2:age|8}. They've rewritten Genesis for genocide.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 2,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 4, "max": 6},
+        "child2": {"min": 7, "max": 10}
+      }
+    },
+    "keywords": ["Noah", "ark", "flood", "Genesis", "backwards", "story", "genocide", "biblical", "play", "rewritten"],
+    "word_count": 36
+  },
+  
+  {
+    "id": "palm_sunday_cardboard",
+    "original": "Palm Sunday without palms. My daughter waved a piece of cardboard. \"Jesus understands substitutions,\" she said. \"He had to substitute a tomb for a home too.\" She's 9. Making theology from nothing.",
+    "template": "Palm Sunday without palms. My {child1:role|daughter} waved a piece of cardboard. \"Jesus understands substitutions,\" {child1:pronoun_sub|she} said. \"He had to substitute a tomb for a home too.\" {child1:pronoun_sub|She}'s {child1:age|9}. Making theology from nothing.",
+    "category": "resilience",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 7, "max": 11, "ideal": 9}
+      }
+    },
+    "keywords": ["Palm Sunday", "palms", "cardboard", "Jesus", "substitutions", "tomb", "home", "theology", "worship", "creativity"],
+    "word_count": 33
+  },
+  
+  {
+    "id": "muslims_in_heaven",
+    "original": "My son asked if there are Muslims in heaven. Of course, I said. \"Good, because Ahmad is there and I promised to teach him the Lord's Prayer.\" Ahmad was 6. My son is 5. Planning interfaith dialogues in paradise.",
+    "template": "My {child1:role|son} asked if there are Muslims in heaven. Of course, I said. \"Good, because Ahmad is there and I promised to teach him the Lord's Prayer.\" Ahmad was {var1:age|6}. My {child1:role|son} is {child1:age|5}. Planning interfaith dialogues in paradise.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 4, "max": 7, "ideal": 5}
+      }
+    },
+    "keywords": ["Muslims", "heaven", "interfaith", "Lord's Prayer", "Ahmad", "paradise", "friendship", "death", "unity", "theology"],
+    "word_count": 40
+  },
+  
+  {
+    "id": "virgin_mary_statue",
+    "original": "The Virgin Mary statue survived the bombing. Just her. No arms. No baby Jesus. My daughter said \"She looks like us now - lost everything but still standing.\" We visit her in the rubble. She's our mirror.",
+    "template": "The Virgin Mary statue survived the bombing. Just her. No arms. No baby Jesus. My {child1:role|daughter} said \"She looks like us now - lost everything but still standing.\" We visit her in the rubble. She's our mirror.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 1,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 6, "max": 12}
+      }
+    },
+    "keywords": ["Virgin Mary", "statue", "bombing", "arms", "Jesus", "standing", "rubble", "mirror", "loss", "survival"],
+    "word_count": 38
+  },
+  
+  {
+    "id": "christmas_promises",
+    "original": "Christmas is coming. My children are making gifts from nothing. Literally nothing. \"We're giving each other promises of what we'll give after the war,\" my 8-year-old explained. The gifts that may never be given. The war that may never end.",
+    "template": "Christmas is coming. My children are making gifts from nothing. Literally nothing. \"We're giving each other promises of what we'll give after the war,\" my {child1:age|8}-year-old explained. The gifts that may never be given. The war that may never end.",
+    "category": "innocence_wisdom",
+    "requirements": {
+      "min_children": 2,
+      "religious_context": "christian",
+      "age_constraints": {
+        "child1": {"min": 6, "max": 10, "ideal": 8}
+      }
+    },
+    "keywords": ["Christmas", "gifts", "promises", "nothing", "war", "future", "giving", "hope", "uncertainty", "holiday"],
+    "word_count": 42
+  }
+
+
+]

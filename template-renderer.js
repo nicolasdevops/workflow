@@ -86,9 +86,10 @@ function pick(arr) {
 
 /**
  * Build member lookup from children_details array.
- * Returns indexed members: child1/child2 (Son/Daughter or unspecified),
- * adult1/adult2 (Husband/Wife, Mother/Father, Brother/Sister, etc.),
- * plus special refs (oldest_child, youngest_child, etc.)
+ * Prefixes: child1/child2 (Son/Daughter or unspecified), adult1/adult2 (all others).
+ * Convention: mother = adult1, father = adult2.
+ * Dead members keep their child/adult prefix; deceased1/deceased2 are aliases.
+ * Plus special refs: oldest_child, youngest_child, oldest_alive, youngest_alive.
  */
 function buildMemberLookup(members, prefixOverrides) {
     if (!members || !Array.isArray(members) || members.length === 0) return {};
@@ -96,12 +97,10 @@ function buildMemberLookup(members, prefixOverrides) {
     const lookup = {};
     const overrides = prefixOverrides || {};
 
-    // Determine auto-prefix for each member:
-    //   Deceased → deceased, Son/Daughter or unspecified → child, everything else → adult
-    // Then apply admin prefix overrides from config
+    // Determine auto-prefix: Son/Daughter or unspecified → child, everything else → adult
+    // Status does NOT affect prefix (dead children stay child[x], dead adults stay adult[x])
     const autoCategories = members.map((m) => {
         const rel = (m.relationship || '').toLowerCase();
-        if ((m.status || '') === 'Deceased') return 'deceased';
         const isChild = !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
         return isChild ? 'child' : 'adult';
     });
@@ -109,13 +108,28 @@ function buildMemberLookup(members, prefixOverrides) {
     // Apply admin overrides: overrides = { "0": "child", "3": "adult" } (member index → prefix)
     const categories = autoCategories.map((auto, i) => overrides[String(i)] || auto);
 
-    // Assign numbered keys, renumbering within each prefix
-    const counters = {};
-    const memberKeys = [];
-    categories.forEach((prefix) => {
-        counters[prefix] = (counters[prefix] || 0) + 1;
-        memberKeys.push(`${prefix}${counters[prefix]}`);
+    // Sort adults so mother comes first (adult1) and father second (adult2)
+    // Build ordered index: group members by prefix, sort adults by gender convention
+    const childIndices = [];
+    const adultIndices = [];
+    members.forEach((m, i) => {
+        if (categories[i] === 'child') childIndices.push(i);
+        else adultIndices.push(i);
     });
+
+    // Sort adults: females first (mother=adult1), males second (father=adult2)
+    adultIndices.sort((a, b) => {
+        const gA = (members[a].gender || '').toLowerCase();
+        const gB = (members[b].gender || '').toLowerCase();
+        if (gA === 'female' && gB !== 'female') return -1;
+        if (gA !== 'female' && gB === 'female') return 1;
+        return 0;
+    });
+
+    // Assign numbered keys
+    const memberKeys = new Array(members.length);
+    childIndices.forEach((idx, n) => { memberKeys[idx] = `child${n + 1}`; });
+    adultIndices.forEach((idx, n) => { memberKeys[idx] = `adult${n + 1}`; });
 
     members.forEach((m, i) => {
         const derived = deriveFromGender(m.gender);
@@ -152,6 +166,15 @@ function buildMemberLookup(members, prefixOverrides) {
             cognitive: m.cognitive || '',
             disabled: m.disability === 'yes' ? 'yes' : 'no',
         };
+    });
+
+    // Deceased aliases: deceased1, deceased2... → point to whichever child/adult is deceased
+    let deceasedCount = 0;
+    members.forEach((m, i) => {
+        if ((m.status || '') === 'Deceased') {
+            deceasedCount++;
+            lookup[`deceased${deceasedCount}`] = lookup[memberKeys[i]];
+        }
     });
 
     // Special references — oldest/youngest from child-prefixed entries only
@@ -262,6 +285,7 @@ function renderTemplate(templateText, familyProfile, config) {
     };
 
     // Contextual from profile
+    const familySize = members.length + 1; // members + narrator parent
     const contextual = {
         parent_role: 'mama',
         shelter_type: familyProfile.housing_type || 'tent',
@@ -269,6 +293,9 @@ function renderTemplate(templateText, familyProfile, config) {
         religious_context: familyProfile.religion || 'Muslim',
         prayer_reference: (familyProfile.religion || '').toLowerCase() === 'christian' ? 'prayer' : 'dua',
         displacement_count: familyProfile.displacement_count || 5,
+        family_size: familySize,
+        christians_left: '300',
+        christians_lost: '1,200',
     };
 
     // Check if any parent is in members
@@ -289,8 +316,168 @@ function renderTemplate(templateText, familyProfile, config) {
         day_marker: pick(TEMPORAL.day_marker),
     };
 
-    // Track resolved variables
+    // Track resolved variables + dedup cache for var1:type syntax
     const resolved = {};
+    const dedupCache = {};
+
+    /**
+     * Inner resolver: resolves a variable expression (without dedup wrapper).
+     * Returns the resolved string value.
+     */
+    function resolveVar(varExpr, pipeDefault) {
+        let value;
+
+        // 1. Check locks
+        if (locks[varExpr] !== undefined) {
+            return String(locks[varExpr]);
+        }
+
+        // 2. Fixed value syntax: {fixed:29}
+        const fixedMatch = varExpr.match(/^fixed:(.+)$/);
+        if (fixedMatch) return fixedMatch[1];
+
+        // 3. Random range syntax: {random[min-max]}
+        const randomMatch = varExpr.match(/^random\[(\d+)-(\d+)\]$/);
+        if (randomMatch) {
+            return String(randInt(parseInt(randomMatch[1]), parseInt(randomMatch[2])));
+        }
+
+        // 4. Random months: {random_months[min-max]}
+        const randomMonthsMatch = varExpr.match(/^random_months\[(\d+)-(\d+)\]$/);
+        if (randomMonthsMatch) {
+            return String(randInt(parseInt(randomMonthsMatch[1]), parseInt(randomMonthsMatch[2])));
+        }
+
+        // 5. any_child[min-max]:attr syntax
+        const anyChildMatch = varExpr.match(/^any_child\[(\d+)-(\d+)\]:(\w+)$/);
+        if (anyChildMatch) {
+            const ageMin = parseInt(anyChildMatch[1]);
+            const ageMax = parseInt(anyChildMatch[2]);
+            const attr = anyChildMatch[3];
+            const childKeys = Object.keys(memberLookup).filter(k => /^child\d+$/.test(k));
+            const candidates = childKeys.filter(k => {
+                const age = parseInt(memberLookup[k].age);
+                return !isNaN(age) && age >= ageMin && age <= ageMax;
+            });
+            if (candidates.length > 0) {
+                return resolveMemberVar(pick(candidates), attr, pipeDefault, memberLookup);
+            }
+            return pipeDefault || '';
+        }
+
+        // 6. Member-specific with inline age constraint: {child1:age[3-6]|4} or {child2:age[6-9,>child1:age]|7}
+        const memberConstraintMatch = varExpr.match(/^(child\d+|adult\d+|oldest_child|youngest_child|oldest_alive|youngest_alive|deceased\d+):(\w+)\[([^\]]+)\]$/);
+        if (memberConstraintMatch) {
+            let ref = memberConstraintMatch[1];
+            const attr = memberConstraintMatch[2];
+            const constraintStr = memberConstraintMatch[3];
+
+            if (childAssignments[ref] !== undefined) {
+                ref = `child${childAssignments[ref] + 1}`;
+            }
+
+            // Parse constraint: "3-6" or "6-9,>child1:age" or "6-9,<child1:age"
+            let rangeMin = 0, rangeMax = 100;
+            let relOp = null, relRef = null, relAttr = null;
+            const constraintParts = constraintStr.split(',');
+            for (const part of constraintParts) {
+                const rangeMatch = part.trim().match(/^(\d+)-(\d+)$/);
+                if (rangeMatch) {
+                    rangeMin = parseInt(rangeMatch[1]);
+                    rangeMax = parseInt(rangeMatch[2]);
+                } else {
+                    const relMatch = part.trim().match(/^([<>])(.+):(\w+)$/);
+                    if (relMatch) {
+                        relOp = relMatch[1];
+                        relRef = relMatch[2];
+                        relAttr = relMatch[3];
+                    }
+                }
+            }
+
+            // Get the member's actual value
+            const member = memberLookup[ref];
+            if (member && member[attr] !== undefined && member[attr] !== '') {
+                const actualVal = parseInt(member[attr]);
+                if (!isNaN(actualVal) && actualVal >= rangeMin && actualVal <= rangeMax) {
+                    // Check relative constraint
+                    if (relOp && relRef && relAttr) {
+                        const relVal = parseInt(resolveMemberVar(relRef, relAttr, '0', memberLookup));
+                        if (relOp === '>' && actualVal <= relVal) {
+                            return String(randInt(Math.max(rangeMin, relVal + 1), rangeMax)) || pipeDefault || '';
+                        }
+                        if (relOp === '<' && actualVal >= relVal) {
+                            return String(randInt(rangeMin, Math.min(rangeMax, relVal - 1))) || pipeDefault || '';
+                        }
+                    }
+                    return String(actualVal);
+                }
+            }
+            // No valid member data — generate random in range respecting relative constraint
+            let effMin = rangeMin, effMax = rangeMax;
+            if (relOp && relRef && relAttr) {
+                const relVal = parseInt(resolved[`${relRef}:${relAttr}`] || resolveMemberVar(relRef, relAttr, '0', memberLookup));
+                if (!isNaN(relVal)) {
+                    if (relOp === '>') effMin = Math.max(effMin, relVal + 1);
+                    if (relOp === '<') effMax = Math.min(effMax, relVal - 1);
+                }
+            }
+            if (effMin > effMax) return pipeDefault || String(rangeMin);
+            return String(randInt(effMin, effMax));
+        }
+
+        // 7. Member-specific: {child1:attr} or {oldest_child:attr}
+        const memberMatch = varExpr.match(/^(child\d+|adult\d+|oldest_child|youngest_child|oldest_alive|youngest_alive|deceased\d+):(\w+)$/);
+        if (memberMatch) {
+            let ref = memberMatch[1];
+            const attr = memberMatch[2];
+            if (childAssignments[ref] !== undefined) {
+                ref = `child${childAssignments[ref] + 1}`;
+            }
+            return resolveMemberVar(ref, attr, pipeDefault, memberLookup);
+        }
+
+        // 8. Aggregate stats: {child_count}, {alive_count}, etc.
+        if (stats[varExpr] !== undefined) return String(stats[varExpr]);
+
+        // 9. child_count-N or var-N arithmetic pattern
+        const countMinusMatch = varExpr.match(/^(\w+)-(\d+)$/);
+        if (countMinusMatch) {
+            const baseVar = countMinusMatch[1];
+            const n = parseInt(countMinusMatch[2]);
+            // Check stats first, then resolved dedup cache, then contextual
+            let baseVal = stats[baseVar] !== undefined ? stats[baseVar] :
+                          dedupCache[baseVar] !== undefined ? parseInt(dedupCache[baseVar]) :
+                          contextual[baseVar] !== undefined ? parseInt(contextual[baseVar]) : NaN;
+            if (!isNaN(baseVal)) return String(Math.max(0, baseVal - n));
+            return pipeDefault || '';
+        }
+
+        // 10. Temporal variables
+        if (temporal[varExpr] !== undefined) return temporal[varExpr];
+
+        // 11. Contextual variables
+        if (contextual[varExpr] !== undefined) {
+            const ctxVal = contextual[varExpr];
+            if (varExpr === 'displacement_count') {
+                return resolveNumeric(varExpr, pipeDefault || String(ctxVal), overrides, locks);
+            }
+            return String(ctxVal);
+        }
+
+        // 12. Known numeric ranges
+        if (NUMERIC_DEFAULTS[varExpr] || overrides[varExpr]) {
+            return resolveNumeric(varExpr, pipeDefault, overrides, locks);
+        }
+
+        // 13. Unknown variable with numeric default — treat as numeric range
+        if (pipeDefault && !isNaN(parseFloat(pipeDefault))) {
+            return resolveNumeric(varExpr, pipeDefault, overrides, locks);
+        }
+
+        // 14. Fallback to pipe default or leave as-is
+        return pipeDefault || '';
+    }
 
     // Main replacement pass
     let text = templateText;
@@ -304,131 +491,29 @@ function renderTemplate(templateText, familyProfile, config) {
 
         let value;
 
-        // 1. Check locks
-        if (locks[varExpr] !== undefined) {
-            value = String(locks[varExpr]);
-            resolved[varExpr] = value;
-            return value;
-        }
+        // Handle var1:type dedup syntax — {var1:month|October}, {var1:christians_left|300}
+        const dedupMatch = varExpr.match(/^(var\d+):(.+)$/);
+        if (dedupMatch) {
+            const dedupKey = dedupMatch[1] + ':' + dedupMatch[2]; // e.g. "var1:month"
+            const innerVar = dedupMatch[2]; // e.g. "month" or "christians_left" or "church_count-1"
 
-        // 2. Fixed value syntax: {fixed:29}
-        const fixedMatch = varExpr.match(/^fixed:(.+)$/);
-        if (fixedMatch) {
-            value = fixedMatch[1];
-            resolved[varExpr] = value;
-            return value;
-        }
-
-        // 3. Random range syntax: {random[min-max]}
-        const randomMatch = varExpr.match(/^random\[(\d+)-(\d+)\]$/);
-        if (randomMatch) {
-            const rMin = parseInt(randomMatch[1]);
-            const rMax = parseInt(randomMatch[2]);
-            value = String(randInt(rMin, rMax));
-            resolved[varExpr] = value;
-            return value;
-        }
-
-        // 4. Random months: {random_months[min-max]}
-        const randomMonthsMatch = varExpr.match(/^random_months\[(\d+)-(\d+)\]$/);
-        if (randomMonthsMatch) {
-            const rMin = parseInt(randomMonthsMatch[1]);
-            const rMax = parseInt(randomMonthsMatch[2]);
-            value = String(randInt(rMin, rMax));
-            resolved[varExpr] = value;
-            return value;
-        }
-
-        // 5. any_child[min-max]:attr syntax
-        const anyChildMatch = varExpr.match(/^any_child\[(\d+)-(\d+)\]:(\w+)$/);
-        if (anyChildMatch) {
-            const ageMin = parseInt(anyChildMatch[1]);
-            const ageMax = parseInt(anyChildMatch[2]);
-            const attr = anyChildMatch[3];
-            // Find children in age range from lookup (child-prefixed keys only)
-            const childKeys = Object.keys(memberLookup).filter(k => /^child\d+$/.test(k));
-            const candidates = childKeys.filter(k => {
-                const age = parseInt(memberLookup[k].age);
-                return !isNaN(age) && age >= ageMin && age <= ageMax;
-            });
-            if (candidates.length > 0) {
-                const ref = pick(candidates);
-                value = resolveMemberVar(ref, attr, pipeDefault, memberLookup);
+            // If already resolved this dedup key, reuse
+            if (dedupCache[dedupKey] !== undefined) {
+                value = dedupCache[dedupKey];
             } else {
-                value = pipeDefault;
+                // Resolve the inner variable
+                value = resolveVar(innerVar, pipeDefault);
+                dedupCache[dedupKey] = value;
+                // Also cache the base variable name for arithmetic references
+                const baseMatch = innerVar.match(/^(\w+)$/);
+                if (baseMatch) dedupCache[innerVar] = value;
             }
-            resolved[varExpr] = value;
+            resolved[dedupKey] = value;
             return value;
         }
 
-        // 6. Member-specific: {child1:attr} or {oldest_child:attr}
-        const memberMatch = varExpr.match(/^(child\d+|adult\d+|oldest_child|youngest_child|oldest_alive|youngest_alive|deceased\d+):(\w+)$/);
-        if (memberMatch) {
-            let ref = memberMatch[1];
-            const attr = memberMatch[2];
-
-            // Apply child assignments (remap child1 → child3 etc.)
-            if (childAssignments[ref] !== undefined) {
-                ref = `child${childAssignments[ref] + 1}`;
-            }
-
-            value = resolveMemberVar(ref, attr, pipeDefault, memberLookup);
-            resolved[`${memberMatch[1]}:${attr}`] = value;
-            return value;
-        }
-
-        // 7. Aggregate stats: {child_count}, {alive_count}, etc.
-        if (stats[varExpr] !== undefined) {
-            value = String(stats[varExpr]);
-            resolved[varExpr] = value;
-            return value;
-        }
-
-        // 8. child_count-N pattern
-        const countMinusMatch = varExpr.match(/^child_count-(\d+)$/);
-        if (countMinusMatch) {
-            const n = parseInt(countMinusMatch[1]);
-            value = String(Math.max(0, stats.child_count - n));
-            resolved[varExpr] = value;
-            return value;
-        }
-
-        // 9. Temporal variables
-        if (temporal[varExpr] !== undefined) {
-            value = temporal[varExpr];
-            resolved[varExpr] = value;
-            return value;
-        }
-
-        // 10. Contextual variables
-        if (contextual[varExpr] !== undefined) {
-            const ctxVal = contextual[varExpr];
-            // displacement_count gets special handling (ordinal)
-            if (varExpr === 'displacement_count') {
-                value = resolveNumeric(varExpr, pipeDefault || String(ctxVal), overrides, locks);
-            } else {
-                value = String(ctxVal);
-            }
-            resolved[varExpr] = value;
-            return value;
-        }
-
-        // 11. Known numeric ranges
-        if (NUMERIC_DEFAULTS[varExpr] || overrides[varExpr]) {
-            value = resolveNumeric(varExpr, pipeDefault, overrides, locks);
-            resolved[varExpr] = value;
-            return value;
-        }
-
-        // 12. Unknown variable with numeric default — treat as numeric range
-        if (pipeDefault && !isNaN(parseFloat(pipeDefault))) {
-            value = resolveNumeric(varExpr, pipeDefault, overrides, locks);
-            resolved[varExpr] = value;
-            return value;
-        }
-
-        // 13. Fallback to pipe default or leave as-is
-        value = pipeDefault || match;
+        // Standard resolution
+        value = resolveVar(varExpr, pipeDefault);
         resolved[varExpr] = value;
         return value;
     });
@@ -476,6 +561,75 @@ function canRenderTemplate(template, familyProfile) {
     if (requirements.needs_disabled) {
         const hasDisabled = members.some(m => m.disability === 'yes');
         if (!hasDisabled) return false;
+    }
+
+    // needs_daughter — at least one female child
+    if (requirements.needs_daughter) {
+        const hasDaughter = children.some(m => (m.gender || '').toLowerCase() === 'female');
+        if (!hasDaughter) return false;
+    }
+
+    // needs_daughters — need N female children
+    if (requirements.needs_daughters) {
+        const daughterCount = children.filter(m => (m.gender || '').toLowerCase() === 'female').length;
+        if (daughterCount < requirements.needs_daughters) return false;
+    }
+
+    // needs_gender_mix — need both male and female children
+    if (requirements.needs_gender_mix) {
+        const hasMale = children.some(m => (m.gender || '').toLowerCase() === 'male');
+        const hasFemale = children.some(m => (m.gender || '').toLowerCase() === 'female');
+        if (!hasMale || !hasFemale) return false;
+    }
+
+    // needs_baby — need a child aged 0-2
+    if (requirements.needs_baby) {
+        const hasBaby = children.some(m => {
+            const age = parseInt(m.age);
+            return !isNaN(age) && age <= 2;
+        });
+        if (!hasBaby) return false;
+    }
+
+    // needs_deceased_father — father member with status Deceased
+    if (requirements.needs_deceased_father) {
+        const hasDeceasedFather = members.some(m => {
+            const rel = (m.relationship || '').toLowerCase();
+            return (rel === 'father' || rel === 'mother/father' || rel === 'husband/wife') &&
+                   (m.gender || '').toLowerCase() === 'male' && (m.status || '') === 'Deceased';
+        });
+        if (!hasDeceasedFather) return false;
+    }
+
+    // needs_deceased_child — a child member with status Deceased
+    if (requirements.needs_deceased_child) {
+        const hasDeceasedChild = children.some(m => (m.status || '') === 'Deceased');
+        if (!hasDeceasedChild) return false;
+    }
+
+    // needs_medical_condition — specific condition (e.g. "diabetes", "heart")
+    if (requirements.needs_medical_condition) {
+        const condition = requirements.needs_medical_condition.toLowerCase();
+        const hasCondition = members.some(m =>
+            m.medical_condition && m.medical_condition.toLowerCase().includes(condition)
+        );
+        if (!hasCondition) return false;
+    }
+
+    // adult2_status — check father/adult2 status (e.g. "deceased")
+    if (requirements.adult2_status) {
+        const father = members.find(m => {
+            const rel = (m.relationship || '').toLowerCase();
+            return (rel === 'father' || rel === 'mother/father' || rel === 'husband/wife') &&
+                   (m.gender || '').toLowerCase() === 'male';
+        });
+        if (!father || (father.status || '').toLowerCase() !== requirements.adult2_status.toLowerCase()) return false;
+    }
+
+    // religious_context — family religion must match
+    if (requirements.religious_context) {
+        const familyReligion = (familyProfile.religion || '').toLowerCase();
+        if (familyReligion !== requirements.religious_context.toLowerCase()) return false;
     }
 
     // age_constraints

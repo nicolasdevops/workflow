@@ -197,7 +197,6 @@
                                                     <select :value="m.prefix" @change="changeMemberPrefix(m.memberIndex, $event.target.value)" class="text-[10px] border rounded p-0 mr-0.5 bg-transparent font-bold">
                                                         <option value="child">child</option>
                                                         <option value="adult">adult</option>
-                                                        <option value="deceased">deceased</option>
                                                     </select><span class="font-bold">{{ m.prefixNum }}:name</span>
                                                 </template>
                                                 <template v-else>{{ m.varName }}</template>
@@ -804,11 +803,16 @@
                         const r = (m.relationship||'').toLowerCase();
                         return r === 'father' || r === 'mother' || r === 'mother/father';
                     });
+                    const familySize = (members.length || 0) + 1; // members + the parent narrator
                     this.contextualVars = [
                         { name: 'parent_role', value: hasParent ? (hasParent.gender === 'Male' ? 'baba' : 'mama') : 'mama' },
                         { name: 'shelter_type', value: c.housing_type || 'tent' },
                         { name: 'location', value: c.gaza_zone || 'Gaza' },
-                        { name: 'religion', value: c.religion || 'Muslim' },
+                        { name: 'religious_context', value: c.religion || 'Muslim' },
+                        { name: 'prayer_reference', value: (c.religion || '').toLowerCase() === 'christian' ? 'prayer' : 'dua' },
+                        { name: 'family_size', value: String(familySize) },
+                        { name: 'christians_left', value: '300' },
+                        { name: 'christians_lost', value: '1,200' },
                     ];
 
                     // Build member variable rows with proper prefixes and colors
@@ -825,22 +829,34 @@
                         'rgba(107,114,128,0.08)',  // gray
                     ];
                     // Determine prefix per member: auto-detect then apply admin overrides
+                    // Status does NOT affect prefix (dead children stay child[x], dead adults stay adult[x])
                     const prefixOverrides = this.detailConfig.member_prefix_overrides || {};
                     const autoCategories = members.map((m) => {
                         const rel = (m.relationship || '').toLowerCase();
-                        if ((m.status || '') === 'Deceased') return 'deceased';
                         const isChild = !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
                         return isChild ? 'child' : 'adult';
                     });
                     const categories = autoCategories.map((auto, i) => prefixOverrides[String(i)] || auto);
 
-                    // Assign numbered keys per prefix
-                    const counters = {};
-                    const memberKeys = [];
-                    categories.forEach((prefix) => {
-                        counters[prefix] = (counters[prefix] || 0) + 1;
-                        memberKeys.push({ prefix, num: counters[prefix] });
+                    // Sort adults so mother comes first (adult1) and father second (adult2)
+                    const childIndices = [];
+                    const adultIndices = [];
+                    members.forEach((m, i) => {
+                        if (categories[i] === 'child') childIndices.push(i);
+                        else adultIndices.push(i);
                     });
+                    adultIndices.sort((a, b) => {
+                        const gA = (members[a].gender || '').toLowerCase();
+                        const gB = (members[b].gender || '').toLowerCase();
+                        if (gA === 'female' && gB !== 'female') return -1;
+                        if (gA !== 'female' && gB === 'female') return 1;
+                        return 0;
+                    });
+
+                    // Assign numbered keys
+                    const memberKeys = new Array(members.length);
+                    childIndices.forEach((idx, n) => { memberKeys[idx] = { prefix: 'child', num: n + 1 }; });
+                    adultIndices.forEach((idx, n) => { memberKeys[idx] = { prefix: 'adult', num: n + 1 }; });
 
                     const rows = [];
                     members.forEach((m, i) => {
@@ -873,7 +889,7 @@
                             if (typeof v === 'string' || typeof v === 'number') {
                                 // Could be aggregate, member, or contextual override
                                 if (k.includes(':')) this.memberOverrides[k] = v;
-                                else if (['parent_role','shelter_type','location','religion'].includes(k)) this.contextualOverrides[k] = v;
+                                else if (['parent_role','shelter_type','location','religious_context','prayer_reference','family_size','christians_left','christians_lost'].includes(k)) this.contextualOverrides[k] = v;
                                 else this.aggregateOverrides[k] = v;
                             }
                         });
@@ -885,10 +901,8 @@
                     // Check if this matches the auto-detected prefix (if so, remove override)
                     const m = this.detailFamily.members[memberIndex];
                     const rel = (m.relationship || '').toLowerCase();
-                    let autoPrefix;
-                    if ((m.status || '') === 'Deceased') autoPrefix = 'deceased';
-                    else if (!rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child') autoPrefix = 'child';
-                    else autoPrefix = 'adult';
+                    const isChild = !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
+                    const autoPrefix = isChild ? 'child' : 'adult';
                     if (newPrefix === autoPrefix) {
                         delete this.detailConfig.member_prefix_overrides[String(memberIndex)];
                     } else {
@@ -935,57 +949,63 @@
                     if (r.includes('father') || r.includes('mother')) return g === 'male' ? 'father' : 'mother';
                     return r || (g === 'male' ? 'son' : 'daughter');
                 },
-                isTemplateEligible(t) {
-                    const req = t.requirements;
-                    if (!req) return true;
-                    const c = this.detailFamily.computed;
-                    const members = this.detailFamily.members;
-                    const children = members.filter(m => { const r = (m.relationship||'').toLowerCase(); return !r || r.includes('son') || r.includes('daughter') || r === 'child'; });
-                    if (req.min_children && children.length < req.min_children) return false;
-                    if (req.needs_deceased_parent) {
-                        const has = members.some(m => ['father','mother'].includes((m.relationship||'').toLowerCase()) && m.status === 'Deceased');
-                        if (!has) return false;
-                    }
-                    if (req.needs_medical) {
-                        const has = members.some(m => m.medical_condition && m.medical_condition !== '' && m.medical_condition !== 'none');
-                        if (!has) return false;
-                    }
-                    if (req.needs_disabled && c.disabled_count < 1) return false;
-                    if (req.age_constraints) {
-                        for (const [ref, con] of Object.entries(req.age_constraints)) {
-                            const ages = children.map(m => parseInt(m.age)).filter(a => !isNaN(a));
-                            if (ages.length === 0) return false;
-                            if (ref === 'oldest_child') { if (Math.max(...ages) < (con.min||0) || Math.max(...ages) > (con.max||100)) return false; }
-                            else if (ref === 'youngest_child') { if (Math.min(...ages) < (con.min||0) || Math.min(...ages) > (con.max||100)) return false; }
-                            else { if (!ages.some(a => a >= (con.min||0) && a <= (con.max||100))) return false; }
-                        }
-                    }
-                    return true;
-                },
-                getMissingRequirements(t) {
-                    const req = t.requirements;
-                    if (!req) return '';
+                _checkReqs(req) {
+                    // Returns array of missing requirement names (empty = eligible)
+                    if (!req) return [];
                     const missing = [];
-                    const c = this.detailFamily.computed;
                     const members = this.detailFamily.members;
+                    const f = this.detailFamily.family;
                     const children = members.filter(m => { const r = (m.relationship||'').toLowerCase(); return !r || r.includes('son') || r.includes('daughter') || r === 'child'; });
                     if (req.min_children && children.length < req.min_children) missing.push('min_children=' + req.min_children);
                     if (req.needs_deceased_parent) {
-                        const has = members.some(m => ['father','mother'].includes((m.relationship||'').toLowerCase()) && m.status === 'Deceased');
+                        const has = members.some(m => ['father','mother','mother/father'].includes((m.relationship||'').toLowerCase()) && m.status === 'Deceased');
                         if (!has) missing.push('needs_deceased_parent');
                     }
                     if (req.needs_medical) {
                         const has = members.some(m => m.medical_condition && m.medical_condition !== '' && m.medical_condition !== 'none');
                         if (!has) missing.push('needs_medical');
                     }
-                    if (req.needs_disabled && c.disabled_count < 1) missing.push('needs_disabled');
+                    if (req.needs_disabled && !members.some(m => m.disability === 'yes')) missing.push('needs_disabled');
+                    if (req.needs_daughter && !children.some(m => (m.gender||'').toLowerCase() === 'female')) missing.push('needs_daughter');
+                    if (req.needs_daughters) {
+                        const ct = children.filter(m => (m.gender||'').toLowerCase() === 'female').length;
+                        if (ct < req.needs_daughters) missing.push('needs_daughters=' + req.needs_daughters);
+                    }
+                    if (req.needs_gender_mix) {
+                        if (!children.some(m => (m.gender||'').toLowerCase() === 'male') || !children.some(m => (m.gender||'').toLowerCase() === 'female')) missing.push('needs_gender_mix');
+                    }
+                    if (req.needs_baby && !children.some(m => { const a = parseInt(m.age); return !isNaN(a) && a <= 2; })) missing.push('needs_baby');
+                    if (req.needs_deceased_father) {
+                        const has = members.some(m => { const r = (m.relationship||'').toLowerCase(); return (r === 'father' || r === 'mother/father' || r === 'husband/wife') && (m.gender||'').toLowerCase() === 'male' && m.status === 'Deceased'; });
+                        if (!has) missing.push('needs_deceased_father');
+                    }
+                    if (req.needs_deceased_child && !children.some(m => m.status === 'Deceased')) missing.push('needs_deceased_child');
+                    if (req.needs_medical_condition) {
+                        const cond = req.needs_medical_condition.toLowerCase();
+                        if (!members.some(m => m.medical_condition && m.medical_condition.toLowerCase().includes(cond))) missing.push('needs_' + cond);
+                    }
+                    if (req.adult2_status) {
+                        const father = members.find(m => { const r = (m.relationship||'').toLowerCase(); return (r === 'father' || r === 'mother/father' || r === 'husband/wife') && (m.gender||'').toLowerCase() === 'male'; });
+                        if (!father || (father.status||'').toLowerCase() !== req.adult2_status.toLowerCase()) missing.push('adult2_status=' + req.adult2_status);
+                    }
+                    if (req.religious_context) {
+                        const rel = (f.religion || this.detailFamily.computed?.religion || '').toLowerCase();
+                        if (rel !== req.religious_context.toLowerCase()) missing.push('religious_context=' + req.religious_context);
+                    }
                     if (req.age_constraints) {
                         for (const [ref, con] of Object.entries(req.age_constraints)) {
                             const ages = children.map(m => parseInt(m.age)).filter(a => !isNaN(a));
                             if (ages.length === 0 || !ages.some(a => a >= (con.min||0) && a <= (con.max||100))) missing.push(ref + ':age[' + (con.min||0) + '-' + (con.max||100) + ']');
                         }
                     }
-                    return missing.length ? 'Missing: ' + missing.join(', ') : '';
+                    return missing;
+                },
+                isTemplateEligible(t) {
+                    return this._checkReqs(t.requirements).length === 0;
+                },
+                getMissingRequirements(t) {
+                    const m = this._checkReqs(t.requirements);
+                    return m.length ? 'Missing: ' + m.join(', ') : '';
                 },
                 async saveConfig() {
                     try {
@@ -1057,14 +1077,22 @@
                     } catch (e) { console.error('Fetch templates error:', e); }
                 },
                 async syncTemplates() {
+                    if (!confirm('Replace all templates with comments.json? This deactivates existing templates.')) return;
                     try {
-                        const res = await fetch('/api/admin/sync-templates', {
+                        const res = await fetch('/api/admin/templates/sync', {
                             method: 'POST',
-                            headers: { 'x-admin-token': this.authToken }
+                            headers: { 'x-admin-token': this.authToken, 'Content-Type': 'application/json' },
+                            body: '{}',
                         });
                         const data = await res.json();
-                        if (res.ok) alert(`Synced ${data.synced}/${data.total} templates`);
-                        else alert('Sync failed: ' + (data.error || ''));
+                        if (res.ok) {
+                            alert(`Synced ${data.synced}/${data.total} templates (${data.inserted} new, ${data.updated} updated)`);
+                            // Reload templates
+                            const tRes = await fetch('/api/admin/templates', { headers: { 'x-admin-token': this.authToken } });
+                            if (tRes.ok) this.allTemplates = await tRes.json();
+                        } else {
+                            alert('Sync failed: ' + (data.error || ''));
+                        }
                     } catch (e) { alert('Error: ' + e.message); }
                 }
             }
