@@ -2713,6 +2713,7 @@ app.get('/api/admin/templates', adminAuth, async (req, res) => {
     const { data, error } = await supabase
       .from('comment_templates')
       .select('id, template_id, template_text, original_text, category, requirements, word_count, usage_count, is_active')
+      .eq('is_active', true)
       .order('category')
       .order('template_id');
 
