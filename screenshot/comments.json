@@ -280,7 +280,10 @@
     "template": "My children play a game called \"normal day.\" They pretend to miss the school bus. Complain about homework. Fight over TV channels that don't exist. Yesterday the youngest said \"I don't want to play anymore. I forgot how it ends.\" None of us remember how normal days ended.",
     "category": "innocence_wisdom",
     "requirements": {
-      "min_children": 3
+      "min_children": 3,
+      "age_constraints": {
+        "child1": {"min": 4, "max": 16}
+      }
     },
     "keywords": ["game", "normal", "school bus", "homework", "TV", "pretend", "memory", "childhood", "playing", "forget", "yesterday"],
     "note": "No personalization needed - universal statement",
@@ -565,7 +568,7 @@
   
   {
     "id": "different_hungers",
-    "original": "NUMBER children. NUMBER different ways to be hungry. The AGE-year-old cries. The AGE-year-old goes silent. The AGE-year-old makes jokes that aren't funny. \"My stomach is practicing being empty for when I'm dead.\" We laughed. What else could we do?",
+    "original": "3 children. 3 different ways to be hungry. The 4-year-old cries. The 7-year-old goes silent. The 10-year-old makes jokes that aren't funny. \"My stomach is practicing being empty for when I'm dead.\" We laughed. What else could we do?",
     "template": "{child_count} children. {child_count} different ways to be hungry. The {child1:age[3-6]|4}-year-old cries. The {child2:age[6-9,>child1:age]|7}-year-old goes silent. The {child3:age[9-13,>child2:age]|10}-year-old makes jokes that aren't funny. \"My stomach is practicing being empty for when I'm dead.\" We laughed. What else could we do?",
     "category": "hunger_scarcity",
     "requirements": {
@@ -611,7 +614,12 @@
     "category": "childhood_end",
     "requirements": {
       "min_children": 3,
-      "age_ordering": "descending"
+      "age_ordering": "descending",
+      "age_constraints": {
+        "child1": {"min": 3, "max": 16},
+        "child2": {"min": 3, "max": 16},
+        "child3": {"min": 3, "max": 16}
+      }
     },
     "keywords": ["disappearing", "silence", "eating", "sleeping", "absence", "practicing", "ready", "coping", "withdrawal", "trauma"],
     "word_count": 31
@@ -827,7 +835,7 @@
   {
     "id": "church_construction",
     "original": "300 Christians left in Gaza. My son did the subtraction: \"We lost 1,200.\" Then he asked where souls go when churches are rubble. I said heaven. He said \"It must be crowded.\" Started building a church from debris. \"Practice for heaven's construction crew.\"",
-    "template": "{var1:christians_left|300} Christians left in Gaza. My {child1:role|son} did the subtraction: \"We lost {var2:christians_lost|1,200}.\" Then {child1:pronoun_sub|he} asked where souls go when churches are rubble. I said heaven. {child1:pronoun_sub|He} said \"It must be crowded.\" Started building a church from debris. \"Practice for heaven's construction crew.\"",
+    "template": "{var1:christians_left|300} Christians left in Gaza. My {child1:role|son} did the subtraction: \"We lost {var2:christians_lost|300}.\" Then {child1:pronoun_sub|he} asked where souls go when churches are rubble. I said heaven. {child1:pronoun_sub|He} said \"It must be crowded.\" Started building a church from debris. \"Practice for heaven's construction crew.\"",
     "category": "death_loss",
     "requirements": {
       "min_children": 1,

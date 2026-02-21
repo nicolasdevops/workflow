@@ -285,7 +285,7 @@ function renderTemplate(templateText, familyProfile, config) {
     };
 
     // Contextual from profile
-    const familySize = members.length + 1; // members + narrator parent
+    const familySize = members.length; // all family members (narrator is typically listed as adult1)
     const contextual = {
         parent_role: 'mama',
         shelter_type: familyProfile.housing_type || 'tent',
@@ -295,7 +295,7 @@ function renderTemplate(templateText, familyProfile, config) {
         displacement_count: familyProfile.displacement_count || 5,
         family_size: familySize,
         christians_left: '300',
-        christians_lost: '1,200',
+        christians_lost: '300',
     };
 
     // Check if any parent is in members

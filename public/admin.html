@@ -248,7 +248,7 @@
                         <div v-if="allTemplates.length === 0" class="text-xs text-gray-400">No templates loaded. Sync templates first.</div>
                         <div v-for="(t, idx) in allTemplates" :key="t.id" class="mb-2 p-2 rounded border" :class="isTemplateEligible(t) ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'">
                             <div class="flex items-start gap-2">
-                                <input type="checkbox" :value="t.id" v-model="selectedTemplates" class="mt-1 accent-[#3274B5]" :disabled="!isTemplateEligible(t)">
+                                <input type="checkbox" :value="t.id" v-model="selectedTemplates" class="mt-1 accent-[#3274B5]">
                                 <div class="flex-1">
                                     <div class="flex items-baseline gap-2 mb-1">
                                         <span class="text-xs font-bold text-gray-500">{{ idx + 1 }}.</span>
@@ -803,7 +803,7 @@
                         const r = (m.relationship||'').toLowerCase();
                         return r === 'father' || r === 'mother' || r === 'mother/father';
                     });
-                    const familySize = (members.length || 0) + 1; // members + the parent narrator
+                    const familySize = members.length || 0; // all family members (narrator is typically listed as adult1)
                     this.contextualVars = [
                         { name: 'parent_role', value: hasParent ? (hasParent.gender === 'Male' ? 'baba' : 'mama') : 'mama' },
                         { name: 'shelter_type', value: c.housing_type || 'tent' },
@@ -812,7 +812,7 @@
                         { name: 'prayer_reference', value: (c.religion || '').toLowerCase() === 'christian' ? 'prayer' : 'dua' },
                         { name: 'family_size', value: String(familySize) },
                         { name: 'christians_left', value: '300' },
-                        { name: 'christians_lost', value: '1,200' },
+                        { name: 'christians_lost', value: '300' },
                     ];
 
                     // Build member variable rows with proper prefixes and colors
