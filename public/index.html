@@ -791,7 +791,7 @@
 
                     <!-- Scrape Form -->
                     <div class="mt-4 border-t pt-4">
-                        <form @submit.prevent="handleInstaScrape">
+                        <form @submit.prevent="handleInstaScrape" class="max-w-[260px] mx-auto">
                             <div class="mb-4">
                                 <label class="block mb-1 flex flex-col items-start gap-[5px] text-[#3274B5]">
                                     <span class="text-base font-bold leading-none">اسم حساب الانستغرام</span>
@@ -845,12 +845,12 @@
                             <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
                         </h4>
                         <div style="height: 6px;"></div>
-                        <div class="grid grid-cols-3 gap-1">
-                            <div v-for="item in scrapedContent.slice(0, 9)" :key="item.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
+                        <div class="grid grid-cols-3 gap-1 max-h-[400px] overflow-y-auto">
+                            <div v-for="item in scrapedContent" :key="item.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
                                 <!-- Clickable Area for Preview -->
                                 <div @click="openScrapedPreview(item)" class="w-full h-full cursor-pointer">
                                     <template v-if="item.is_video">
-                                        <img v-if="item.display_url" :src="item.display_url" class="w-full h-full object-cover">
+                                        <img v-if="item.display_url" :src="item.display_url" loading="lazy" class="w-full h-full object-cover">
                                         <div class="absolute top-1 right-1 bg-black/60 rounded-full p-1 pointer-events-none">
                                             <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
                                         </div>
@@ -861,7 +861,7 @@
                                         </div>
                                     </template>
                                     <template v-else>
-                                        <img v-if="item.display_url" :src="item.display_url" class="w-full h-full object-cover">
+                                        <img v-if="item.display_url" :src="item.display_url" loading="lazy" class="w-full h-full object-cover">
                                         <div v-else class="w-full h-full flex items-center justify-center text-gray-400 text-xs">No image</div>
                                     </template>
                                 </div>
@@ -1976,7 +1976,7 @@
                 },
                 async fetchScrapedContent() {
                     try {
-                        const res = await fetch('/api/portal/instagram/content?limit=9', {
+                        const res = await fetch('/api/portal/instagram/content?limit=50', {
                             headers: { 'x-portal-token': this.token }
                         });
                         if (res.ok) {
