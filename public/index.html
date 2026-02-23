@@ -373,14 +373,19 @@
                                 <div class="grid grid-cols-[3fr_1fr_2fr] gap-2 mb-0">
                                     <div class="flex items-center gap-3 h-[30px]">
                                         <label class="flex items-center gap-1 cursor-pointer">
-                                            <input type="radio" v-model="newMember.disability" value="no" class="accent-[#3274B5]">
+                                            <input type="radio" v-model="newMember.disability" value="no" @change="showDisabilityWarning = false" class="accent-[#3274B5]">
                                             <span class="text-xs">لأ</span>
                                         </label>
                                         <label class="flex items-center gap-1 cursor-pointer">
-                                            <input type="radio" v-model="newMember.disability" value="yes" class="accent-[#3274B5]">
+                                            <input type="radio" v-model="newMember.disability" value="yes" @change="confirmDisability" class="accent-[#3274B5]">
                                             <span class="text-xs">آه</span>
                                         </label>
                                         <span class="text-lg text-black whitespace-nowrap">إعاقة ؟</span>
+                                    </div>
+                                    <div v-if="showDisabilityWarning" class="col-span-3 bg-amber-50 border border-amber-300 rounded p-2 text-xs leading-relaxed mb-1" dir="rtl">
+                                        <p class="font-bold text-amber-800 mb-1">تأكد: هل هذا الشخص يعاني من إعاقة جسدية أو ذهنية دائمة وخطيرة تمنعه من الحركة أو العمل؟</p>
+                                        <p class="text-amber-700">مثال: شلل دماغي، بتر الساقين، عدم القدرة على الكلام. عين واحدة ضعيفة ليست إعاقة هنا ما دام الشخص يقدر يمشي ويشتغل ويحكي.</p>
+                                        <p class="text-amber-700 mt-1" dir="ltr" style="text-align: left;">This will impact AI content output. Only select for serious permanent incapacitation (e.g. cerebral palsy, double amputee, nonverbal).</p>
                                     </div>
                                     <div></div>
                                     <div class="flex items-center gap-2 justify-end">
@@ -396,9 +401,9 @@
 
                                                         <!-- List of added children -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
-                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="bg-gray-50 rounded border text-sm relative">
+                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="bg-gray-50 rounded border text-sm relative cursor-pointer hover:bg-[#3274B5]/10 transition-colors" @click="toggleMemberDetails(index)">
                                                                 <!-- × delete: top-right corner -->
-                                                                <button type="button" @click="removeChild(index)" class="absolute top-1 right-1 text-gray-300 hover:text-gray-500 text-sm leading-none px-1">×</button>
+                                                                <button type="button" @click.stop="removeChild(index)" class="absolute top-1 right-1 text-gray-300 hover:text-gray-500 text-sm leading-none px-1 z-10">×</button>
                                                                 <!-- Summary content -->
                                                                 <div class="p-2 pr-6" dir="ltr" style="text-align: left;">
                                                                     <span style="display: flex; gap: 0.25rem; align-items: center;">
@@ -424,22 +429,20 @@
                                                                         </span>
                                                                     </div>
                                                                 </div>
-                                                                <!-- AMAP button: bottom-right corner -->
-                                                                <button type="button" @click="toggleMemberDetails(index)" class="absolute bottom-1 right-1 p-0.5" title="تفاصيل">
-                                                                    <img src="icons/detail-panel.png" style="width: 16px; height: 16px; opacity: 0.18; transition: opacity 0.2s;" class="object-contain" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.18'">
-                                                                </button>
                                                                 <!-- Detail popup overlay -->
                                                                 <div v-show="member.detailsOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);" @click.self="toggleMemberDetails(index)">
                                                                 <!-- Popup wrapper: close button outside panel, not scrollable -->
                                                                 <div class="relative mx-4 max-w-md w-full" @click.stop>
                                                                     <button type="button" @click="toggleMemberDetails(index)" class="absolute -top-7 right-0 text-white hover:text-gray-300 text-2xl leading-none z-10">&times;</button>
-                                                                <div class="bg-white/95 rounded-3xl p-4 max-h-[80vh] overflow-y-auto shadow-2xl" style="overscroll-behavior: contain;" dir="rtl">
+                                                                <div class="rounded-3xl p-4 max-h-[80vh] overflow-y-auto shadow-2xl" style="overscroll-behavior: contain; background: linear-gradient(135deg, #f0f7ff 0%, #fff8f0 50%, #f0fff4 100%);" dir="rtl">
                                                                     <!-- Popup header: name left -->
-                                                                    <div class="mb-3" dir="ltr">
+                                                                    <div class="mb-3 flex items-center gap-2" dir="ltr">
+                                                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#3274B5] to-[#5BA3D9] flex items-center justify-center text-white text-xs font-bold shadow-sm">{{ (member.nameDisplay || member.name || '?')[0] }}</div>
                                                                         <span class="text-sm font-bold text-[#3274B5]">{{ member.nameDisplay || member.name }}</span>
+                                                                        <span class="text-xs text-gray-400">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: ''}).en }}</span>
                                                                     </div>
                                                                     <!-- Section: Medical -->
-                                                                    <div class="flex items-center gap-1.5 mb-2 mt-1 border-b border-[#3274B5]/20 pb-1">
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-1 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
                                                                         <span class="text-sm">🏥</span>
                                                                         <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">صحة | HEALTH</span>
                                                                     </div>
@@ -475,7 +478,7 @@
                                                                         </div>
                                                                     </div>
                                                                     <!-- Section: Mobility -->
-                                                                    <div class="flex items-center gap-1.5 mb-2 mt-2 border-b border-[#3274B5]/20 pb-1">
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-2 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
                                                                         <img src="icons/wheelchair.png" style="width: 18px; height: 18px;" class="object-contain inline-block">
                                                                         <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">حركة وإدراك | MOBILITY</span>
                                                                     </div>
@@ -502,7 +505,7 @@
                                                                         </div>
                                                                     </div>
                                                                     <!-- Section: Medical detail -->
-                                                                    <div class="flex items-center gap-1.5 mb-2 mt-2 border-b border-[#3274B5]/20 pb-1">
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-2 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
                                                                         <span class="text-sm">🩺</span>
                                                                         <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">تفاصيل | DETAILS</span>
                                                                     </div>
@@ -512,7 +515,7 @@
                                                                         <input v-model="member.medical_detail" @blur="updateProfile()" type="text" class="w-full border py-0 px-2 rounded text-xs h-[28px]" placeholder="مثال: ثقب في القلب، يحتاج بخاخ">
                                                                     </div>
                                                                     <!-- Section: Medication -->
-                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 border-b border-[#3274B5]/20 pb-1">
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
                                                                         <span class="text-sm">💊</span>
                                                                         <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">أدوية | MEDICATION</span>
                                                                     </div>
@@ -532,7 +535,7 @@
                                                                         </div>
                                                                     </div>
                                                                     <!-- Section: Clothing -->
-                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 border-b border-[#3274B5]/20 pb-1">
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
                                                                         <span class="text-sm">👕</span>
                                                                         <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">ملابس | CLOTHING</span>
                                                                     </div>
@@ -542,7 +545,7 @@
                                                                         <input v-model="member.clothing_description" @blur="updateProfile()" type="text" class="w-full border py-0 px-2 rounded text-xs h-[28px]" placeholder="مثال: بلوزة رمادية كبيرة، بنطلون ممزق">
                                                                     </div>
                                                                     <!-- Section: Media (all uploads) -->
-                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 border-b border-[#3274B5]/20 pb-1">
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
                                                                         <span class="text-sm">📸</span>
                                                                         <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">صور وفيديو | MEDIA</span>
                                                                     </div>
@@ -582,7 +585,7 @@
                                                                         </div>
                                                                     </div>
                                                                     <!-- Section: Notes -->
-                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 border-b border-[#3274B5]/20 pb-1">
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
                                                                         <span class="text-sm">📝</span>
                                                                         <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">ملاحظات | NOTES</span>
                                                                     </div>
@@ -591,8 +594,8 @@
                                                                         <label class="block text-xs font-bold mb-1 text-[#3274B5]">ملاحظات</label>
                                                                         <textarea v-model="member.notes" @blur="updateProfile()" class="w-full border py-1 px-2 rounded text-xs" rows="2" placeholder="ملاحظات إضافية..."></textarea>
                                                                     </div>
-                                                                    <!-- Save button (matches base form style) -->
-                                                                    <button type="button" @click="saveMemberDetails(index)" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px] mx-auto">
+                                                                    <!-- Save button -->
+                                                                    <button type="button" @click="saveMemberDetails(index)" class="px-5 py-1.5 text-white font-bold rounded-full hover:shadow-lg transition-all flex justify-center items-center text-xs gap-1 h-[34px] mx-auto mt-1" style="background: linear-gradient(135deg, #3274B5, #5BA3D9);">
                                                                         <span class="text-base">حفظ</span>
                                                                         <span class="opacity-80">|</span>
                                                                         <span>Save</span>
@@ -791,7 +794,7 @@
 
                     <!-- Scrape Form -->
                     <div class="mt-4 border-t pt-4">
-                        <form @submit.prevent="handleInstaScrape" class="max-w-[260px] mx-auto">
+                        <form @submit.prevent="handleInstaScrape">
                             <div class="mb-4">
                                 <label class="block mb-1 flex flex-col items-start gap-[5px] text-[#3274B5]">
                                     <span class="text-base font-bold leading-none">اسم حساب الانستغرام</span>
@@ -1090,6 +1093,7 @@
                     igScrapeProgress: '',
                     igScrapeTimer: null,
                     igValidationWarning: false,
+                    showDisabilityWarning: false,
                     profileSaved: false,
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
@@ -1405,6 +1409,10 @@
                         alert('خطأ بالحفظ | Save failed: ' + (await res.json().catch(() => ({}))).error);
                     }
                 },
+                confirmDisability() {
+                    this.showDisabilityWarning = true;
+                    setTimeout(() => { this.showDisabilityWarning = false; }, 12000);
+                },
                 checkAgeArabic() {
                     const arabicNumerals = /[\u0660-\u0669\u06F0-\u06F9]/;
                     if (arabicNumerals.test(this.newMember.age)) {
@@ -1449,6 +1457,7 @@
 
                     this.profile.children_details.push(memberWithTranslations);
                     this.newMember = { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '', disability: '' }; // Reset
+                    this.showDisabilityWarning = false;
 
                     // Show green checkmark immediately
                     this.memberSaved = true;
