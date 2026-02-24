@@ -562,7 +562,7 @@
                                                                     </div>
                                                                     <!-- Photos of [Name] -->
                                                                     <div class="mb-2" dir="ltr">
-                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Pictures of {{ member.name }}</label>
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Pictures of {{ member.name }} | صور {{ member.name }}</label>
                                                                         <input type="file" multiple accept="image/*" @change="handleMemberFileUpload($event, index, 'photo_refs')" class="w-full text-xs">
                                                                         <div v-if="member.photo_refs && member.photo_refs.length" class="flex gap-2 mt-2 flex-wrap">
                                                                             <div v-for="(url, pi) in member.photo_refs" :key="pi" class="relative group">
@@ -573,7 +573,7 @@
                                                                     </div>
                                                                     <!-- Videos of [Name] -->
                                                                     <div class="mb-2" dir="ltr">
-                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Videos of {{ member.name }}</label>
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Videos of {{ member.name }} | فيديوهات {{ member.name }}</label>
                                                                         <input type="file" multiple accept="video/*" @change="handleMemberFileUpload($event, index, 'video_refs')" class="w-full text-xs">
                                                                         <div v-if="member.video_refs && member.video_refs.length" class="flex gap-2 mt-2 flex-wrap">
                                                                             <div v-for="(url, vi) in member.video_refs" :key="vi" class="relative group">
