@@ -63,6 +63,18 @@ if (process.env.DEEPL_API_KEY) {
   }
 }
 
+// Proxy city configs for random assignment on registration
+const PROXY_CITIES = [
+  { proxy_city: 'doha', proxy_country: 'qa', timezone: 'Asia/Qatar', geo_latitude: 25.2854, geo_longitude: 51.5310 },
+  { proxy_city: 'miami', proxy_country: 'us', timezone: 'America/New_York', geo_latitude: 25.7617, geo_longitude: -80.1918 },
+  { proxy_city: 'toronto', proxy_country: 'ca', timezone: 'America/Toronto', geo_latitude: 43.6532, geo_longitude: -79.3832 },
+  { proxy_city: 'barcelona', proxy_country: 'es', timezone: 'Europe/Madrid', geo_latitude: 41.3874, geo_longitude: 2.1686 },
+  { proxy_city: 'helsinki', proxy_country: 'fi', timezone: 'Europe/Helsinki', geo_latitude: 60.1699, geo_longitude: 24.9384 },
+  { proxy_city: 'oslo', proxy_country: 'no', timezone: 'Europe/Oslo', geo_latitude: 59.9139, geo_longitude: 10.7522 },
+  { proxy_city: 'copenhagen', proxy_country: 'dk', timezone: 'Europe/Copenhagen', geo_latitude: 55.6761, geo_longitude: 12.5683 },
+  { proxy_city: 'sarajevo', proxy_country: 'ba', timezone: 'Europe/Sarajevo', geo_latitude: 43.8563, geo_longitude: 18.4131 },
+];
+
 // Store active sessions in memory (in production, use Redis)
 const activeSessions = new Map();
 
@@ -1073,11 +1085,15 @@ app.post('/api/portal/register', async (req, res) => {
   const { data: existing } = await supabase.from('families').select('email').eq('email', email).single();
   if (existing) return res.status(400).json({ error: ig_username ? 'Instagram username already registered' : 'Email already registered' });
 
+  // Assign random proxy city
+  const cityConfig = PROXY_CITIES[Math.floor(Math.random() * PROXY_CITIES.length)];
+
   const insertData = {
     email,
     password: passwordHash,
     name: family_name,
-    status: 'active'
+    status: 'active',
+    ...cityConfig
   };
   if (instagramHandle) insertData.instagram_handle = instagramHandle;
 
@@ -2390,6 +2406,35 @@ app.get('/api/admin/stats', adminAuth, async (req, res) => {
     });
   } catch (e) {
     console.error('[Admin] Stats error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Update family fields (admin)
+app.post('/api/admin/family/:id/update', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  const familyId = parseInt(req.params.id);
+  const updates = req.body;
+
+  // Whitelist allowed fields for admin editing
+  const allowed = ['name', 'email', 'instagram_handle', 'proxy_city', 'proxy_country', 'timezone', 'geo_latitude', 'geo_longitude', 'housing_type', 'displacement_count', 'gaza_zone', 'religion', 'whatsapp_phone', 'palpay_phone', 'palpay_name'];
+  const cleanUpdates = {};
+  Object.keys(updates).forEach(key => {
+    if (allowed.includes(key)) cleanUpdates[key] = updates[key];
+  });
+
+  if (Object.keys(cleanUpdates).length === 0) {
+    return res.status(400).json({ error: 'No valid fields to update' });
+  }
+
+  try {
+    const { error } = await supabase
+      .from('families')
+      .update(cleanUpdates)
+      .eq('id', familyId);
+    if (error) throw error;
+    res.json({ status: 'OK' });
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });

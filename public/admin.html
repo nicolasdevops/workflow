@@ -107,7 +107,12 @@
                         <div class="flex items-center gap-3 flex-1">
                             <img v-if="detailFamily.family.profile_pic_url" :src="detailFamily.family.profile_pic_url" class="w-10 h-10 rounded-full object-cover border-2 border-[#3274B5]">
                             <div>
-                                <h2 class="font-bold text-gray-800 text-lg">{{ detailFamily.family.name }}</h2>
+                                <h2 v-if="!editingFamilyName" class="font-bold text-gray-800 text-lg cursor-pointer hover:text-[#3274B5] transition" @click="editingFamilyName = true; editFamilyNameValue = detailFamily.family.name" title="Click to edit">{{ detailFamily.family.name }}</h2>
+                                <div v-else class="flex items-center gap-2">
+                                    <input v-model="editFamilyNameValue" @keyup.enter="saveFamilyField('name', editFamilyNameValue)" @keyup.esc="editingFamilyName = false" class="border rounded px-2 py-1 text-sm font-bold w-48 focus:ring-2 focus:ring-[#3274B5] focus:outline-none" ref="familyNameInput">
+                                    <button @click="saveFamilyField('name', editFamilyNameValue)" class="text-green-600 hover:text-green-800 text-lg">&#10003;</button>
+                                    <button @click="editingFamilyName = false" class="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+                                </div>
                                 <p class="text-xs text-gray-500">ID: {{ detailFamily.family.id }} | {{ detailFamily.family.email }}</p>
                             </div>
                         </div>
@@ -511,6 +516,8 @@
                     detailFamily: null,
                     detailConfig: { template_overrides: {}, variable_locks: {}, child_assignments: {} },
                     configSaved: false,
+                    editingFamilyName: false,
+                    editFamilyNameValue: '',
                     generatedComments: [],
                     generateCount: 5,
                     generating: false,
@@ -752,6 +759,24 @@
                 },
                 isVideo(path) {
                     return /\.(mp4|mov|webm)$/i.test(path);
+                },
+                async saveFamilyField(field, value) {
+                    try {
+                        const res = await fetch(`/api/admin/family/${this.detailFamily.family.id}/update`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': this.authToken },
+                            body: JSON.stringify({ [field]: value })
+                        });
+                        if (!this.checkAuth(res)) return;
+                        if (!res.ok) throw new Error((await res.json()).error);
+                        this.detailFamily.family[field] = value;
+                        this.editingFamilyName = false;
+                        // Refresh families list
+                        const f = this.families.find(f => f.id === this.detailFamily.family.id);
+                        if (f) f[field] = value;
+                    } catch (e) {
+                        alert('Save failed: ' + e.message);
+                    }
                 },
                 // --- Family Detail Methods ---
                 async openFamilyDetail(family) {
