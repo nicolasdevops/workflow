@@ -2998,14 +2998,13 @@ app.listen(PORT, '0.0.0.0', () => {
 
   // Auto-migrate: add first_name column if missing
   if (supabase) {
-    supabase.rpc('', {}).catch(() => {}); // warm up
-    supabase.from('families').select('first_name').limit(1).then(({ error }) => {
-      if (error && error.message.includes('first_name')) {
-        console.log('[Migration] Adding first_name column to families...');
-        supabase.rpc('exec_sql', { sql: 'ALTER TABLE families ADD COLUMN IF NOT EXISTS first_name TEXT' })
-          .then(() => console.log('[Migration] first_name column added'))
-          .catch(e => console.log('[Migration] first_name: run manually: ALTER TABLE families ADD COLUMN IF NOT EXISTS first_name TEXT;'));
-      }
-    });
+    (async () => {
+      try {
+        const { error } = await supabase.from('families').select('first_name').limit(1);
+        if (error && error.message.includes('first_name')) {
+          console.log('[Migration] first_name column missing — run manually: ALTER TABLE families ADD COLUMN IF NOT EXISTS first_name TEXT;');
+        }
+      } catch (e) { /* ignore */ }
+    })();
   }
 });
