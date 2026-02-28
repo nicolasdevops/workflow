@@ -357,6 +357,8 @@
                                         <select v-model="newMember.relationship" :class="['border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white', showValidationError && !newMember.relationship ? 'border-red-500 text-red-500' : '']">
                                             <option value="" disabled selected>صلة القرابة *</option>
                                             <option value="Son/Daughter">ابن/ابنة</option>
+                                            <option value="Adopted Son/Daughter">ابن/ابنة بالتبني</option>
+                                            <option value="Orphan Boy/Girl">يتيم/يتيمة</option>
                                             <option value="Husband/Wife">زوج/زوجة</option>
                                             <option value="Brother/Sister">أخ/أخت</option>
                                             <option value="Mother/Father">أم/أب</option>
@@ -1622,6 +1624,8 @@
                     const isMale = gender === 'Male';
                     const map = {
                         'Son/Daughter': isMale ? { en: 'Son', ar: 'ابن' } : { en: 'Daughter', ar: 'ابنة' },
+                        'Adopted Son/Daughter': isMale ? { en: 'Adopted Son', ar: 'ابن بالتبني' } : { en: 'Adopted Daughter', ar: 'ابنة بالتبني' },
+                        'Orphan Boy/Girl': isMale ? { en: 'Orphan Boy', ar: 'يتيم' } : { en: 'Orphan Girl', ar: 'يتيمة' },
                         'Husband/Wife': isMale ? { en: 'Husband', ar: 'زوج' } : { en: 'Wife', ar: 'زوجة' },
                         'Brother/Sister': isMale ? { en: 'Brother', ar: 'أخ' } : { en: 'Sister', ar: 'أخت' },
                         'Mother/Father': isMale ? { en: 'Father', ar: 'أب' } : { en: 'Mother', ar: 'أم' },
