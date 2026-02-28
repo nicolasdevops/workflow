@@ -477,44 +477,26 @@ async function saveScrapedData(supabase, familyId, scrapeResult) {
             return { error: `Failed to save profile: ${profileError.message}` };
         }
 
-        // 2. Insert/update content items (with B2 upload if configured)
+        // 2. Insert/update content items — save to DB FIRST with original URLs,
+        //    then upload to B2 in background (so polling sees content immediately)
         if (content && content.length > 0) {
-            const contentRows = [];
-
-            for (const item of content) {
-                let displayUrl = item.displayUrl;
-                let videoUrl = item.videoUrl;
-
-                // Upload to B2 if configured
-                if (isB2Configured()) {
-                    if (displayUrl) {
-                        console.log(`[Apify] Uploading post ${item.shortCode} to B2...`);
-                        displayUrl = await uploadPostImage(displayUrl, familyId, item.shortCode);
-                    }
-                    if (videoUrl) {
-                        console.log(`[Apify] Uploading video ${item.shortCode} to B2...`);
-                        videoUrl = await uploadVideo(videoUrl, familyId, item.shortCode);
-                    }
-                }
-
-                contentRows.push({
-                    family_id: familyId,
-                    instagram_id: item.id,
-                    short_code: item.shortCode,
-                    content_type: item.type,
-                    caption: item.caption,
-                    display_url: displayUrl,
-                    video_url: videoUrl,
-                    likes_count: item.likesCount,
-                    comments_count: item.commentsCount,
-                    posted_at: item.timestamp,
-                    location_name: item.locationName,
-                    hashtags: item.hashtags,
-                    mentions: item.mentions,
-                    is_video: item.isVideo,
-                    scraped_at: scrapedAt,
-                });
-            }
+            const contentRows = content.map(item => ({
+                family_id: familyId,
+                instagram_id: item.id,
+                short_code: item.shortCode,
+                content_type: item.type,
+                caption: item.caption,
+                display_url: item.displayUrl,
+                video_url: item.videoUrl,
+                likes_count: item.likesCount,
+                comments_count: item.commentsCount,
+                posted_at: item.timestamp,
+                location_name: item.locationName,
+                hashtags: item.hashtags,
+                mentions: item.mentions,
+                is_video: item.isVideo,
+                scraped_at: scrapedAt,
+            }));
 
             // Upsert content (update if short_code exists)
             const { error: contentError } = await supabase
@@ -526,7 +508,8 @@ async function saveScrapedData(supabase, familyId, scrapeResult) {
 
             if (contentError) {
                 console.error('[Apify] Content save error:', contentError);
-                // Don't fail the whole operation for content errors
+            } else {
+                console.log(`[Apify] Saved ${contentRows.length} posts to DB (original URLs)`);
             }
 
             // Auto-fill description from caption for rows that don't have one yet
@@ -546,6 +529,40 @@ async function saveScrapedData(supabase, familyId, scrapeResult) {
                     }
                 }
                 console.log(`[Apify] Auto-filled description from caption for ${needsDesc.length} posts`);
+            }
+
+            // Upload to B2 in background (update DB rows as each upload completes)
+            if (isB2Configured()) {
+                console.log(`[Apify] Starting B2 uploads for ${content.length} posts in background...`);
+                (async () => {
+                    let uploaded = 0;
+                    for (const item of content) {
+                        try {
+                            let b2Display = null;
+                            let b2Video = null;
+                            if (item.displayUrl) {
+                                b2Display = await uploadPostImage(item.displayUrl, familyId, item.shortCode);
+                            }
+                            if (item.videoUrl) {
+                                b2Video = await uploadVideo(item.videoUrl, familyId, item.shortCode);
+                            }
+                            if (b2Display || b2Video) {
+                                const update = {};
+                                if (b2Display) update.display_url = b2Display;
+                                if (b2Video) update.video_url = b2Video;
+                                await supabase
+                                    .from('mothers_content')
+                                    .update(update)
+                                    .eq('family_id', familyId)
+                                    .eq('short_code', item.shortCode);
+                                uploaded++;
+                            }
+                        } catch (err) {
+                            console.error(`[Apify] B2 upload failed for ${item.shortCode}:`, err.message);
+                        }
+                    }
+                    console.log(`[Apify] B2 uploads complete: ${uploaded}/${content.length} posts`);
+                })();
             }
         }
 

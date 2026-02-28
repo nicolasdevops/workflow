@@ -1203,7 +1203,7 @@ app.post('/api/portal/admin-update', portalAuth, async (req, res) => {
   const { name, email, password } = req.body;
   const updates = {};
   if (name) updates.name = name;
-  if (email) updates.email = email;
+  if (email && email !== req.user.email) updates.email = email;
   if (password) updates.password = crypto.createHash('sha256').update(password).digest('hex');
 
   if (Object.keys(updates).length === 0) {
@@ -1211,6 +1211,18 @@ app.post('/api/portal/admin-update', portalAuth, async (req, res) => {
   }
 
   try {
+    // Check if new email already exists (different family)
+    if (updates.email) {
+      const { data: existing } = await supabase
+        .from('families')
+        .select('id')
+        .eq('email', updates.email)
+        .single();
+      if (existing) {
+        return res.status(409).json({ error: 'This email is already used by another family' });
+      }
+    }
+
     const { error } = await supabase
       .from('families')
       .update(updates)
