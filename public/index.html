@@ -848,8 +848,8 @@
                             <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
                         </h4>
                         <div style="height: 6px;"></div>
-                        <div class="grid grid-cols-3 gap-1 max-h-[400px] overflow-y-auto">
-                            <div v-for="item in scrapedContent" :key="item.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
+                        <div class="grid grid-cols-3 gap-1">
+                            <div v-for="item in scrapedContent.slice(0, contentDisplayLimit)" :key="item.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
                                 <!-- Clickable Area for Preview -->
                                 <div @click="openScrapedPreview(item)" class="w-full h-full cursor-pointer">
                                     <template v-if="item.is_video">
@@ -874,6 +874,9 @@
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                 </button>
                             </div>
+                            <button v-if="scrapedContent.length > contentDisplayLimit" @click="contentDisplayLimit += 20" class="w-full mt-2 py-1.5 bg-gray-100 text-[#3274B5] font-bold rounded text-sm hover:bg-gray-200 transition">
+                                عرض المزيد ({{ Math.min(scrapedContent.length, contentDisplayLimit + 20) - contentDisplayLimit }})
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1078,6 +1081,7 @@
                     newMember: { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '', disability: '' },
                     scrapedProfile: null,
                     scrapedContent: [],
+                    contentDisplayLimit: 20,
                     scrapeStatus: { canScrape: true, minutesRemaining: 0 },
                     scrapeMessage: null,
                     backupLoading: false,
@@ -1893,17 +1897,21 @@
                             pollCount++;
                             await this.fetchScrapedProfile();
 
-                            // Check if profile pic is now available
+                            // Update profile pic with persistent B2 URL if available
                             if (this.scrapedProfile?.profile_pic_url) {
                                 this.profile.profile_pic_url = this.scrapedProfile.profile_pic_url;
-                                this.scrapeMessage = { type: 'success', text: 'تم جلب الملف بنجاح! | Profile scraped!' };
-                                setTimeout(() => { this.scrapeMessage = null; }, 3000);
+                            }
+
+                            // Done when content (posts) have loaded
+                            if (this.scrapedContent && this.scrapedContent.length > 0) {
+                                this.scrapeMessage = { type: 'success', text: `تم جلب ${this.scrapedContent.length} منشور بنجاح! | ${this.scrapedContent.length} posts scraped!` };
+                                setTimeout(() => { this.scrapeMessage = null; }, 4000);
                                 return;
                             }
 
                             // Keep polling if not at max
                             if (pollCount < maxPolls) {
-                                this.scrapeMessage = { type: 'success', text: `جاري الجلب... (${pollCount * 5}s) | Scraping...` };
+                                this.scrapeMessage = { type: 'info', text: `جاري الجلب... (${pollCount * 5}s) | Scraping...` };
                                 setTimeout(pollForResults, pollInterval);
                             } else {
                                 // Timeout - show what we have
@@ -1988,7 +1996,7 @@
                 },
                 async fetchScrapedContent() {
                     try {
-                        const res = await fetch('/api/portal/instagram/content?limit=50', {
+                        const res = await fetch('/api/portal/instagram/content?limit=200', {
                             headers: { 'x-portal-token': this.token }
                         });
                         if (res.ok) {

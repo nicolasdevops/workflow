@@ -1608,7 +1608,7 @@ app.post('/api/portal/instagram/scrape', portalAuth, async (req, res) => {
     // Run scrape in background and save results
     (async () => {
       try {
-        const scrapeResult = await scrapeProfile(username, 50);
+        const scrapeResult = await scrapeProfile(username, 200);
 
         if (scrapeResult.error) {
           console.error(`[Apify] Scrape failed for @${username}:`, scrapeResult.error);
@@ -1748,7 +1748,7 @@ app.post('/api/portal/instagram/unlink', portalAuth, async (req, res) => {
 // Get scraped content for current family
 app.get('/api/portal/instagram/content', portalAuth, async (req, res) => {
   const familyId = req.user.id;
-  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+  const limit = Math.min(parseInt(req.query.limit) || 20, 500);
   const offset = parseInt(req.query.offset) || 0;
 
   if (!supabase) {
