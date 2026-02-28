@@ -1362,14 +1362,17 @@
 
                         // 4. Poll for scraped posts (content appears after full scrape completes)
                         let polls = 0;
-                        const maxPolls = 36;
+                        const maxPolls = 36; // ~3 minutes
                         const pollForContent = async () => {
                             polls++;
                             await this.fetchScrapedProfile();
+                            // Update profile pic with persistent B2 URL if available
                             if (this.scrapedProfile?.profile_pic_url) {
-                                // Update with persistent B2 URL if available
                                 this.profile.profile_pic_url = this.scrapedProfile.profile_pic_url;
-                                return;
+                            }
+                            // Keep polling until we have content (posts) or hit max
+                            if (this.scrapedContent && this.scrapedContent.length > 0) {
+                                return; // Content loaded, done
                             }
                             if (polls < maxPolls) {
                                 setTimeout(pollForContent, 5000);
