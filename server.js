@@ -1192,6 +1192,51 @@ app.post('/api/portal/profile', portalAuth, async (req, res) => {
   res.json({ status: 'SUCCESS' });
 });
 
+// Admin Account Edit (only for impersonation sessions)
+app.post('/api/portal/admin-update', portalAuth, async (req, res) => {
+  // Only allow impersonation tokens (prefixed with imp_)
+  const token = req.headers['x-portal-token'];
+  if (!token || !token.startsWith('imp_')) {
+    return res.status(403).json({ error: 'Admin access only' });
+  }
+
+  const { name, email, password } = req.body;
+  const updates = {};
+  if (name) updates.name = name;
+  if (email) updates.email = email;
+  if (password) updates.password = crypto.createHash('sha256').update(password).digest('hex');
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: 'No fields to update' });
+  }
+
+  try {
+    const { error } = await supabase
+      .from('families')
+      .update(updates)
+      .eq('email', req.user.email);
+
+    if (error) throw error;
+
+    // Update the session data so subsequent requests use new email
+    if (email) {
+      const sessionData = portalSessions.get(token);
+      sessionData.email = email;
+      if (name) sessionData.name = name;
+      portalSessions.set(token, sessionData);
+    } else if (name) {
+      const sessionData = portalSessions.get(token);
+      sessionData.name = name;
+      portalSessions.set(token, sessionData);
+    }
+
+    console.log(`[Admin] Account updated for ${req.user.email}:`, Object.keys(updates).join(', '));
+    res.json({ status: 'SUCCESS' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Upload Media
 app.post('/api/portal/upload', portalAuth, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });

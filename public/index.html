@@ -227,6 +227,29 @@
                         </div>
                     </div>
 
+                    <!-- Admin: Editable Account Fields (only visible during impersonation) -->
+                    <div v-if="isImpersonating" class="mb-4 px-3 py-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <p class="text-xs font-bold text-purple-700 mb-2">Admin: Edit Account</p>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-xs text-purple-600 mb-0.5">Family Name</label>
+                                <input v-model="adminEditName" type="text" class="w-full border border-purple-300 p-1.5 rounded text-sm" placeholder="Family name">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-purple-600 mb-0.5">Email</label>
+                                <input v-model="adminEditEmail" type="text" class="w-full border border-purple-300 p-1.5 rounded text-sm" placeholder="email@example.com">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-purple-600 mb-0.5">New Password (leave blank to keep current)</label>
+                                <input v-model="adminEditPassword" type="text" class="w-full border border-purple-300 p-1.5 rounded text-sm" placeholder="Enter new password">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" @click="saveAdminAccountEdit" class="bg-purple-600 text-white text-xs px-3 py-1.5 rounded hover:bg-purple-700 transition font-bold">Save Account Changes</button>
+                                <span v-if="adminSaveStatus" class="text-xs" :class="adminSaveStatus === 'Saved!' ? 'text-green-600' : 'text-red-600'">{{ adminSaveStatus }}</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <form @submit.prevent="updateProfile">
                         <div class="grid grid-cols-2 gap-4">
                                                         <div class="mb-1">
@@ -1064,6 +1087,10 @@
                     tab: sessionStorage.getItem('current_tab') || 'profile',
                     resetToken: null,
                     isImpersonating: false, // True when admin is viewing as this family
+                    adminEditName: '',
+                    adminEditEmail: '',
+                    adminEditPassword: '',
+                    adminSaveStatus: '',
                     loading: false,
                     isUploading: false,
                     error: null, 
@@ -1204,6 +1231,32 @@
                     sessionStorage.removeItem('current_tab');
                     window.location.href = '/admin';
                 },
+                async saveAdminAccountEdit() {
+                    this.adminSaveStatus = '';
+                    const body = {};
+                    if (this.adminEditName && this.adminEditName !== (this.profile.name || this.profile.family_name || '')) body.name = this.adminEditName;
+                    if (this.adminEditEmail && this.adminEditEmail !== this.profile.email) body.email = this.adminEditEmail;
+                    if (this.adminEditPassword.trim()) body.password = this.adminEditPassword.trim();
+                    if (Object.keys(body).length === 0) { this.adminSaveStatus = 'No changes'; setTimeout(() => this.adminSaveStatus = '', 2000); return; }
+                    try {
+                        const res = await fetch('/api/portal/admin-update', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify(body)
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            this.adminSaveStatus = 'Saved!';
+                            this.adminEditPassword = '';
+                            await this.fetchProfile();
+                        } else {
+                            this.adminSaveStatus = data.error || 'Failed';
+                        }
+                    } catch (e) {
+                        this.adminSaveStatus = 'Error: ' + e.message;
+                    }
+                    setTimeout(() => this.adminSaveStatus = '', 3000);
+                },
                 async handlePortalLogin() {
                     this.loading = true; this.error = null;
                     try {
@@ -1297,6 +1350,12 @@
                         if (this.profile.instagram_handle) {
                             if (!this.form.insta_username) this.form.insta_username = this.profile.instagram_handle;
                             if (!this.igUsernameInput) this.igUsernameInput = this.profile.instagram_handle;
+                        }
+
+                        // Initialize admin edit fields for impersonation
+                        if (this.isImpersonating) {
+                            this.adminEditName = this.profile.name || this.profile.family_name || '';
+                            this.adminEditEmail = this.profile.email || '';
                         }
 
                         // Reset detail panels and transliterate names for existing members
