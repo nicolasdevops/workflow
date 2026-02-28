@@ -1200,8 +1200,9 @@ app.post('/api/portal/admin-update', portalAuth, async (req, res) => {
     return res.status(403).json({ error: 'Admin access only' });
   }
 
-  const { name, email, password } = req.body;
+  const { first_name, name, email, password } = req.body;
   const updates = {};
+  if (first_name !== undefined) updates.first_name = first_name;
   if (name) updates.name = name;
   if (email && email !== req.user.email) updates.email = email;
   if (password) updates.password = crypto.createHash('sha256').update(password).digest('hex');
@@ -1230,17 +1231,12 @@ app.post('/api/portal/admin-update', portalAuth, async (req, res) => {
 
     if (error) throw error;
 
-    // Update the session data so subsequent requests use new email
-    if (email) {
-      const sessionData = portalSessions.get(token);
-      sessionData.email = email;
-      if (name) sessionData.name = name;
-      portalSessions.set(token, sessionData);
-    } else if (name) {
-      const sessionData = portalSessions.get(token);
-      sessionData.name = name;
-      portalSessions.set(token, sessionData);
-    }
+    // Update the session data so subsequent requests reflect changes
+    const sessionData = portalSessions.get(token);
+    if (email) sessionData.email = email;
+    if (name) sessionData.name = name;
+    if (first_name !== undefined) sessionData.first_name = first_name;
+    portalSessions.set(token, sessionData);
 
     console.log(`[Admin] Account updated for ${req.user.email}:`, Object.keys(updates).join(', '));
     res.json({ status: 'SUCCESS' });
@@ -2474,7 +2470,7 @@ app.post('/api/admin/family/:id/update', adminAuth, async (req, res) => {
   const updates = req.body;
 
   // Whitelist allowed fields for admin editing
-  const allowed = ['name', 'email', 'instagram_handle', 'proxy_city', 'proxy_country', 'timezone', 'geo_latitude', 'geo_longitude', 'housing_type', 'displacement_count', 'gaza_zone', 'religion', 'whatsapp_phone', 'palpay_phone', 'palpay_name'];
+  const allowed = ['first_name', 'name', 'email', 'instagram_handle', 'proxy_city', 'proxy_country', 'timezone', 'geo_latitude', 'geo_longitude', 'housing_type', 'displacement_count', 'gaza_zone', 'religion', 'whatsapp_phone', 'palpay_phone', 'palpay_name'];
   const cleanUpdates = {};
   Object.keys(updates).forEach(key => {
     if (allowed.includes(key)) cleanUpdates[key] = updates[key];
@@ -2998,5 +2994,18 @@ app.listen(PORT, '0.0.0.0', () => {
 
   if (!fs.existsSync(indexPath)) {
     console.log('⚠️  WARNING: public/index.html not found! Please ensure index.html is in the "public" folder.');
+  }
+
+  // Auto-migrate: add first_name column if missing
+  if (supabase) {
+    supabase.rpc('', {}).catch(() => {}); // warm up
+    supabase.from('families').select('first_name').limit(1).then(({ error }) => {
+      if (error && error.message.includes('first_name')) {
+        console.log('[Migration] Adding first_name column to families...');
+        supabase.rpc('exec_sql', { sql: 'ALTER TABLE families ADD COLUMN IF NOT EXISTS first_name TEXT' })
+          .then(() => console.log('[Migration] first_name column added'))
+          .catch(e => console.log('[Migration] first_name: run manually: ALTER TABLE families ADD COLUMN IF NOT EXISTS first_name TEXT;'));
+      }
+    });
   }
 });

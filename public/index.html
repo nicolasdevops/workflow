@@ -212,7 +212,7 @@
                         <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" @click="previewFile = { url: profile.profile_pic_url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition">
                         <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
                         <div class="flex-1">
-                            <p class="font-bold text-lg leading-tight">{{ profile.name || profile.family_name || 'Family Profile' }} <span class="font-normal text-xs text-gray-500">({{ profile.email }})</span></p>
+                            <p class="font-bold text-lg leading-tight"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }} <span class="font-normal text-xs text-gray-500">({{ profile.email }})</span></p>
                             <!-- IG username: hidden once profile pic is scraped (unless validation warning) -->
                             <div v-if="!profile.profile_pic_url || igValidationWarning" class="mt-1.5">
                                 <label class="block text-xs font-bold mb-1 text-[#3274B5]">اسم حساب الانستغرام | IG username</label>
@@ -231,6 +231,10 @@
                     <div v-if="isImpersonating" class="mb-4 px-3 py-3 bg-purple-50 rounded-lg border border-purple-200">
                         <p class="text-xs font-bold text-purple-700 mb-2">Admin: Edit Account</p>
                         <div class="space-y-2">
+                            <div>
+                                <label class="block text-xs text-purple-600 mb-0.5">First Name</label>
+                                <input v-model="adminEditFirstName" type="text" class="w-full border border-purple-300 p-1.5 rounded text-sm" placeholder="e.g. Fatima">
+                            </div>
                             <div>
                                 <label class="block text-xs text-purple-600 mb-0.5">Family Name</label>
                                 <input v-model="adminEditName" type="text" class="w-full border border-purple-300 p-1.5 rounded text-sm" placeholder="Family name">
@@ -778,7 +782,7 @@
                                     <span class="text-base">تم الجلب</span>
                                 </div>
                                 <p class="text-xs text-gray-600">@{{ scrapedProfile.instagram_username }}</p>
-                                <p v-if="scrapedProfile.full_name" class="text-xs text-gray-600">{{ scrapedProfile.full_name }}</p>
+                                <p v-if="scrapedProfile.full_name && scrapedProfile.full_name.toLowerCase() !== scrapedProfile.instagram_username?.toLowerCase()" class="text-xs text-gray-600">{{ scrapedProfile.full_name }}</p>
                                 <div class="flex gap-3 text-xs text-gray-500 mt-1">
                                     <span class="flex items-center gap-1">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -1087,6 +1091,7 @@
                     tab: sessionStorage.getItem('current_tab') || 'profile',
                     resetToken: null,
                     isImpersonating: false, // True when admin is viewing as this family
+                    adminEditFirstName: '',
                     adminEditName: '',
                     adminEditEmail: '',
                     adminEditPassword: '',
@@ -1234,6 +1239,7 @@
                 async saveAdminAccountEdit() {
                     this.adminSaveStatus = '';
                     const body = {};
+                    if (this.adminEditFirstName !== (this.profile.first_name || '')) body.first_name = this.adminEditFirstName;
                     if (this.adminEditName && this.adminEditName !== (this.profile.name || this.profile.family_name || '')) body.name = this.adminEditName;
                     if (this.adminEditEmail && this.adminEditEmail !== this.profile.email) body.email = this.adminEditEmail;
                     if (this.adminEditPassword.trim()) body.password = this.adminEditPassword.trim();
@@ -1354,6 +1360,7 @@
 
                         // Initialize admin edit fields for impersonation
                         if (this.isImpersonating) {
+                            this.adminEditFirstName = this.profile.first_name || '';
                             this.adminEditName = this.profile.name || this.profile.family_name || '';
                             this.adminEditEmail = this.profile.email || '';
                         }
