@@ -151,7 +151,7 @@ if (resendKey) {
 
 const transporter = nodemailer.createTransport(transporterConfig);
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
 // Serve static files with caching to improve load speed in low-bandwidth areas
 app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: 0, // Disable cache for development
