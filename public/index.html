@@ -962,24 +962,25 @@
 
             <!-- Member Profile Pic Cropper -->
             <div v-if="cropperOpen" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" @click="cropperOpen = false">
-                <div class="relative bg-gray-900 rounded-2xl overflow-hidden" style="width: 300px; height: 380px;" @click.stop>
-                    <button @click="cropperOpen = false" class="absolute top-2 right-2 text-white/60 hover:text-white z-20 text-xl leading-none">&times;</button>
-                    <p class="text-white/60 text-xs text-center pt-2 pb-1">Drag to position, scroll to zoom</p>
+                <div class="relative bg-gray-900 rounded-2xl overflow-hidden" style="width: 300px; height: 400px;" @click.stop>
+                    <div class="flex items-center justify-between px-3 pt-2 pb-1">
+                        <button v-if="profile.children_details[cropperMemberIndex]?.profile_pic" @click="deleteMemberPic" class="text-red-400 hover:text-red-300 transition" title="Delete photo">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                        <p class="text-white/60 text-xs text-center flex-1">Drag to position, scroll to zoom</p>
+                        <button @click="cropperOpen = false" class="text-white/60 hover:text-white text-xl leading-none">&times;</button>
+                    </div>
                     <!-- Cropper area -->
                     <div class="relative mx-auto" style="width: 260px; height: 260px; overflow: hidden; cursor: grab;"
                          @mousedown="cropperStartDrag" @mousemove="cropperOnDrag" @mouseup="cropperStopDrag" @mouseleave="cropperStopDrag"
                          @touchstart.prevent="cropperStartTouch" @touchmove.prevent="cropperOnTouch" @touchend="cropperStopDrag"
                          @wheel.prevent="cropperZoom" ref="cropperArea">
-                        <!-- Image layer (user drags/zooms this) -->
+                        <!-- Greyscale background image -->
                         <img v-if="cropperImage" :src="cropperImage" class="absolute select-none pointer-events-none" draggable="false"
-                             :style="{ transform: 'translate(' + cropperX + 'px, ' + cropperY + 'px) scale(' + cropperScale + ')', transformOrigin: '0 0', filter: 'grayscale(100%)' }">
-                        <!-- Color image clipped to circle -->
-                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; position: relative;">
-                                <img v-if="cropperImage" :src="cropperImage" class="select-none" draggable="false"
-                                     :style="{ position: 'absolute', left: (cropperX - 50) + 'px', top: (cropperY - 50) + 'px', transform: 'scale(' + cropperScale + ')', transformOrigin: '0 0' }">
-                            </div>
-                        </div>
+                             :style="{ transform: 'translate(' + cropperX + 'px, ' + cropperY + 'px) scale(' + cropperScale + ')', transformOrigin: '0 0', filter: 'grayscale(100%) brightness(0.5)' }">
+                        <!-- Color image — same exact transform, clipped to circle via clip-path -->
+                        <img v-if="cropperImage" :src="cropperImage" class="absolute select-none pointer-events-none" draggable="false"
+                             :style="{ transform: 'translate(' + cropperX + 'px, ' + cropperY + 'px) scale(' + cropperScale + ')', transformOrigin: '0 0', clipPath: 'circle(' + (80 / cropperScale) + 'px at ' + ((130 - cropperX) / cropperScale) + 'px ' + ((130 - cropperY) / cropperScale) + 'px)' }">
                         <!-- Circle outline -->
                         <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                             <div style="width: 162px; height: 162px; border-radius: 50%; border: 2px solid rgba(50,116,181,0.7);"></div>
@@ -1673,7 +1674,16 @@
                 },
                 openMemberPicUpload(index) {
                     this.cropperMemberIndex = index;
-                    this.$refs.memberPicShared.click();
+                    const member = this.profile.children_details[index];
+                    if (member?.profile_pic) {
+                        this.cropperImage = member.profile_pic;
+                        this.cropperScale = 1;
+                        this.cropperX = 0;
+                        this.cropperY = 0;
+                        this.cropperOpen = true;
+                    } else {
+                        this.$refs.memberPicShared.click();
+                    }
                 },
                 handleMemberPicSelect(e, index) {
                     const file = e.target.files[0];
@@ -1711,14 +1721,20 @@
                     this.cropperY = e.touches[0].clientY - this.cropperDragStart.y;
                 },
                 cropperStopDrag() { this.cropperDragging = false; },
+                async deleteMemberPic() {
+                    const member = this.profile.children_details[this.cropperMemberIndex];
+                    if (!member?.profile_pic) return;
+                    member.profile_pic = null;
+                    this.cropperOpen = false;
+                    await this.updateProfile(true);
+                },
                 cropperZoom(e) {
                     const delta = e.deltaY > 0 ? -0.1 : 0.1;
                     this.cropperScale = Math.max(0.2, Math.min(4, this.cropperScale + delta));
                 },
                 async confirmCrop() {
-                    // Draw the circular crop onto a canvas
                     const canvas = document.createElement('canvas');
-                    const size = 320; // output resolution
+                    const size = 320;
                     canvas.width = size;
                     canvas.height = size;
                     const ctx = canvas.getContext('2d');
@@ -1727,24 +1743,21 @@
                     img.src = this.cropperImage;
                     await new Promise(r => { img.onload = r; if (img.complete) r(); });
 
-                    // The circle is centered in the 260px cropper area at (130,130) with radius 80
-                    // Map image position to canvas
-                    const cropperW = 260;
-                    const circleR = 80;
-                    const circleCX = cropperW / 2;
-                    const circleCY = cropperW / 2;
+                    // Circle is centered at (130,130) in the 260px container, radius 80
+                    // Canvas 320px maps to the 160px circle area (container 50..210)
+                    // scaleFactor = 320 / 160 = 2
+                    const sf = size / 160;
 
-                    // Clip to circle
                     ctx.beginPath();
                     ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
                     ctx.clip();
 
-                    // Draw image scaled/translated to match cropper position
-                    const scaleFactor = size / (circleR * 2);
-                    const drawX = (this.cropperX - (circleCX - circleR)) * scaleFactor;
-                    const drawY = (this.cropperY - (circleCY - circleR)) * scaleFactor;
-                    const drawW = img.naturalWidth * this.cropperScale * scaleFactor;
-                    const drawH = img.naturalHeight * this.cropperScale * scaleFactor;
+                    // Image natural pixel (0,0) is at container position (cropperX, cropperY)
+                    // Container (50, 50) maps to canvas (0, 0)
+                    const drawX = (this.cropperX - 50) * sf;
+                    const drawY = (this.cropperY - 50) * sf;
+                    const drawW = img.naturalWidth * this.cropperScale * sf;
+                    const drawH = img.naturalHeight * this.cropperScale * sf;
                     ctx.drawImage(img, drawX, drawY, drawW, drawH);
 
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
