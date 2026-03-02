@@ -976,7 +976,7 @@
                          @touchstart.prevent="cropperStartTouch" @touchmove.prevent="cropperOnTouch" @touchend="cropperStopDrag"
                          @wheel.prevent="cropperZoom" ref="cropperArea">
                         <!-- Single color image — user drags/zooms this -->
-                        <img v-if="cropperImage" :src="cropperImage" class="absolute select-none pointer-events-none" draggable="false"
+                        <img v-if="cropperImage" :src="cropperImage" class="absolute select-none pointer-events-none max-w-none" draggable="false"
                              :style="{ left: cropperX + 'px', top: cropperY + 'px', width: (cropperNatW * cropperScale) + 'px', height: (cropperNatH * cropperScale) + 'px' }">
                         <!-- Dark overlay with circular hole (SVG) -->
                         <svg class="absolute inset-0 pointer-events-none" width="260" height="260" viewBox="0 0 260 260">
@@ -993,7 +993,7 @@
                     <!-- Zoom slider -->
                     <div class="flex items-center gap-2 px-6 mt-2">
                         <span class="text-white/40 text-xs">−</span>
-                        <input type="range" min="0.05" max="8" step="0.05" v-model.number="cropperScale" class="flex-1 accent-[#3274B5]">
+                        <input type="range" min="0.05" max="8" step="0.05" :value="cropperScale" @input="handleSliderZoom" class="flex-1 accent-[#3274B5]">
                         <span class="text-white/40 text-xs">+</span>
                     </div>
                     <div class="flex justify-center mt-3 pb-3">
@@ -1742,9 +1742,16 @@
                 },
                 cropperZoom(e) {
                     const oldScale = this.cropperScale;
-                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-                    const newScale = Math.max(0.05, Math.min(8, oldScale + delta));
+                    const factor = e.deltaY > 0 ? 0.9 : 1.1;
+                    const newScale = Math.max(0.05, Math.min(8, oldScale * factor));
                     // Zoom toward circle center (130, 130)
+                    this.cropperX = 130 - (130 - this.cropperX) * (newScale / oldScale);
+                    this.cropperY = 130 - (130 - this.cropperY) * (newScale / oldScale);
+                    this.cropperScale = newScale;
+                },
+                handleSliderZoom(e) {
+                    const newScale = parseFloat(e.target.value);
+                    const oldScale = this.cropperScale;
                     this.cropperX = 130 - (130 - this.cropperX) * (newScale / oldScale);
                     this.cropperY = 130 - (130 - this.cropperY) * (newScale / oldScale);
                     this.cropperScale = newScale;
