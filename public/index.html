@@ -756,6 +756,9 @@
                                         </div>
                                     </div>
                                 </div>
+                                <button @click.stop="openEditMedia(file)" class="absolute bottom-0.5 left-0.5 bg-green-600 text-white p-1 rounded-full hover:bg-green-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </button>
                                 <button @click.stop="deleteMedia(file)" class="absolute bottom-0.5 right-0.5 bg-red-600 text-white p-1 rounded-full hover:bg-red-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
                                     <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
@@ -777,6 +780,9 @@
                                         </div>
                                     </div>
                                 </div>
+                                <button @click.stop="openEditMedia(file)" class="absolute bottom-0.5 left-0.5 bg-green-600 text-white p-1 rounded-full hover:bg-green-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </button>
                                 <button @click.stop="deleteMedia(file)" class="absolute bottom-0.5 right-0.5 bg-red-600 text-white p-1 rounded-full hover:bg-red-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
                                     <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
@@ -956,33 +962,38 @@
 
             <!-- Member Profile Pic Cropper -->
             <div v-if="cropperOpen" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" @click="cropperOpen = false">
-                <div class="relative bg-gray-900 rounded-2xl overflow-hidden" style="width: 300px; height: 380px;" @click.stop>
-                    <button @click="cropperOpen = false" class="absolute top-2 right-2 text-white/60 hover:text-white z-20 text-xl leading-none">&times;</button>
-                    <p class="text-white/60 text-xs text-center pt-2 pb-1">Drag to position, scroll to zoom</p>
-                    <!-- Cropper area -->
-                    <div class="relative mx-auto" style="width: 260px; height: 260px; overflow: hidden; cursor: grab;"
+                <div class="relative bg-gray-900 rounded-2xl overflow-hidden" style="width: 300px; height: 400px;" @click.stop>
+                    <div class="flex items-center justify-between px-3 pt-2 pb-1">
+                        <button v-if="profile.children_details[cropperMemberIndex]?.profile_pic" @click="deleteMemberPic" class="text-red-400 hover:text-red-300 transition" title="Delete photo">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                        <p class="text-white/60 text-xs text-center flex-1">Drag to position, scroll to zoom</p>
+                        <button @click="cropperOpen = false" class="text-white/60 hover:text-white text-xl leading-none">&times;</button>
+                    </div>
+                    <!-- Cropper area: single image + dark overlay with circle cutout -->
+                    <div class="relative mx-auto" style="width: 260px; height: 260px; overflow: hidden; cursor: grab; background: #111;"
                          @mousedown="cropperStartDrag" @mousemove="cropperOnDrag" @mouseup="cropperStopDrag" @mouseleave="cropperStopDrag"
                          @touchstart.prevent="cropperStartTouch" @touchmove.prevent="cropperOnTouch" @touchend="cropperStopDrag"
                          @wheel.prevent="cropperZoom" ref="cropperArea">
-                        <!-- Image layer (user drags/zooms this) -->
+                        <!-- Single color image — user drags/zooms this -->
                         <img v-if="cropperImage" :src="cropperImage" class="absolute select-none pointer-events-none" draggable="false"
-                             :style="{ transform: 'translate(' + cropperX + 'px, ' + cropperY + 'px) scale(' + cropperScale + ')', transformOrigin: '0 0', filter: 'grayscale(100%)' }">
-                        <!-- Color image clipped to circle -->
-                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden;">
-                                <img v-if="cropperImage" :src="cropperImage" class="select-none" draggable="false"
-                                     :style="{ position: 'absolute', left: (cropperX - 50) + 'px', top: (cropperY - 50) + 'px', transform: 'scale(' + cropperScale + ')', transformOrigin: '0 0' }">
-                            </div>
-                        </div>
-                        <!-- Circle outline -->
-                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div style="width: 162px; height: 162px; border-radius: 50%; border: 2px solid rgba(50,116,181,0.7);"></div>
-                        </div>
+                             :style="{ left: cropperX + 'px', top: cropperY + 'px', width: (cropperNatW * cropperScale) + 'px', height: (cropperNatH * cropperScale) + 'px' }">
+                        <!-- Dark overlay with circular hole (SVG) -->
+                        <svg class="absolute inset-0 pointer-events-none" width="260" height="260" viewBox="0 0 260 260">
+                            <defs>
+                                <mask id="cropCircleMask">
+                                    <rect width="260" height="260" fill="white"/>
+                                    <circle cx="130" cy="130" r="80" fill="black"/>
+                                </mask>
+                            </defs>
+                            <rect width="260" height="260" fill="rgba(0,0,0,0.6)" mask="url(#cropCircleMask)"/>
+                            <circle cx="130" cy="130" r="80" fill="none" stroke="rgba(50,116,181,0.7)" stroke-width="2"/>
+                        </svg>
                     </div>
                     <!-- Zoom slider -->
                     <div class="flex items-center gap-2 px-6 mt-2">
                         <span class="text-white/40 text-xs">−</span>
-                        <input type="range" min="0.2" max="4" step="0.05" v-model.number="cropperScale" class="flex-1 accent-[#3274B5]">
+                        <input type="range" min="0.05" max="8" step="0.05" v-model.number="cropperScale" class="flex-1 accent-[#3274B5]">
                         <span class="text-white/40 text-xs">+</span>
                     </div>
                     <div class="flex justify-center mt-3 pb-3">
@@ -1183,6 +1194,8 @@
                     cropperScale: 1,
                     cropperX: 0,
                     cropperY: 0,
+                    cropperNatW: 0,
+                    cropperNatH: 0,
                     cropperDragging: false,
                     cropperDragStart: { x: 0, y: 0 },
                     newUrgentNeed: '',
@@ -1665,23 +1678,38 @@
                     this.profile.children_details.splice(index, 1);
                     await this.updateProfile(true);
                 },
+                openCropperWithSrc(src, index) {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.cropperNatW = img.naturalWidth;
+                        this.cropperNatH = img.naturalHeight;
+                        this.cropperMemberIndex = index;
+                        this.cropperImage = src;
+                        // Fit image so shorter side fills the 160px circle
+                        const fitScale = Math.max(160 / img.naturalWidth, 160 / img.naturalHeight);
+                        this.cropperScale = fitScale;
+                        // Center image on the circle (circle center = 130, 130)
+                        this.cropperX = 130 - (img.naturalWidth * fitScale) / 2;
+                        this.cropperY = 130 - (img.naturalHeight * fitScale) / 2;
+                        this.cropperOpen = true;
+                    };
+                    img.src = src;
+                },
                 openMemberPicUpload(index) {
                     this.cropperMemberIndex = index;
-                    this.$refs.memberPicShared.click();
+                    const member = this.profile.children_details[index];
+                    if (member?.profile_pic) {
+                        this.openCropperWithSrc(member.profile_pic, index);
+                    } else {
+                        this.$refs.memberPicShared.click();
+                    }
                 },
                 handleMemberPicSelect(e, index) {
                     const file = e.target.files[0];
                     if (!file) return;
                     e.target.value = '';
                     const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        this.cropperImage = ev.target.result;
-                        this.cropperMemberIndex = index;
-                        this.cropperScale = 1;
-                        this.cropperX = 0;
-                        this.cropperY = 0;
-                        this.cropperOpen = true;
-                    };
+                    reader.onload = (ev) => this.openCropperWithSrc(ev.target.result, index);
                     reader.readAsDataURL(file);
                 },
                 cropperStartDrag(e) {
@@ -1705,41 +1733,46 @@
                     this.cropperY = e.touches[0].clientY - this.cropperDragStart.y;
                 },
                 cropperStopDrag() { this.cropperDragging = false; },
+                async deleteMemberPic() {
+                    const member = this.profile.children_details[this.cropperMemberIndex];
+                    if (!member?.profile_pic) return;
+                    member.profile_pic = null;
+                    this.cropperOpen = false;
+                    await this.updateProfile(true);
+                },
                 cropperZoom(e) {
+                    const oldScale = this.cropperScale;
                     const delta = e.deltaY > 0 ? -0.1 : 0.1;
-                    this.cropperScale = Math.max(0.2, Math.min(4, this.cropperScale + delta));
+                    const newScale = Math.max(0.05, Math.min(8, oldScale + delta));
+                    // Zoom toward circle center (130, 130)
+                    this.cropperX = 130 - (130 - this.cropperX) * (newScale / oldScale);
+                    this.cropperY = 130 - (130 - this.cropperY) * (newScale / oldScale);
+                    this.cropperScale = newScale;
                 },
                 async confirmCrop() {
-                    // Draw the circular crop onto a canvas
                     const canvas = document.createElement('canvas');
-                    const size = 320; // output resolution
+                    const size = 320;
                     canvas.width = size;
                     canvas.height = size;
                     const ctx = canvas.getContext('2d');
                     const img = new Image();
-                    img.crossOrigin = 'anonymous';
                     img.src = this.cropperImage;
                     await new Promise(r => { img.onload = r; if (img.complete) r(); });
 
-                    // The circle is centered in the 260px cropper area at (130,130) with radius 80
-                    // Map image position to canvas
-                    const cropperW = 260;
-                    const circleR = 80;
-                    const circleCX = cropperW / 2;
-                    const circleCY = cropperW / 2;
+                    // Circle covers container area (50,50)→(210,210) = 160px square
+                    // Image pixel (ix,iy) appears at container (ix*scale + cropperX, iy*scale + cropperY)
+                    // So the source rectangle in natural image pixels that fills the circle:
+                    const sx = (50 - this.cropperX) / this.cropperScale;
+                    const sy = (50 - this.cropperY) / this.cropperScale;
+                    const sw = 160 / this.cropperScale;
+                    const sh = 160 / this.cropperScale;
 
-                    // Clip to circle
                     ctx.beginPath();
                     ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
                     ctx.clip();
 
-                    // Draw image scaled/translated to match cropper position
-                    const scaleFactor = size / (circleR * 2);
-                    const drawX = (this.cropperX - (circleCX - circleR)) * scaleFactor;
-                    const drawY = (this.cropperY - (circleCY - circleR)) * scaleFactor;
-                    const drawW = img.naturalWidth * this.cropperScale * scaleFactor;
-                    const drawH = img.naturalHeight * this.cropperScale * scaleFactor;
-                    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+                    // Draw source rect → full canvas (9-arg drawImage)
+                    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, size, size);
 
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
