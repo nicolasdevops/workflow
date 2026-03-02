@@ -970,26 +970,30 @@
                         <p class="text-white/60 text-xs text-center flex-1">Drag to position, scroll to zoom</p>
                         <button @click="cropperOpen = false" class="text-white/60 hover:text-white text-xl leading-none">&times;</button>
                     </div>
-                    <!-- Cropper area -->
-                    <div class="relative mx-auto" style="width: 260px; height: 260px; overflow: hidden; cursor: grab;"
+                    <!-- Cropper area: single image + dark overlay with circle cutout -->
+                    <div class="relative mx-auto" style="width: 260px; height: 260px; overflow: hidden; cursor: grab; background: #111;"
                          @mousedown="cropperStartDrag" @mousemove="cropperOnDrag" @mouseup="cropperStopDrag" @mouseleave="cropperStopDrag"
                          @touchstart.prevent="cropperStartTouch" @touchmove.prevent="cropperOnTouch" @touchend="cropperStopDrag"
                          @wheel.prevent="cropperZoom" ref="cropperArea">
-                        <!-- Greyscale background image -->
+                        <!-- Single color image — user drags/zooms this -->
                         <img v-if="cropperImage" :src="cropperImage" class="absolute select-none pointer-events-none" draggable="false"
-                             :style="{ transform: 'translate(' + cropperX + 'px, ' + cropperY + 'px) scale(' + cropperScale + ')', transformOrigin: '0 0', filter: 'grayscale(100%) brightness(0.5)' }">
-                        <!-- Color image clipped to circle: 160px circle centered in 260px = starts at (50,50) -->
-                        <div class="absolute pointer-events-none" style="left: 50px; top: 50px; width: 160px; height: 160px; border-radius: 50%; overflow: hidden;">
-                            <img v-if="cropperImage" :src="cropperImage" class="absolute select-none" draggable="false"
-                                 :style="{ transform: 'translate(' + (cropperX - 50) + 'px, ' + (cropperY - 50) + 'px) scale(' + cropperScale + ')', transformOrigin: '0 0' }">
-                        </div>
-                        <!-- Circle outline -->
-                        <div class="absolute pointer-events-none" style="left: 49px; top: 49px; width: 162px; height: 162px; border-radius: 50%; border: 2px solid rgba(50,116,181,0.7);"></div>
+                             :style="{ left: cropperX + 'px', top: cropperY + 'px', width: (cropperNatW * cropperScale) + 'px', height: (cropperNatH * cropperScale) + 'px' }">
+                        <!-- Dark overlay with circular hole (SVG) -->
+                        <svg class="absolute inset-0 pointer-events-none" width="260" height="260" viewBox="0 0 260 260">
+                            <defs>
+                                <mask id="cropCircleMask">
+                                    <rect width="260" height="260" fill="white"/>
+                                    <circle cx="130" cy="130" r="80" fill="black"/>
+                                </mask>
+                            </defs>
+                            <rect width="260" height="260" fill="rgba(0,0,0,0.6)" mask="url(#cropCircleMask)"/>
+                            <circle cx="130" cy="130" r="80" fill="none" stroke="rgba(50,116,181,0.7)" stroke-width="2"/>
+                        </svg>
                     </div>
                     <!-- Zoom slider -->
                     <div class="flex items-center gap-2 px-6 mt-2">
                         <span class="text-white/40 text-xs">−</span>
-                        <input type="range" min="0.2" max="4" step="0.05" v-model.number="cropperScale" class="flex-1 accent-[#3274B5]">
+                        <input type="range" min="0.05" max="8" step="0.05" v-model.number="cropperScale" class="flex-1 accent-[#3274B5]">
                         <span class="text-white/40 text-xs">+</span>
                     </div>
                     <div class="flex justify-center mt-3 pb-3">
@@ -1190,6 +1194,8 @@
                     cropperScale: 1,
                     cropperX: 0,
                     cropperY: 0,
+                    cropperNatW: 0,
+                    cropperNatH: 0,
                     cropperDragging: false,
                     cropperDragStart: { x: 0, y: 0 },
                     newUrgentNeed: '',
@@ -1672,15 +1678,28 @@
                     this.profile.children_details.splice(index, 1);
                     await this.updateProfile(true);
                 },
+                openCropperWithSrc(src, index) {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.cropperNatW = img.naturalWidth;
+                        this.cropperNatH = img.naturalHeight;
+                        this.cropperMemberIndex = index;
+                        this.cropperImage = src;
+                        // Fit image so shorter side fills the 160px circle
+                        const fitScale = Math.max(160 / img.naturalWidth, 160 / img.naturalHeight);
+                        this.cropperScale = fitScale;
+                        // Center image on the circle (circle center = 130, 130)
+                        this.cropperX = 130 - (img.naturalWidth * fitScale) / 2;
+                        this.cropperY = 130 - (img.naturalHeight * fitScale) / 2;
+                        this.cropperOpen = true;
+                    };
+                    img.src = src;
+                },
                 openMemberPicUpload(index) {
                     this.cropperMemberIndex = index;
                     const member = this.profile.children_details[index];
                     if (member?.profile_pic) {
-                        this.cropperImage = member.profile_pic;
-                        this.cropperScale = 1;
-                        this.cropperX = 0;
-                        this.cropperY = 0;
-                        this.cropperOpen = true;
+                        this.openCropperWithSrc(member.profile_pic, index);
                     } else {
                         this.$refs.memberPicShared.click();
                     }
@@ -1690,14 +1709,7 @@
                     if (!file) return;
                     e.target.value = '';
                     const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        this.cropperImage = ev.target.result;
-                        this.cropperMemberIndex = index;
-                        this.cropperScale = 1;
-                        this.cropperX = 0;
-                        this.cropperY = 0;
-                        this.cropperOpen = true;
-                    };
+                    reader.onload = (ev) => this.openCropperWithSrc(ev.target.result, index);
                     reader.readAsDataURL(file);
                 },
                 cropperStartDrag(e) {
@@ -1729,8 +1741,13 @@
                     await this.updateProfile(true);
                 },
                 cropperZoom(e) {
+                    const oldScale = this.cropperScale;
                     const delta = e.deltaY > 0 ? -0.1 : 0.1;
-                    this.cropperScale = Math.max(0.2, Math.min(4, this.cropperScale + delta));
+                    const newScale = Math.max(0.05, Math.min(8, oldScale + delta));
+                    // Zoom toward circle center (130, 130)
+                    this.cropperX = 130 - (130 - this.cropperX) * (newScale / oldScale);
+                    this.cropperY = 130 - (130 - this.cropperY) * (newScale / oldScale);
+                    this.cropperScale = newScale;
                 },
                 async confirmCrop() {
                     const canvas = document.createElement('canvas');
