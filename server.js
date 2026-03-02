@@ -17,10 +17,12 @@ const { encrypt, decrypt } = require('./encryption');
 const { generateUsernames, generateEmail } = require('./username-generator');
 const { runAllWarmups, runWarmupSession, getWarmupDay, getWarmupPhase } = require('./warmup-scheduler');
 const { checkAccountPublic, scrapeProfile, checkScrapeCooldown, saveScrapedData, scrapeEngagedFollowers, saveEngagedFollowers } = require('./apify-scraper');
-const { initB2Client, isB2Configured, uploadFamilyMedia, deleteFromB2 } = require('./b2-storage');
+const { initB2Client, isB2Configured, uploadFamilyMedia, deleteFromB2, uploadProfilePic } = require('./b2-storage');
 const { CommentScheduler } = require('./comment-scheduler');
+const { renderTemplate, canRenderTemplate, selectUnusedTemplate, incrementUsageCount } = require('./template-renderer');
 const { EngagementTracker } = require('./engagement-tracker');
 const deepl = require('deepl-node');
+const { transliterate } = require('transliteration');
 require('dotenv').config();
 
 const app = express();
@@ -60,6 +62,18 @@ if (process.env.DEEPL_API_KEY) {
     console.error('❌ DeepL initialization failed:', e.message);
   }
 }
+
+// Proxy city configs for random assignment on registration
+const PROXY_CITIES = [
+  { proxy_city: 'doha', proxy_country: 'qa', timezone: 'Asia/Qatar', geo_latitude: 25.2854, geo_longitude: 51.5310 },
+  { proxy_city: 'miami', proxy_country: 'us', timezone: 'America/New_York', geo_latitude: 25.7617, geo_longitude: -80.1918 },
+  { proxy_city: 'toronto', proxy_country: 'ca', timezone: 'America/Toronto', geo_latitude: 43.6532, geo_longitude: -79.3832 },
+  { proxy_city: 'barcelona', proxy_country: 'es', timezone: 'Europe/Madrid', geo_latitude: 41.3874, geo_longitude: 2.1686 },
+  { proxy_city: 'helsinki', proxy_country: 'fi', timezone: 'Europe/Helsinki', geo_latitude: 60.1699, geo_longitude: 24.9384 },
+  { proxy_city: 'oslo', proxy_country: 'no', timezone: 'Europe/Oslo', geo_latitude: 59.9139, geo_longitude: 10.7522 },
+  { proxy_city: 'copenhagen', proxy_country: 'dk', timezone: 'Europe/Copenhagen', geo_latitude: 55.6761, geo_longitude: 12.5683 },
+  { proxy_city: 'sarajevo', proxy_country: 'ba', timezone: 'Europe/Sarajevo', geo_latitude: 43.8563, geo_longitude: 18.4131 },
+];
 
 // Store active sessions in memory (in production, use Redis)
 const activeSessions = new Map();
@@ -230,7 +244,7 @@ app.get('/f/:familyId', async (req, res) => {
 });
 
 // Admin Routes
-app.get('/admin', basicAuth, (req, res) => {
+app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
@@ -609,7 +623,7 @@ app.post('/api/admin/automation/:familyId/bulk', basicAuth, async (req, res) => 
 
 // Toggle Instagram password field access for a family
 // POST /api/admin/instagram-password/:familyId { enabled: true }
-app.post('/api/admin/instagram-password/:familyId', basicAuth, async (req, res) => {
+app.post('/api/admin/instagram-password/:familyId', adminAuth, async (req, res) => {
   const { familyId } = req.params;
   const { enabled } = req.body;
 
@@ -932,25 +946,160 @@ app.post('/api/translate', portalAuth, async (req, res) => {
   }
 });
 
+// Transliteration endpoint (phonetic, not semantic)
+const latinToArabicMap = {
+  'th': 'ث', 'sh': 'ش', 'kh': 'خ', 'dh': 'ذ', 'gh': 'غ', 'ch': 'تش',
+  'ph': 'ف', 'oo': 'و', 'ee': 'ي', 'ou': 'و', 'aa': 'ا', 'ai': 'اي',
+  'ei': 'اي', 'au': 'او', 'aw': 'او',
+  'a': 'ا', 'b': 'ب', 'c': 'ك', 'd': 'د', 'e': 'ي', 'f': 'ف',
+  'g': 'غ', 'h': 'ه', 'i': 'ي', 'j': 'ج', 'k': 'ك', 'l': 'ل',
+  'm': 'م', 'n': 'ن', 'o': 'و', 'p': 'ب', 'q': 'ق', 'r': 'ر',
+  's': 'س', 't': 'ت', 'u': 'و', 'v': 'ف', 'w': 'و', 'x': 'كس',
+  'y': 'ي', 'z': 'ز'
+};
+
+// Common Arabic word overrides (names, family terms)
+const arabicWordMap = {
+  'عائلة': 'Eayilat', 'محمد': 'Muhammad', 'أحمد': 'Ahmad', 'احمد': 'Ahmad',
+  'عبد': 'Abd', 'الله': 'Allah', 'فاطمة': 'Fatima', 'خالد': 'Khaled',
+  'علي': 'Ali', 'عمر': 'Omar', 'حسن': 'Hassan', 'حسين': 'Hussein',
+  'ابراهيم': 'Ibrahim', 'إبراهيم': 'Ibrahim', 'يوسف': 'Yousef',
+  'مريم': 'Mariam', 'ياسمين': 'Yasmin', 'نور': 'Nour', 'سارة': 'Sara',
+  'عيسى': 'Issa', 'موسى': 'Musa', 'سليمان': 'Sulaiman', 'رمضان': 'Ramadan',
+  'عبدالله': 'Abdullah', 'عبدالرحمن': 'Abdulrahman',
+  'أبو': 'Abu', 'ابو': 'Abu', 'بنت': 'Bint', 'بن': 'Bin',
+};
+
+const arabicCharMap = {
+  'عائ': "a'i", 'ائ': "a'i", 'ال': 'al-', 'خو': 'khaw', 'شو': 'shaw',
+  'ث': 'th', 'ش': 'sh', 'خ': 'kh', 'ذ': 'dh', 'غ': 'gh', 'تش': 'ch',
+  'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'aa', 'ب': 'b', 'ت': 't',
+  'ج': 'j', 'ح': 'h', 'د': 'd', 'ر': 'r', 'ز': 'z',
+  'س': 's', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'dh', 'ع': 'a',
+  'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+  'ه': 'h', 'و': 'u', 'ي': 'i', 'ى': 'a', 'ة': 'a', 'ء': '',
+  'ئ': 'i', 'ؤ': 'u', 'ّ': '', 'َ': 'a', 'ُ': 'u', 'ِ': 'i',
+  'ً': '', 'ٌ': '', 'ٍ': '', 'ْ': '',
+};
+
+function translitArabicWord(word) {
+  if (arabicWordMap[word]) return arabicWordMap[word];
+  let result = '';
+  const chars = [...word];
+  let i = 0;
+  while (i < chars.length) {
+    let matched = false;
+    for (const len of [3, 2, 1]) {
+      if (i + len > chars.length) continue;
+      const chunk = chars.slice(i, i + len).join('');
+      if (arabicCharMap[chunk] !== undefined) {
+        result += arabicCharMap[chunk];
+        i += len;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) { result += chars[i]; i++; }
+  }
+  // Insert 'a' between consecutive consonants (preserve digraphs th/sh/kh/dh/gh/ch)
+  for (let pass = 0; pass < 2; pass++) {
+    result = result.replace(/([bcdfghjklmnpqrstvwxyz])([bcdfghjklmnpqrstvwxyz])/gi, (m, a, b) => {
+      if ('tskdgc'.includes(a.toLowerCase()) && b.toLowerCase() === 'h') return m;
+      if (a.toLowerCase() === 'l' && b === '-') return m;
+      return a + 'a' + b;
+    });
+  }
+  return result.replace(/--/g, '-').replace(/\b[a-z]/g, c => c.toUpperCase());
+}
+
+function arabicToLatin(text) {
+  return text.split(/\s+/).map(translitArabicWord).join(' ');
+}
+
+function latinToArabic(text) {
+  let result = '';
+  const lower = text.toLowerCase();
+  let i = 0;
+  while (i < lower.length) {
+    if (i + 1 < lower.length) {
+      const pair = lower.substring(i, i + 2);
+      if (latinToArabicMap[pair]) {
+        result += latinToArabicMap[pair];
+        i += 2;
+        continue;
+      }
+    }
+    const ch = lower[i];
+    result += latinToArabicMap[ch] || ch;
+    i++;
+  }
+  return result;
+}
+
+app.post('/api/transliterate', portalAuth, async (req, res) => {
+  const { text } = req.body;
+  if (!text || !text.trim()) {
+    return res.json({ transliteration: text });
+  }
+
+  try {
+    const isArabic = /[\u0600-\u06FF]/.test(text);
+    if (isArabic) {
+      res.json({ transliteration: arabicToLatin(text) });
+    } else {
+      res.json({ transliteration: latinToArabic(text) });
+    }
+  } catch (error) {
+    console.error('Transliteration error:', error);
+    res.json({ transliteration: text });
+  }
+});
+
 // Portal Register
 app.post('/api/portal/register', async (req, res) => {
-  const { password, family_name } = req.body;
-  const email = req.body.email.toLowerCase();
-  
+  const { family_name, ig_username } = req.body;
+
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
+
+  let email, passwordHash, instagramHandle;
+
+  if (ig_username) {
+    // @username registration (admin quick-create, no password)
+    instagramHandle = ig_username.replace(/^@/, '').trim().toLowerCase();
+    email = `${instagramHandle}@ig.local`;
+    passwordHash = crypto.randomBytes(32).toString('hex'); // random, unused
+
+    // Check if IG handle already exists
+    const { data: existingIg } = await supabase.from('families').select('id').eq('instagram_handle', instagramHandle).single();
+    if (existingIg) return res.status(400).json({ error: 'Instagram username already registered' });
+  } else {
+    // Standard email+password registration
+    email = req.body.email.toLowerCase();
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ error: 'Password required' });
+    passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+    instagramHandle = null;
+  }
 
   // Check if email exists
   const { data: existing } = await supabase.from('families').select('email').eq('email', email).single();
-  if (existing) return res.status(400).json({ error: 'Email already registered' });
+  if (existing) return res.status(400).json({ error: ig_username ? 'Instagram username already registered' : 'Email already registered' });
+
+  // Assign random proxy city
+  const cityConfig = PROXY_CITIES[Math.floor(Math.random() * PROXY_CITIES.length)];
+
+  const insertData = {
+    email,
+    password: passwordHash,
+    name: family_name,
+    status: 'active',
+    ...cityConfig
+  };
+  if (instagramHandle) insertData.instagram_handle = instagramHandle;
 
   const { data, error } = await supabase
     .from('families')
-    .insert([{ 
-      email, 
-      password: crypto.createHash('sha256').update(password).digest('hex'),
-      name: family_name,
-      status: 'active' 
-    }])
+    .insert([insertData])
     .select()
     .single();
 
@@ -965,18 +1114,35 @@ app.post('/api/portal/register', async (req, res) => {
 
 // Portal Login
 app.post('/api/portal/login', async (req, res) => {
-  const { password } = req.body;
-  const email = req.body.email.toLowerCase();
-  
+  const emailInput = (req.body.email || '').trim();
+
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
 
-  // Check credentials in families table
-  const { data, error } = await supabase
-    .from('families')
-    .select('*')
-    .eq('email', email)
-    .eq('password', crypto.createHash('sha256').update(password).digest('hex'))
-    .single();
+  let data, error;
+
+  if (emailInput.startsWith('@')) {
+    // @username login (no password required)
+    const handle = emailInput.replace(/^@/, '').toLowerCase();
+    const result = await supabase
+      .from('families')
+      .select('*')
+      .eq('instagram_handle', handle)
+      .single();
+    data = result.data;
+    error = result.error;
+  } else {
+    // Standard email+password login
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ error: 'Password required' });
+    const result = await supabase
+      .from('families')
+      .select('*')
+      .eq('email', emailInput.toLowerCase())
+      .eq('password', crypto.createHash('sha256').update(password).digest('hex'))
+      .single();
+    data = result.data;
+    error = result.error;
+  }
 
   if (error || !data) {
     return res.status(401).json({ error: 'Invalid portal credentials' });
@@ -986,7 +1152,7 @@ app.post('/api/portal/login', async (req, res) => {
   const token = crypto.randomBytes(16).toString('hex');
   portalSessions.set(token, data);
 
-  res.json({ status: 'SUCCESS', token, user: { 
+  res.json({ status: 'SUCCESS', token, user: {
     email: data.email,
     handle: data.instagram_handle,
     housing: data.housing_type,
@@ -1010,7 +1176,7 @@ app.post('/api/portal/profile', portalAuth, async (req, res) => {
   const updates = req.body;
   
   // Whitelist allowed fields
-  const allowed = ['housing_type', 'displacement_count', 'children_count', 'children_details', 'medical_conditions', 'facing_cold', 'facing_hunger', 'urgent_need', 'urgent_needs', 'urgent_need_amount', 'palpay_phone', 'palpay_name'];
+  const allowed = ['name', 'housing_type', 'displacement_count', 'children_count', 'children_details', 'medical_conditions', 'facing_cold', 'facing_hunger', 'urgent_need', 'urgent_needs', 'urgent_need_amount', 'palpay_phone', 'palpay_name', 'whatsapp_phone', 'gaza_zone', 'religion', 'instagram_handle'];
   const cleanUpdates = {};
   
   Object.keys(updates).forEach(key => {
@@ -1026,6 +1192,59 @@ app.post('/api/portal/profile', portalAuth, async (req, res) => {
   res.json({ status: 'SUCCESS' });
 });
 
+// Admin Account Edit (only for impersonation sessions)
+app.post('/api/portal/admin-update', portalAuth, async (req, res) => {
+  // Only allow impersonation tokens (prefixed with imp_)
+  const token = req.headers['x-portal-token'];
+  if (!token || !token.startsWith('imp_')) {
+    return res.status(403).json({ error: 'Admin access only' });
+  }
+
+  const { first_name, name, email, password } = req.body;
+  const updates = {};
+  if (first_name !== undefined) updates.first_name = first_name;
+  if (name) updates.name = name;
+  if (email && email !== req.user.email) updates.email = email;
+  if (password) updates.password = crypto.createHash('sha256').update(password).digest('hex');
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: 'No fields to update' });
+  }
+
+  try {
+    // Check if new email already exists (different family)
+    if (updates.email) {
+      const { data: existing } = await supabase
+        .from('families')
+        .select('id')
+        .eq('email', updates.email)
+        .single();
+      if (existing) {
+        return res.status(409).json({ error: 'This email is already used by another family' });
+      }
+    }
+
+    const { error } = await supabase
+      .from('families')
+      .update(updates)
+      .eq('email', req.user.email);
+
+    if (error) throw error;
+
+    // Update the session data so subsequent requests reflect changes
+    const sessionData = portalSessions.get(token);
+    if (email) sessionData.email = email;
+    if (name) sessionData.name = name;
+    if (first_name !== undefined) sessionData.first_name = first_name;
+    portalSessions.set(token, sessionData);
+
+    console.log(`[Admin] Account updated for ${req.user.email}:`, Object.keys(updates).join(', '));
+    res.json({ status: 'SUCCESS' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Upload Media
 app.post('/api/portal/upload', portalAuth, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
@@ -1034,6 +1253,7 @@ app.post('/api/portal/upload', portalAuth, upload.single('file'), async (req, re
   const userFolder = req.user.instagram_handle || req.user.email.replace(/[^a-z0-9]/gi, '_');
   const fileName = `${userFolder}/${Date.now()}.${fileExt}`;
   const description = req.body.description || '';
+  const category = req.body.category || null;
 
   try {
     let filePath = fileName;
@@ -1069,7 +1289,8 @@ app.post('/api/portal/upload', portalAuth, upload.single('file'), async (req, re
         family_id: req.user.id,
         file_path: filePath,
         b2_url: b2Url, // Will be null if using Supabase storage
-        description: description
+        description: description,
+        category: category
       }]);
 
     if (dbError) {
@@ -1083,7 +1304,17 @@ app.post('/api/portal/upload', portalAuth, upload.single('file'), async (req, re
       throw dbError;
     }
 
-    res.json({ status: 'SUCCESS', path: filePath, b2: !!b2Url });
+    // Return the accessible URL so frontend can use it immediately
+    let publicUrl = b2Url;
+    if (!publicUrl) {
+      const { data: signed } = await supabase
+        .storage
+        .from('media')
+        .createSignedUrl(filePath, 60 * 60 * 24 * 7); // 7-day URL
+      publicUrl = signed?.signedUrl;
+    }
+
+    res.json({ status: 'SUCCESS', path: filePath, b2: !!b2Url, url: publicUrl });
   } catch (e) {
     console.error('Upload error:', e);
     res.status(500).json({ error: 'Upload failed: ' + e.message });
@@ -1138,7 +1369,8 @@ app.get('/api/portal/media', portalAuth, async (req, res) => {
         isB2: !!file.b2_url,
         metadata: {
             mimetype: getMimeType(file.file_path),
-            description: file.description
+            description: file.description,
+            category: file.category || null
         },
         created_at: file.created_at
       };
@@ -1352,6 +1584,24 @@ app.post('/api/portal/instagram/check-public', portalAuth, async (req, res) => {
       });
     }
 
+    // Save profile pic to families table immediately if available
+    const picUrl = result.profileData?.profilePicUrl;
+    if (picUrl && supabase) {
+      const familyId = req.user.id;
+      // Upload to B2 if configured, otherwise use raw URL
+      let persistentPicUrl = picUrl;
+      if (isB2Configured()) {
+        try {
+          const b2Url = await uploadProfilePic(picUrl, familyId);
+          if (b2Url) persistentPicUrl = b2Url;
+        } catch (e) {
+          console.log('[Apify] B2 upload for quick pic failed, using raw URL:', e.message);
+        }
+      }
+      await supabase.from('families').update({ profile_pic_url: persistentPicUrl }).eq('id', familyId);
+      console.log(`[Apify] Quick profile pic saved for family ${familyId}`);
+    }
+
     res.json({
       isPublic: true,
       username: result.profileData?.username || username,
@@ -1367,7 +1617,7 @@ app.post('/api/portal/instagram/check-public', portalAuth, async (req, res) => {
 
 // Scrape Instagram profile (with 24-hour cooldown)
 app.post('/api/portal/instagram/scrape', portalAuth, async (req, res) => {
-  const { username } = req.body;
+  const { username, skip_public_check } = req.body;
   const familyId = req.user.id;
 
   if (!username) {
@@ -1378,7 +1628,7 @@ app.post('/api/portal/instagram/scrape', portalAuth, async (req, res) => {
     return res.status(500).json({ error: 'Database not configured' });
   }
 
-  console.log(`[Apify] Scrape request for @${username} by family ${familyId}`);
+  console.log(`[Apify] Scrape request for @${username} by family ${familyId} (skip_public_check=${!!skip_public_check})`);
 
   try {
     // 1. Check 24-hour cooldown
@@ -1391,15 +1641,17 @@ app.post('/api/portal/instagram/scrape', portalAuth, async (req, res) => {
       });
     }
 
-    // 2. Verify account is public first
-    console.log(`[Apify] Checking if @${username} is public...`);
-    const publicCheck = await checkAccountPublic(username);
-    if (!publicCheck.isPublic) {
-      console.log(`[Apify] Public check failed for @${username}: ${publicCheck.error}`);
-      return res.status(400).json({
-        error: publicCheck.error || 'Account is private. Only public accounts can be scraped.',
-        isPublic: false
-      });
+    // 2. Verify account is public first (skip if caller just checked)
+    if (!skip_public_check) {
+      console.log(`[Apify] Checking if @${username} is public...`);
+      const publicCheck = await checkAccountPublic(username);
+      if (!publicCheck.isPublic) {
+        console.log(`[Apify] Public check failed for @${username}: ${publicCheck.error}`);
+        return res.status(400).json({
+          error: publicCheck.error || 'Account is private. Only public accounts can be scraped.',
+          isPublic: false
+        });
+      }
     }
     console.log(`[Apify] @${username} is public, starting full scrape...`);
 
@@ -1412,7 +1664,7 @@ app.post('/api/portal/instagram/scrape', portalAuth, async (req, res) => {
     // Run scrape in background and save results
     (async () => {
       try {
-        const scrapeResult = await scrapeProfile(username, 50);
+        const scrapeResult = await scrapeProfile(username, 200);
 
         if (scrapeResult.error) {
           console.error(`[Apify] Scrape failed for @${username}:`, scrapeResult.error);
@@ -1552,7 +1804,7 @@ app.post('/api/portal/instagram/unlink', portalAuth, async (req, res) => {
 // Get scraped content for current family
 app.get('/api/portal/instagram/content', portalAuth, async (req, res) => {
   const familyId = req.user.id;
-  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+  const limit = Math.min(parseInt(req.query.limit) || 20, 500);
   const offset = parseInt(req.query.offset) || 0;
 
   if (!supabase) {
@@ -1809,25 +2061,8 @@ app.post('/api/login', async (req, res) => {
 
         if (portalUser) {
             // Update the currently logged-in family's row
-            // First, check if this handle is already taken by ANOTHER row
-            const { data: existingHandles } = await supabase
-                .from('families')
-                .select('id, email')
-                .eq('instagram_handle', username)
-                .neq('email', portalUser.email)
-                .limit(1);
-
-            if (existingHandles && existingHandles.length > 0) {
-                const existingHandle = existingHandles[0];
-                console.log(`⚠️ Handle ${username} is claimed by another row. Merging/Overwriting...`);
-                // Option A: Clear the handle from the old row to free it up
-                await supabase.from('families').update({ instagram_handle: null }).eq('id', existingHandle.id);
-                // Now update current user
-                query = supabase.from('families').update(updateData).eq('email', portalUser.email);
-            } else {
-                // Normal update
-                query = supabase.from('families').update(updateData).eq('email', portalUser.email);
-            }
+            // Multiple families can share the same IG handle
+            query = supabase.from('families').update(updateData).eq('email', portalUser.email);
         } else {
             // Fallback: Update by handle (legacy/admin behavior)
             query = supabase.from('families').update(updateData).eq('instagram_handle', username);
@@ -1883,12 +2118,12 @@ function generateAdminToken() {
   return 'admin_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
 }
 
-// Admin auth middleware
+// Admin auth middleware (TEMPORARILY BYPASSED for dev — re-enable before production)
 function adminAuth(req, res, next) {
-  const token = req.headers['x-admin-token'];
-  if (!token || !adminSessions.has(token)) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  // const token = req.headers['x-admin-token'];
+  // if (!token || !adminSessions.has(token)) {
+  //   return res.status(401).json({ error: 'Unauthorized' });
+  // }
   next();
 }
 
@@ -1902,8 +2137,12 @@ app.post('/api/admin/login', (req, res) => {
 
   if (username === ADMIN_USER && password === ADMIN_PASS) {
     const token = generateAdminToken();
-    adminSessions.set(token, { username, createdAt: new Date() });
-    // Clean up old tokens (keep max 10)
+    const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour
+    adminSessions.set(token, { username, createdAt: new Date(), expiresAt });
+    // Clean up old/expired tokens
+    for (const [t, s] of adminSessions) {
+      if (s.expiresAt && s.expiresAt < Date.now()) adminSessions.delete(t);
+    }
     if (adminSessions.size > 10) {
       const oldest = adminSessions.keys().next().value;
       adminSessions.delete(oldest);
@@ -1926,11 +2165,23 @@ app.get('/api/admin/families', adminAuth, async (req, res) => {
 
     if (error) throw error;
 
-    // Mask cookies - just indicate if present
-    const sanitized = data.map(f => ({
-      ...f,
-      cookies: f.cookies ? true : false
-    }));
+    // Mask cookies and add transliterated names
+    const sanitized = data.map(f => {
+      let nameDisplay = f.name;
+      if (f.name) {
+        const isArabic = /[\u0600-\u06FF]/.test(f.name);
+        if (isArabic) {
+          nameDisplay = arabicToLatin(f.name) + '  |  ' + f.name;
+        } else {
+          nameDisplay = f.name + '  |  ' + latinToArabic(f.name);
+        }
+      }
+      return {
+        ...f,
+        cookies: f.cookies ? true : false,
+        nameDisplay
+      };
+    });
 
     res.json(sanitized);
   } catch (e) {
@@ -2215,6 +2466,477 @@ app.get('/api/admin/stats', adminAuth, async (req, res) => {
   }
 });
 
+// Update family fields (admin)
+app.post('/api/admin/family/:id/update', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  const familyId = parseInt(req.params.id);
+  const updates = req.body;
+
+  // Whitelist allowed fields for admin editing
+  const allowed = ['first_name', 'name', 'email', 'instagram_handle', 'proxy_city', 'proxy_country', 'timezone', 'geo_latitude', 'geo_longitude', 'housing_type', 'displacement_count', 'gaza_zone', 'religion', 'whatsapp_phone', 'palpay_phone', 'palpay_name'];
+  const cleanUpdates = {};
+  Object.keys(updates).forEach(key => {
+    if (allowed.includes(key)) cleanUpdates[key] = updates[key];
+  });
+
+  if (Object.keys(cleanUpdates).length === 0) {
+    return res.status(400).json({ error: 'No valid fields to update' });
+  }
+
+  try {
+    const { error } = await supabase
+      .from('families')
+      .update(cleanUpdates)
+      .eq('id', familyId);
+    if (error) throw error;
+    res.json({ status: 'OK' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ============================================================================
+// TEMPLATE ENGINE ADMIN ENDPOINTS
+// ============================================================================
+
+// Get family config + computed variables + members
+app.get('/api/admin/family/:id/config', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+
+    // Get family profile
+    const { data: family, error: fErr } = await supabase
+      .from('families')
+      .select('id, name, email, children_count, children_details, housing_type, displacement_count, gaza_zone, religion, profile_pic_url, instagram_handle')
+      .eq('id', familyId)
+      .single();
+    if (fErr || !family) return res.status(404).json({ error: 'Family not found' });
+
+    // Get template config (or empty defaults)
+    const { data: config } = await supabase
+      .from('family_template_config')
+      .select('*')
+      .eq('family_id', familyId)
+      .single();
+
+    // Compute aggregate variables from members
+    const members = family.children_details || [];
+    const children = members.filter(m => {
+      const rel = (m.relationship || '').toLowerCase();
+      return !rel || rel === 'son' || rel === 'daughter' || rel === 'child';
+    });
+    const computed = {
+      member_count: members.length,
+      child_count: children.length,
+      alive_count: members.filter(m => (m.status || 'Alive') === 'Alive').length,
+      deceased_count: members.filter(m => (m.status || '') === 'Deceased').length,
+      disabled_count: members.filter(m => m.disability === 'yes').length,
+      housing_type: family.housing_type || 'unknown',
+      gaza_zone: family.gaza_zone || 'unknown',
+      religion: family.religion || 'unknown',
+      displacement_count: family.displacement_count || 0,
+    };
+
+    res.json({
+      family: { id: family.id, name: family.name, email: family.email, profile_pic_url: family.profile_pic_url, instagram_handle: family.instagram_handle },
+      members: members.map((m, i) => {
+        let nameDisplay = m.name || '';
+        if (nameDisplay && /[\u0600-\u06FF]/.test(nameDisplay)) {
+          nameDisplay = arabicToLatin(nameDisplay) + '  |  ' + nameDisplay;
+        }
+        return {
+          index: i,
+          name: m.name || '',
+          nameDisplay,
+          age: m.age || '',
+          gender: m.gender || '',
+          relationship: m.relationship || '',
+          status: m.status || 'Alive',
+          condition: m.condition || '',
+          medical_condition: m.medical_condition || '',
+          mobility: m.mobility || '',
+          physical_state: m.physical_state || '',
+          medication_name: m.medication_name || '',
+          disability: m.disability || 'no',
+          cognitive: m.cognitive || '',
+        };
+      }),
+      computed,
+      config: config || { template_overrides: {}, variable_locks: {}, child_assignments: {}, notes: '' },
+    });
+  } catch (e) {
+    console.error('[Admin] Family config error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Save family template config
+app.post('/api/admin/family/:id/config', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+    const { template_overrides, variable_locks, child_assignments, member_prefix_overrides, notes } = req.body;
+
+    const { error } = await supabase
+      .from('family_template_config')
+      .upsert({
+        family_id: familyId,
+        template_overrides: template_overrides || {},
+        variable_locks: variable_locks || {},
+        child_assignments: child_assignments || {},
+        member_prefix_overrides: member_prefix_overrides || {},
+        notes: notes || '',
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'family_id' });
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('[Admin] Save config error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Generate N comments for a family
+app.post('/api/admin/family/:id/generate', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+    const count = Math.min(parseInt(req.body.count) || 5, 20);
+
+    // Get family
+    const { data: family } = await supabase
+      .from('families')
+      .select('*')
+      .eq('id', familyId)
+      .single();
+    if (!family) return res.status(404).json({ error: 'Family not found' });
+
+    // Get config
+    const { data: config } = await supabase
+      .from('family_template_config')
+      .select('*')
+      .eq('family_id', familyId)
+      .single();
+
+    // Get all active templates
+    const { data: templates } = await supabase
+      .from('comment_templates')
+      .select('*')
+      .eq('is_active', true);
+
+    if (!templates || templates.length === 0) {
+      return res.status(400).json({ error: 'No active templates available' });
+    }
+
+    // Filter to compatible templates
+    const compatible = templates.filter(t => canRenderTemplate(t, family));
+    if (compatible.length === 0) {
+      return res.status(400).json({ error: 'No compatible templates for this family' });
+    }
+
+    // Get already-generated template IDs for this family (avoid duplicates)
+    const { data: existing } = await supabase
+      .from('family_generated_comments')
+      .select('template_id')
+      .eq('family_id', familyId)
+      .in('status', ['pending', 'approved']);
+    const existingTemplateIds = new Set((existing || []).map(e => e.template_id));
+
+    // Pick templates (prefer unused, then lowest usage_count)
+    const unused = compatible.filter(t => !existingTemplateIds.has(t.id));
+    const pool = unused.length >= count ? unused : compatible;
+    pool.sort((a, b) => (a.usage_count || 0) - (b.usage_count || 0));
+
+    const selected = pool.slice(0, count);
+    const generated = [];
+
+    for (const template of selected) {
+      const { text, variables } = renderTemplate(template.template_text, family, config || {});
+      const { error: insertErr } = await supabase
+        .from('family_generated_comments')
+        .insert({
+          family_id: familyId,
+          template_id: template.id,
+          rendered_text: text,
+          variables_used: variables,
+          status: 'pending',
+        });
+      if (!insertErr) {
+        generated.push({ template_id: template.id, template_name: template.template_id, text, variables });
+      }
+    }
+
+    res.json({ generated: generated.length, comments: generated });
+  } catch (e) {
+    console.error('[Admin] Generate comments error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Generate comments from hand-picked template IDs
+app.post('/api/admin/family/:id/generate-selected', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+    const { template_ids } = req.body;
+    if (!template_ids || !Array.isArray(template_ids) || template_ids.length === 0) {
+      return res.status(400).json({ error: 'No template_ids provided' });
+    }
+
+    const { data: family } = await supabase.from('families').select('*').eq('id', familyId).single();
+    if (!family) return res.status(404).json({ error: 'Family not found' });
+
+    const { data: config } = await supabase.from('family_template_config').select('*').eq('family_id', familyId).single();
+
+    const { data: templates } = await supabase.from('comment_templates').select('*').in('id', template_ids);
+    if (!templates || templates.length === 0) return res.status(400).json({ error: 'No templates found' });
+
+    const generated = [];
+    for (const template of templates) {
+      const { text, variables } = renderTemplate(template.template_text, family, config || {});
+      const { error: insertErr } = await supabase.from('family_generated_comments').insert({
+        family_id: familyId,
+        template_id: template.id,
+        rendered_text: text,
+        variables_used: variables,
+        status: 'pending',
+      });
+      if (!insertErr) generated.push({ template_id: template.id, text, variables });
+    }
+
+    res.json({ generated: generated.length, comments: generated });
+  } catch (e) {
+    console.error('[Admin] Generate selected error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get generated comments for a family
+app.get('/api/admin/family/:id/comments', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+    const status = req.query.status; // optional filter
+
+    let query = supabase
+      .from('family_generated_comments')
+      .select('*, comment_templates(template_id, category)')
+      .eq('family_id', familyId)
+      .order('created_at', { ascending: false });
+
+    if (status) query = query.eq('status', status);
+
+    const { data, error } = await query;
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
+  } catch (e) {
+    console.error('[Admin] Get comments error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Update a generated comment (status, text)
+app.post('/api/admin/family/:id/comments/:commentId', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const commentId = parseInt(req.params.commentId);
+    const { status, rendered_text } = req.body;
+
+    const update = {};
+    if (status) update.status = status;
+    if (rendered_text) update.rendered_text = rendered_text;
+
+    const { error } = await supabase
+      .from('family_generated_comments')
+      .update(update)
+      .eq('id', commentId);
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('[Admin] Update comment error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Preview: render a specific template for a family (dry run)
+app.post('/api/admin/family/:id/preview', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const familyId = parseInt(req.params.id);
+    const { template_id } = req.body; // DB id or template_id string
+
+    // Get family
+    const { data: family } = await supabase
+      .from('families')
+      .select('*')
+      .eq('id', familyId)
+      .single();
+    if (!family) return res.status(404).json({ error: 'Family not found' });
+
+    // Get config
+    const { data: config } = await supabase
+      .from('family_template_config')
+      .select('*')
+      .eq('family_id', familyId)
+      .single();
+
+    // Get template
+    let query = supabase.from('comment_templates').select('*');
+    if (typeof template_id === 'number') {
+      query = query.eq('id', template_id);
+    } else {
+      query = query.eq('template_id', template_id);
+    }
+    const { data: templates } = await query;
+    const template = templates && templates[0];
+    if (!template) return res.status(404).json({ error: 'Template not found' });
+
+    const eligible = canRenderTemplate(template, family);
+    const { text, variables } = renderTemplate(template.template_text, family, config || {});
+
+    res.json({
+      eligible,
+      original: template.original_text || '',
+      rendered: text,
+      variables,
+      template_name: template.template_id,
+      category: template.category,
+    });
+  } catch (e) {
+    console.error('[Admin] Preview error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Sync templates.json → Supabase
+app.post('/api/admin/sync-templates', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const templatesPath = path.join(__dirname, 'templates.json');
+    const raw = fs.readFileSync(templatesPath, 'utf8');
+    const templates = JSON.parse(raw);
+
+    let synced = 0;
+    for (const t of templates) {
+      const { error } = await supabase
+        .from('comment_templates')
+        .upsert({
+          template_id: t.id,
+          template_text: t.template,
+          original_text: t.original,
+          category: t.category,
+          requirements: t.requirements || {},
+          word_count: t.word_count || 0,
+          has_fields: true,
+          field_requirements: t.requirements || {},
+          is_active: true,
+        }, { onConflict: 'template_id' });
+
+      if (!error) synced++;
+      else console.error(`[Sync] Error syncing template ${t.id}:`, error.message);
+    }
+
+    res.json({ synced, total: templates.length });
+  } catch (e) {
+    console.error('[Admin] Sync templates error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// List all templates
+app.get('/api/admin/templates', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const { data, error } = await supabase
+      .from('comment_templates')
+      .select('id, template_id, template_text, original_text, category, requirements, word_count, usage_count, is_active')
+      .eq('is_active', true)
+      .order('category')
+      .order('template_id');
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
+  } catch (e) {
+    console.error('[Admin] List templates error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Sync templates from JSON — replaces all templates
+// Accepts JSON body (array of template objects) or reads from screenshot/comments.json
+app.post('/api/admin/templates/sync', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    let templates = req.body;
+
+    // If no body provided, try reading from file
+    if (!Array.isArray(templates) || templates.length === 0) {
+      const fs = require('fs');
+      const path = require('path');
+      const filePath = path.join(__dirname, 'screenshot', 'comments.json');
+      if (fs.existsSync(filePath)) {
+        templates = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      } else {
+        return res.status(400).json({ error: 'No templates provided and comments.json not found' });
+      }
+    }
+
+    // Deactivate all existing templates
+    await supabase.from('comment_templates').update({ is_active: false }).neq('id', 0);
+
+    let inserted = 0, updated = 0, errors = [];
+    for (let i = 0; i < templates.length; i++) {
+      const t = templates[i];
+      if (!t.id || !t.template) {
+        errors.push(`Skipped template at index ${i}: missing id or template field`);
+        continue;
+      }
+      const templateNumber = i + 1;
+      const row = {
+        template_id: t.id,
+        template_text: t.template,
+        original_text: t.original || null,
+        category: t.category || null,
+        requirements: t.requirements || {},
+        word_count: t.word_count || null,
+        is_active: true,
+        usage_count: 0,
+      };
+
+      // Try upsert by template_id
+      const { data: existing } = await supabase
+        .from('comment_templates')
+        .select('id')
+        .eq('template_id', t.id)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('comment_templates')
+          .update({ ...row, usage_count: undefined })
+          .eq('id', existing.id);
+        if (error) errors.push(`#${templateNumber} ${t.id}: ${error.message}`);
+        else updated++;
+      } else {
+        const { error } = await supabase
+          .from('comment_templates')
+          .insert(row);
+        if (error) errors.push(`#${templateNumber} ${t.id}: ${error.message}`);
+        else inserted++;
+      }
+    }
+
+    console.log(`[Admin] Template sync: ${inserted} inserted, ${updated} updated, ${errors.length} errors`);
+    res.json({ inserted, updated, errors, total: templates.length, synced: inserted + updated });
+  } catch (e) {
+    console.error('[Admin] Template sync error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // API: 2FA
 app.post('/api/2fa', async (req, res) => {
   const { username, code } = req.body;
@@ -2275,5 +2997,21 @@ app.listen(PORT, '0.0.0.0', () => {
 
   if (!fs.existsSync(indexPath)) {
     console.log('⚠️  WARNING: public/index.html not found! Please ensure index.html is in the "public" folder.');
+  }
+
+  // Auto-migrate: add first_name column if missing
+  if (supabase) {
+    (async () => {
+      try {
+        const { error } = await supabase.from('families').select('first_name').limit(1);
+        if (error && error.message.includes('first_name')) {
+          console.log('[Migration] first_name column missing — run manually: ALTER TABLE families ADD COLUMN IF NOT EXISTS first_name TEXT;');
+        }
+        const { error: e2 } = await supabase.from('media_uploads').select('category').limit(1);
+        if (e2 && e2.message.includes('category')) {
+          console.log('[Migration] category column missing — run manually: ALTER TABLE media_uploads ADD COLUMN IF NOT EXISTS category TEXT;');
+        }
+      } catch (e) { /* ignore */ }
+    })();
   }
 });

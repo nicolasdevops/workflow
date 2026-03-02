@@ -1,0 +1,70 @@
+[
+  {
+    "id": "fever_mathematics",
+    "original": "The fever broke at 41.2°C. My daughter asked if that's the temperature where souls leave. I said no. She said \"Then why did Papa leave at 41.3?\" Mathematics of grief. She's 6.",
+    "template": "The fever broke at {temp1|41.2}°C. My {child1:role|daughter} asked if that's the temperature where souls leave. I said no. {child1:pronoun_sub|She} said \"Then why did Papa leave at {temp2|41.3}?\" Mathematics of grief. {child1:pronoun_sub|She}'s {child1:age|6}.",
+    "category": "death_loss",
+    "requirements": {
+      "min_children": 1,
+      "needs_deceased_parent": true,
+      "age_constraints": {
+        "child1": { "min": 5, "max": 8, "ideal": 6 }
+      }
+    },
+    "word_count": 34
+  },
+  {
+    "id": "rice_counting",
+    "original": "Yesterday my 4-year-old counted 23 grains of rice on her plate. She said \"Mama, I'll save 5 for tomorrow.\" There is no tomorrow's meal. I watched her hide them in her pocket. She's learning mathematics I never wanted to teach.",
+    "template": "{day_marker|Yesterday} my {child1:age|4}-year-old counted {rice_grains|23} grains of rice on {child1:pronoun_poss|her} plate. {child1:pronoun_sub|She} said \"Mama, I'll save {bread_pieces|5} for tomorrow.\" There is no tomorrow's meal. I watched {child1:pronoun_obj|her} hide them in {child1:pronoun_poss|her} pocket. {child1:pronoun_sub|She}'s learning mathematics I never wanted to teach.",
+    "category": "hunger",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": { "min": 3, "max": 6, "ideal": 4 }
+      }
+    },
+    "word_count": 46
+  },
+  {
+    "id": "insulin_clock",
+    "original": "My son counts insulin units like other children count stars. 14 left. He asked me what happens at zero. I told him we'll find more. He said \"You said that at 30 too.\" He's 8. He's right.",
+    "template": "My {child1:role|son} counts insulin units like other children count stars. {insulin_units|14} left. {child1:pronoun_sub|He} asked me what happens at zero. I told {child1:pronoun_obj|him} we'll find more. {child1:pronoun_sub|He} said \"You said that at {random[25-35]|30} too.\" {child1:pronoun_sub|He}'s {child1:age|8}. {child1:pronoun_sub|He}'s right.",
+    "category": "medical_crisis",
+    "requirements": {
+      "min_children": 1,
+      "needs_medical": true,
+      "age_constraints": {
+        "child1": { "min": 6, "max": 12, "ideal": 8 }
+      }
+    },
+    "word_count": 42
+  },
+  {
+    "id": "blanket_sharing",
+    "original": "Last night my 3 children shared one blanket. The oldest, 10, gave it to the youngest, 2. The middle one, 6, pretended not to be cold. I watched them take care of each other because I couldn't. This morning the 6-year-old's lips were blue.",
+    "template": "{day_marker|Last night} my {child_count|3} children shared one blanket. The oldest, {oldest_child:age|10}, gave it to the youngest, {youngest_child:age|2}. The middle one, {child2:age|6}, pretended not to be cold. I watched them take care of each other because I couldn't. {time_of_day|This morning} the {child2:age|6}-year-old's lips were blue.",
+    "category": "cold",
+    "requirements": {
+      "min_children": 3,
+      "age_constraints": {
+        "oldest_child": { "min": 8, "max": 14 },
+        "youngest_child": { "min": 1, "max": 4 }
+      }
+    },
+    "word_count": 50
+  },
+  {
+    "id": "displacement_drawing",
+    "original": "We moved for the 7th time. My daughter drew our house again. Same house. Every time. I asked why she always draws the same one. She said \"So God remembers where to find us.\" She's 5. We haven't had a house in 4 months.",
+    "template": "We moved for the {displacement_count|7th} time. My {child1:role|daughter} drew our house again. Same house. Every time. I asked why {child1:pronoun_sub|she} always draws the same one. {child1:pronoun_sub|She} said \"So God remembers where to find us.\" {child1:pronoun_sub|She}'s {child1:age|5}. We haven't had a house in {random_months[2-8]|4} months.",
+    "category": "displacement",
+    "requirements": {
+      "min_children": 1,
+      "age_constraints": {
+        "child1": { "min": 4, "max": 7, "ideal": 5 }
+      }
+    },
+    "word_count": 48
+  }
+]

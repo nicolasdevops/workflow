@@ -99,8 +99,221 @@
                     </div>
                 </div>
 
+                <!-- Family Detail View -->
+                <div v-if="detailFamily" class="space-y-4">
+                    <!-- Header -->
+                    <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4">
+                        <button @click="detailFamily = null" class="text-[#3274B5] hover:underline text-sm font-medium">&larr; Back to Families</button>
+                        <div class="flex items-center gap-3 flex-1">
+                            <img v-if="detailFamily.family.profile_pic_url" :src="detailFamily.family.profile_pic_url" class="w-10 h-10 rounded-full object-cover border-2 border-[#3274B5]">
+                            <div>
+                                <h2 v-if="!editingFamilyName" class="font-bold text-gray-800 text-lg cursor-pointer hover:text-[#3274B5] transition flex items-center gap-1.5" @click.stop="editingFamilyName = true; editFamilyNameValue = detailFamily.family.name; $nextTick(() => $refs.familyNameInput?.focus())" title="Click to edit name"><span v-if="detailFamily.family.first_name" class="text-[#3274B5]">{{ detailFamily.family.first_name }}</span> {{ detailFamily.family.name }} <svg class="w-3.5 h-3.5 text-gray-400 hover:text-[#3274B5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></h2>
+                                <div v-else class="flex items-center gap-2">
+                                    <input v-model="editFamilyNameValue" @keyup.enter="saveFamilyField('name', editFamilyNameValue)" @keyup.esc="editingFamilyName = false" class="border rounded px-2 py-1 text-sm font-bold w-48 focus:ring-2 focus:ring-[#3274B5] focus:outline-none" ref="familyNameInput">
+                                    <button @click="saveFamilyField('name', editFamilyNameValue)" class="text-green-600 hover:text-green-800 text-lg">&#10003;</button>
+                                    <button @click="editingFamilyName = false" class="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+                                </div>
+                                <p class="text-xs text-gray-500">ID: {{ detailFamily.family.id }} | {{ detailFamily.family.email }}</p>
+                            </div>
+                        </div>
+                        <span v-if="detailFamily.family.instagram_handle" class="text-blue-600 text-sm">@{{ detailFamily.family.instagram_handle }}</span>
+                    </div>
+
+                    <!-- Computed Variables -->
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <h3 class="font-bold text-gray-700 mb-3 text-sm">Auto-Computed Variables</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            <div v-for="(val, key) in detailFamily.computed" :key="key" class="bg-gray-50 p-2 rounded text-center">
+                                <p class="text-xs text-gray-500">{{ key }}</p>
+                                <p class="font-bold text-gray-800">{{ val }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Members Table -->
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <div class="p-4 border-b">
+                            <h3 class="font-bold text-gray-700 text-sm">Family Members ({{ detailFamily.members.length }})</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="text-left p-2 text-xs text-gray-600">#</th>
+                                        <th class="text-left p-2 text-xs text-gray-600">Name</th>
+                                        <th class="text-left p-2 text-xs text-gray-600">Age</th>
+                                        <th class="text-left p-2 text-xs text-gray-600">Gender</th>
+                                        <th class="text-left p-2 text-xs text-gray-600">Relationship</th>
+                                        <th class="text-left p-2 text-xs text-gray-600">Status</th>
+                                        <th class="text-left p-2 text-xs text-gray-600">Medical</th>
+                                        <th class="text-left p-2 text-xs text-gray-600">Mobility</th>
+                                        <th class="text-left p-2 text-xs text-gray-600">Disabled</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(m, i) in detailFamily.members" :key="i" class="border-t">
+                                        <td class="p-2 text-gray-400">{{ i + 1 }}</td>
+                                        <td class="p-2 font-medium">{{ m.nameDisplay || m.name || '-' }}</td>
+                                        <td class="p-2">{{ m.age || '-' }}</td>
+                                        <td class="p-2">{{ m.gender || '-' }}</td>
+                                        <td class="p-2">{{ m.relationship || '-' }}</td>
+                                        <td class="p-2"><span :class="m.status === 'Deceased' ? 'text-red-600' : 'text-green-600'">{{ m.status }}</span></td>
+                                        <td class="p-2 text-xs">{{ m.medical_condition || m.condition || '-' }}</td>
+                                        <td class="p-2 text-xs">{{ m.mobility || '-' }}</td>
+                                        <td class="p-2 text-xs">{{ m.disability === 'yes' ? 'Yes' : '-' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div v-if="detailFamily.members.length === 0" class="p-4 text-center text-gray-400 text-sm">No members added yet.</div>
+                    </div>
+
+                    <!-- Editable Variables -->
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-gray-700 text-sm">Family Variables</h3>
+                            <button @click="saveConfig" class="text-xs bg-[#3274B5] text-white px-3 py-1 rounded hover:bg-[#285e94] flex items-center gap-1">
+                                <span v-if="configSaved" class="text-green-300">&#10003;</span> Save
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="text-left p-1.5 text-gray-600">Variable</th>
+                                        <th class="text-left p-1.5 text-gray-600">Auto Value</th>
+                                        <th class="text-left p-1.5 text-gray-600">Override</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Section: Aggregates -->
+                                    <tr class="bg-gray-100"><td colspan="3" class="p-1.5 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Aggregates</td></tr>
+                                    <tr v-for="(val, key) in detailFamily.computed" :key="'agg-'+key" class="border-t">
+                                        <td class="p-1.5 font-mono text-gray-600">{{ key }}</td>
+                                        <td class="p-1.5 font-bold">{{ val }}</td>
+                                        <td class="p-1.5"><input v-model="aggregateOverrides[key]" type="text" :placeholder="''+val" class="w-20 border p-0.5 rounded text-xs" @change="setAggregateOverride(key)"></td>
+                                    </tr>
+                                    <!-- Section: Member-specific -->
+                                    <tr class="bg-gray-100"><td colspan="3" class="p-1.5 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Members</td></tr>
+                                    <template v-for="(m, i) in memberVarRows" :key="'mem-'+i">
+                                        <tr class="border-t" :style="{ backgroundColor: m.bgColor }">
+                                            <td class="p-1.5 font-mono text-gray-600" :class="{ 'font-bold': m.isName }">
+                                                <template v-if="m.isName">
+                                                    <select :value="m.prefix" @change="changeMemberPrefix(m.memberIndex, $event.target.value)" class="text-[10px] border rounded p-0 mr-0.5 bg-transparent font-bold">
+                                                        <option value="child">child</option>
+                                                        <option value="adult">adult</option>
+                                                    </select><span class="font-bold">{{ m.prefixNum }}:name</span>
+                                                </template>
+                                                <template v-else>{{ m.varName }}</template>
+                                            </td>
+                                            <td class="p-1.5" :class="{ 'font-bold': m.isName }">{{ m.value }}</td>
+                                            <td class="p-1.5"><input v-model="memberOverrides[m.varName]" type="text" :placeholder="m.value" class="w-24 border p-0.5 rounded text-xs" @change="setMemberOverride(m.varName)"></td>
+                                        </tr>
+                                    </template>
+                                    <!-- Section: Numeric Ranges -->
+                                    <tr class="bg-gray-100"><td colspan="3" class="p-1.5 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Numeric Ranges</td></tr>
+                                    <tr v-for="v in numericVars" :key="'num-'+v.name" class="border-t">
+                                        <td class="p-1.5 font-mono text-gray-600">{{ v.name }}</td>
+                                        <td class="p-1.5">[{{ v.min }} - {{ v.max }}]</td>
+                                        <td class="p-1.5">
+                                            <div class="flex gap-1">
+                                                <input v-model.number="v.overrideMin" type="number" step="any" :placeholder="''+v.min" class="w-14 border p-0.5 rounded text-xs" @change="setNumericOverride(v)">
+                                                <input v-model.number="v.overrideMax" type="number" step="any" :placeholder="''+v.max" class="w-14 border p-0.5 rounded text-xs" @change="setNumericOverride(v)">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Section: Contextual -->
+                                    <tr class="bg-gray-100"><td colspan="3" class="p-1.5 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Contextual</td></tr>
+                                    <tr v-for="v in contextualVars" :key="'ctx-'+v.name" class="border-t">
+                                        <td class="p-1.5 font-mono text-gray-600">{{ v.name }}</td>
+                                        <td class="p-1.5">{{ v.value }}</td>
+                                        <td class="p-1.5"><input v-model="contextualOverrides[v.name]" type="text" :placeholder="v.value" class="w-24 border p-0.5 rounded text-xs" @change="setContextualOverride(v.name)"></td>
+                                    </tr>
+                                    <!-- Section: Temporal -->
+                                    <tr class="bg-gray-100"><td colspan="3" class="p-1.5 font-bold text-gray-500 text-[10px] uppercase tracking-wider">Temporal (auto)</td></tr>
+                                    <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">month</td><td class="p-1.5">{{ new Date().toLocaleString('en', {month: 'long'}) }}</td><td class="p-1.5 text-gray-400">auto</td></tr>
+                                    <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">day_marker</td><td class="p-1.5">random</td><td class="p-1.5 text-gray-400">auto</td></tr>
+                                    <tr class="border-t"><td class="p-1.5 font-mono text-gray-600">time_of_day</td><td class="p-1.5">random</td><td class="p-1.5 text-gray-400">auto</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Template Selection (checkboxes + color-coded eligibility) -->
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-gray-700 text-sm">Templates ({{ allTemplates.length }}) — <span class="text-green-600">{{ allTemplates.filter(t => isTemplateEligible(t)).length }} eligible</span></h3>
+                            <div class="flex items-center gap-2">
+                                <button @click="generateSelected" :disabled="generating || selectedTemplates.length === 0" class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50">
+                                    {{ generating ? 'Generating...' : 'Generate Selected (' + selectedTemplates.length + ')' }}
+                                </button>
+                                <button @click="syncTemplates" class="text-xs text-gray-500 hover:text-[#3274B5] hover:underline">Sync</button>
+                            </div>
+                        </div>
+                        <div v-if="allTemplates.length === 0" class="text-xs text-gray-400">No templates loaded. Sync templates first.</div>
+                        <div v-for="(t, idx) in allTemplates" :key="t.id" class="mb-2 p-2 rounded border" :class="isTemplateEligible(t) ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'">
+                            <div class="flex items-start gap-2">
+                                <input type="checkbox" :value="t.id" v-model="selectedTemplates" class="mt-1 accent-[#3274B5]">
+                                <div class="flex-1">
+                                    <div class="flex items-baseline gap-2 mb-1">
+                                        <span class="text-xs font-bold text-gray-500">{{ idx + 1 }}.</span>
+                                        <span class="text-xs font-medium text-[#3274B5]">{{ t.template_id || 'T'+t.id }}</span>
+                                        <span class="text-xs text-gray-400">({{ t.category || '?' }})</span>
+                                        <span v-if="!isTemplateEligible(t)" class="text-[10px] text-red-500">{{ getMissingRequirements(t) }}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-700 leading-relaxed">{{ t.original_text || t.template_text || '-' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pre-Generated Comments -->
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-gray-700 text-sm">Pre-Generated Comments ({{ generatedComments.length }})</h3>
+                            <select v-model="commentFilter" @change="fetchComments" class="border p-1 rounded text-xs">
+                                <option value="">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="posted">Posted</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div v-if="generatedComments.length === 0" class="text-center text-gray-400 text-sm py-4">No comments generated yet.</div>
+                        <div v-for="c in generatedComments" :key="c.id" class="border rounded-lg p-3 mb-2" :class="{'bg-green-50': c.status === 'approved', 'bg-red-50': c.status === 'rejected', 'bg-blue-50': c.status === 'posted'}">
+                            <div class="flex justify-between items-start mb-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-mono text-gray-400">{{ c.comment_templates?.template_id || 'T' + c.template_id }}</span>
+                                    <span class="text-xs px-1.5 py-0.5 rounded" :class="{'bg-yellow-100 text-yellow-700': c.status==='pending', 'bg-green-100 text-green-700': c.status==='approved', 'bg-blue-100 text-blue-700': c.status==='posted', 'bg-red-100 text-red-700': c.status==='rejected'}">{{ c.status }}</span>
+                                </div>
+                                <span class="text-xs text-gray-400">{{ formatDate(c.created_at) }}</span>
+                            </div>
+                            <div v-if="editingCommentId === c.id">
+                                <textarea v-model="editingCommentText" rows="3" class="w-full border p-2 rounded text-sm mb-2"></textarea>
+                                <div class="flex gap-2">
+                                    <button @click="saveCommentEdit(c)" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded">Save</button>
+                                    <button @click="editingCommentId = null" class="text-xs text-gray-500 hover:underline">Cancel</button>
+                                </div>
+                            </div>
+                            <div v-else>
+                                <p class="text-sm text-gray-800 mb-2 leading-relaxed">{{ c.rendered_text }}</p>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <button v-if="c.status === 'pending'" @click="updateCommentStatus(c, 'approved')" class="text-xs bg-green-500 text-white px-2 py-0.5 rounded hover:bg-green-600">Approve</button>
+                                <button v-if="c.status === 'pending'" @click="updateCommentStatus(c, 'rejected')" class="text-xs bg-red-400 text-white px-2 py-0.5 rounded hover:bg-red-500">Reject</button>
+                                <button v-if="c.status !== 'posted'" @click="editingCommentId = c.id; editingCommentText = c.rendered_text" class="text-xs text-[#3274B5] hover:underline">Edit</button>
+                                <div v-if="c.status === 'posted'" class="flex items-center gap-2 text-xs text-gray-500">
+                                    <span v-if="c.posted_to_url">Posted to: <a :href="c.posted_to_url" target="_blank" class="text-blue-500 hover:underline">{{ c.posted_to_url.split('/p/')[1]?.split('/')[0] || 'link' }}</a></span>
+                                    <span v-if="c.posted_at">{{ formatDate(c.posted_at) }}</span>
+                                    <span v-if="c.likes_count > 0" class="text-pink-500">&#9829; {{ c.likes_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Families Tab -->
-                <div v-if="tab === 'families'" class="bg-white rounded-lg shadow overflow-hidden">
+                <div v-if="tab === 'families' && !detailFamily" class="bg-white rounded-lg shadow overflow-hidden">
                     <div class="p-4 border-b flex justify-between items-center">
                         <h2 class="font-bold text-gray-800">All Families</h2>
                         <button @click="fetchFamilies" class="text-sm text-[#3274B5] hover:underline">Refresh</button>
@@ -121,9 +334,9 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="f in families" :key="f.id" class="border-t hover:bg-gray-50">
+                                <tr v-for="f in families" :key="f.id" class="border-t hover:bg-gray-50 cursor-pointer" @click="openFamilyDetail(f)">
                                     <td class="p-3 text-gray-500">{{ f.id }}</td>
-                                    <td class="p-3 font-medium">{{ f.name || '-' }}</td>
+                                    <td class="p-3 font-medium"><span v-if="f.first_name" class="text-[#3274B5]">{{ f.first_name }}</span> {{ f.nameDisplay || f.name || '-' }}</td>
                                     <td class="p-3 text-gray-600">{{ f.email }}</td>
                                     <td class="p-3">
                                         <span v-if="f.instagram_handle" class="text-blue-600">@{{ f.instagram_handle }}</span>
@@ -146,15 +359,15 @@
                                     <td class="p-3 text-gray-500 text-xs">{{ formatDate(f.created_at) }}</td>
                                     <td class="p-3">
                                         <div class="flex gap-2">
-                                            <button @click="viewAsFamily(f)" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]" title="View their dashboard as they see it">
+                                            <button @click.stop="viewAsFamily(f)" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]" title="View their dashboard as they see it">
                                                 View as User
                                             </button>
-                                            <button @click="toggleInstagramPassword(f)" :class="f.instagram_password_enabled ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'" class="text-xs p-1 rounded transition" :title="f.instagram_password_enabled ? 'IG Password Entry: ENABLED' : 'IG Password Entry: DISABLED'">
+                                            <button @click.stop="toggleInstagramPassword(f)" :class="f.instagram_password_enabled ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'" class="text-xs p-1 rounded transition" :title="f.instagram_password_enabled ? 'IG Password Entry: ENABLED' : 'IG Password Entry: DISABLED'">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                                                 </svg>
                                             </button>
-                                            <button @click="deleteFamily(f)" class="text-xs bg-red-100 text-red-600 p-1 rounded hover:bg-red-200 transition" title="Delete family account and all data">
+                                            <button @click.stop="deleteFamily(f)" class="text-xs bg-red-100 text-red-600 p-1 rounded hover:bg-red-200 transition" title="Delete family account and all data">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
@@ -298,16 +511,34 @@
                         igConnected: 0,
                         totalMedia: 0,
                         automationActive: 0
-                    }
+                    },
+                    // Family detail view
+                    detailFamily: null,
+                    detailConfig: { template_overrides: {}, variable_locks: {}, child_assignments: {} },
+                    configSaved: false,
+                    editingFamilyName: false,
+                    editFamilyNameValue: '',
+                    generatedComments: [],
+                    generateCount: 5,
+                    generating: false,
+                    commentFilter: '',
+                    editingCommentId: null,
+                    editingCommentText: '',
+                    allTemplates: [],
+                    selectedTemplates: [],
+                    numericVars: [],
+                    contextualVars: [],
+                    memberVarRows: [],
+                    aggregateOverrides: {},
+                    memberOverrides: {},
+                    contextualOverrides: {}
                 }
             },
             mounted() {
-                const saved = sessionStorage.getItem('admin_token');
-                if (saved) {
-                    this.authToken = saved;
-                    this.authenticated = true;
-                    this.loadDashboard();
-                }
+                // TEMPORARILY auto-authenticate for dev (re-enable login check before production)
+                this.authToken = 'dev-bypass';
+                this.authenticated = true;
+                this.loadDashboard();
             },
             methods: {
                 async login() {
@@ -353,10 +584,9 @@
                             alert('Failed to impersonate: ' + (data.error || 'Unknown error'));
                             return;
                         }
-                        // Open the main portal in a new tab with the impersonation token
-                        // We'll pass the token via URL param, the portal will detect and use it
+                        // Navigate to portal with impersonation token (same tab so back button works)
                         const portalUrl = `/?impersonate=${data.token}`;
-                        window.open(portalUrl, '_blank');
+                        window.location.href = portalUrl;
                     } catch (e) {
                         alert('Error: ' + e.message);
                     }
@@ -529,6 +759,366 @@
                 },
                 isVideo(path) {
                     return /\.(mp4|mov|webm)$/i.test(path);
+                },
+                async saveFamilyField(field, value) {
+                    try {
+                        const res = await fetch(`/api/admin/family/${this.detailFamily.family.id}/update`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': this.authToken },
+                            body: JSON.stringify({ [field]: value })
+                        });
+                        if (!this.checkAuth(res)) return;
+                        if (!res.ok) throw new Error((await res.json()).error);
+                        this.detailFamily.family[field] = value;
+                        this.editingFamilyName = false;
+                        // Refresh families list
+                        const f = this.families.find(f => f.id === this.detailFamily.family.id);
+                        if (f) f[field] = value;
+                    } catch (e) {
+                        alert('Save failed: ' + e.message);
+                    }
+                },
+                // --- Family Detail Methods ---
+                async openFamilyDetail(family) {
+                    try {
+                        const res = await fetch(`/api/admin/family/${family.id}/config`, {
+                            headers: { 'x-admin-token': this.authToken }
+                        });
+                        if (!this.checkAuth(res)) return;
+                        if (!res.ok) { alert('Failed to load family config'); return; }
+                        this.detailFamily = await res.json();
+                        this.detailConfig = { ...this.detailFamily.config };
+                        if (!this.detailConfig.template_overrides) this.detailConfig.template_overrides = {};
+                        if (!this.detailConfig.variable_locks) this.detailConfig.variable_locks = {};
+                        if (!this.detailConfig.child_assignments) this.detailConfig.child_assignments = {};
+                        if (!this.detailConfig.member_prefix_overrides) this.detailConfig.member_prefix_overrides = {};
+                        this.selectedTemplates = [];
+                        this.buildVariableTables();
+                        await Promise.all([this.fetchComments(), this.fetchTemplates()]);
+                    } catch (e) {
+                        alert('Error: ' + e.message);
+                    }
+                },
+                buildVariableTables() {
+                    const overrides = this.detailConfig.template_overrides || {};
+                    const DEFAULTS = {
+                        insulin_units: { min: 10, max: 20 },
+                        temp1: { min: 40.5, max: 41.5 },
+                        temp2: { min: 40.8, max: 41.8 },
+                        rice_grains: { min: 15, max: 35 },
+                        bread_pieces: { min: 1, max: 5 },
+                        water_bottles: { min: 0, max: 3 },
+                        days_since: { min: 30, max: 90 },
+                        hours: { min: 1, max: 72 },
+                        minutes: { min: 1, max: 60 },
+                        random_months: { min: 1, max: 11 },
+                        displacement_count: { min: 3, max: 10 },
+                    };
+                    this.numericVars = Object.entries(DEFAULTS).map(([name, d]) => ({
+                        name,
+                        min: d.min,
+                        max: d.max,
+                        overrideMin: overrides[name]?.min ?? null,
+                        overrideMax: overrides[name]?.max ?? null,
+                    }));
+                    const f = this.detailFamily.family;
+                    const c = this.detailFamily.computed;
+                    const members = this.detailFamily.members;
+                    const hasParent = members.find(m => {
+                        const r = (m.relationship||'').toLowerCase();
+                        return r === 'father' || r === 'mother' || r === 'mother/father';
+                    });
+                    const familySize = members.length || 0; // all family members (narrator is typically listed as adult1)
+                    this.contextualVars = [
+                        { name: 'parent_role', value: hasParent ? (hasParent.gender === 'Male' ? 'baba' : 'mama') : 'mama' },
+                        { name: 'shelter_type', value: c.housing_type || 'tent' },
+                        { name: 'location', value: c.gaza_zone || 'Gaza' },
+                        { name: 'religious_context', value: c.religion || 'Muslim' },
+                        { name: 'prayer_reference', value: (c.religion || '').toLowerCase() === 'christian' ? 'prayer' : 'dua' },
+                        { name: 'family_size', value: String(familySize) },
+                        { name: 'christians_left', value: '300' },
+                        { name: 'christians_lost', value: '300' },
+                    ];
+
+                    // Build member variable rows with proper prefixes and colors
+                    const bgColors = [
+                        'rgba(34,197,94,0.08)',   // green
+                        'rgba(59,130,246,0.08)',   // blue
+                        'rgba(168,85,247,0.08)',   // purple
+                        'rgba(249,115,22,0.08)',   // orange
+                        'rgba(236,72,153,0.08)',   // pink
+                        'rgba(20,184,166,0.08)',   // teal
+                        'rgba(245,158,11,0.08)',   // amber
+                        'rgba(99,102,241,0.08)',   // indigo
+                        'rgba(239,68,68,0.08)',    // red
+                        'rgba(107,114,128,0.08)',  // gray
+                    ];
+                    // Determine prefix per member: auto-detect then apply admin overrides
+                    // Status does NOT affect prefix (dead children stay child[x], dead adults stay adult[x])
+                    const prefixOverrides = this.detailConfig.member_prefix_overrides || {};
+                    const autoCategories = members.map((m) => {
+                        const rel = (m.relationship || '').toLowerCase();
+                        const isChild = !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
+                        return isChild ? 'child' : 'adult';
+                    });
+                    const categories = autoCategories.map((auto, i) => prefixOverrides[String(i)] || auto);
+
+                    // Sort adults so mother comes first (adult1) and father second (adult2)
+                    const childIndices = [];
+                    const adultIndices = [];
+                    members.forEach((m, i) => {
+                        if (categories[i] === 'child') childIndices.push(i);
+                        else adultIndices.push(i);
+                    });
+                    adultIndices.sort((a, b) => {
+                        const gA = (members[a].gender || '').toLowerCase();
+                        const gB = (members[b].gender || '').toLowerCase();
+                        if (gA === 'female' && gB !== 'female') return -1;
+                        if (gA !== 'female' && gB === 'female') return 1;
+                        return 0;
+                    });
+
+                    // Assign numbered keys
+                    const memberKeys = new Array(members.length);
+                    childIndices.forEach((idx, n) => { memberKeys[idx] = { prefix: 'child', num: n + 1 }; });
+                    adultIndices.forEach((idx, n) => { memberKeys[idx] = { prefix: 'adult', num: n + 1 }; });
+
+                    const rows = [];
+                    members.forEach((m, i) => {
+                        const { prefix, num } = memberKeys[i];
+                        const varPrefix = `${prefix}${num}`;
+                        const bg = bgColors[i % bgColors.length];
+                        const name = m.nameDisplay || m.name || '-';
+                        const pronoun = m.gender === 'Male' ? 'he' : 'she';
+                        const role = this.getMemberRole(m);
+                        const medical = m.medical_condition || m.condition || '';
+                        const disabled = m.disability === 'yes' ? 'yes' : '';
+
+                        rows.push({ varName: `${varPrefix}:name`, value: name, bgColor: bg, isName: true, memberIndex: i, prefix, prefixNum: num });
+                        rows.push({ varName: `${varPrefix}:age`, value: m.age || '-', bgColor: bg, isName: false });
+                        rows.push({ varName: `${varPrefix}:gender`, value: m.gender || '-', bgColor: bg, isName: false });
+                        rows.push({ varName: `${varPrefix}:role`, value: role, bgColor: bg, isName: false });
+                        rows.push({ varName: `${varPrefix}:pronoun_sub`, value: pronoun, bgColor: bg, isName: false });
+                        rows.push({ varName: `${varPrefix}:status`, value: m.status || 'Alive', bgColor: bg, isName: false });
+                        if (medical) rows.push({ varName: `${varPrefix}:medical`, value: medical, bgColor: bg, isName: false });
+                        if (disabled) rows.push({ varName: `${varPrefix}:disabled`, value: 'yes', bgColor: bg, isName: false });
+                    });
+                    this.memberVarRows = rows;
+
+                    // Initialize overrides from existing config
+                    this.aggregateOverrides = {};
+                    this.memberOverrides = {};
+                    this.contextualOverrides = {};
+                    if (overrides) {
+                        Object.entries(overrides).forEach(([k, v]) => {
+                            if (typeof v === 'string' || typeof v === 'number') {
+                                // Could be aggregate, member, or contextual override
+                                if (k.includes(':')) this.memberOverrides[k] = v;
+                                else if (['parent_role','shelter_type','location','religious_context','prayer_reference','family_size','christians_left','christians_lost'].includes(k)) this.contextualOverrides[k] = v;
+                                else this.aggregateOverrides[k] = v;
+                            }
+                        });
+                    }
+                },
+                changeMemberPrefix(memberIndex, newPrefix) {
+                    // Store the override and rebuild — numbers cascade automatically
+                    if (!this.detailConfig.member_prefix_overrides) this.detailConfig.member_prefix_overrides = {};
+                    // Check if this matches the auto-detected prefix (if so, remove override)
+                    const m = this.detailFamily.members[memberIndex];
+                    const rel = (m.relationship || '').toLowerCase();
+                    const isChild = !rel || rel === 'son/daughter' || rel === 'son' || rel === 'daughter' || rel === 'child';
+                    const autoPrefix = isChild ? 'child' : 'adult';
+                    if (newPrefix === autoPrefix) {
+                        delete this.detailConfig.member_prefix_overrides[String(memberIndex)];
+                    } else {
+                        this.detailConfig.member_prefix_overrides[String(memberIndex)] = newPrefix;
+                    }
+                    this.buildVariableTables();
+                },
+                setAggregateOverride(key) {
+                    const val = this.aggregateOverrides[key];
+                    if (val != null && val !== '') {
+                        this.detailConfig.template_overrides[key] = val;
+                    } else {
+                        delete this.detailConfig.template_overrides[key];
+                    }
+                },
+                setMemberOverride(varName) {
+                    const val = this.memberOverrides[varName];
+                    if (val != null && val !== '') {
+                        this.detailConfig.template_overrides[varName] = val;
+                    } else {
+                        delete this.detailConfig.template_overrides[varName];
+                    }
+                },
+                setContextualOverride(name) {
+                    const val = this.contextualOverrides[name];
+                    if (val != null && val !== '') {
+                        this.detailConfig.template_overrides[name] = val;
+                    } else {
+                        delete this.detailConfig.template_overrides[name];
+                    }
+                },
+                setNumericOverride(v) {
+                    if (v.overrideMin != null || v.overrideMax != null) {
+                        this.detailConfig.template_overrides[v.name] = { min: v.overrideMin, max: v.overrideMax, fixed: null };
+                    } else {
+                        delete this.detailConfig.template_overrides[v.name];
+                    }
+                },
+                getMemberRole(m) {
+                    const g = (m.gender || '').toLowerCase();
+                    const r = (m.relationship || '').toLowerCase();
+                    if (r.includes('son') || r.includes('daughter') || r === 'child') return g === 'male' ? 'son' : 'daughter';
+                    if (r.includes('brother') || r.includes('sister')) return g === 'male' ? 'brother' : 'sister';
+                    if (r.includes('father') || r.includes('mother')) return g === 'male' ? 'father' : 'mother';
+                    return r || (g === 'male' ? 'son' : 'daughter');
+                },
+                _checkReqs(req) {
+                    // Returns array of missing requirement names (empty = eligible)
+                    if (!req) return [];
+                    const missing = [];
+                    const members = this.detailFamily.members;
+                    const f = this.detailFamily.family;
+                    const children = members.filter(m => { const r = (m.relationship||'').toLowerCase(); return !r || r.includes('son') || r.includes('daughter') || r === 'child'; });
+                    if (req.min_children && children.length < req.min_children) missing.push('min_children=' + req.min_children);
+                    if (req.needs_deceased_parent) {
+                        const has = members.some(m => ['father','mother','mother/father'].includes((m.relationship||'').toLowerCase()) && m.status === 'Deceased');
+                        if (!has) missing.push('needs_deceased_parent');
+                    }
+                    if (req.needs_medical) {
+                        const has = members.some(m => m.medical_condition && m.medical_condition !== '' && m.medical_condition !== 'none');
+                        if (!has) missing.push('needs_medical');
+                    }
+                    if (req.needs_disabled && !members.some(m => m.disability === 'yes')) missing.push('needs_disabled');
+                    if (req.needs_daughter && !children.some(m => (m.gender||'').toLowerCase() === 'female')) missing.push('needs_daughter');
+                    if (req.needs_daughters) {
+                        const ct = children.filter(m => (m.gender||'').toLowerCase() === 'female').length;
+                        if (ct < req.needs_daughters) missing.push('needs_daughters=' + req.needs_daughters);
+                    }
+                    if (req.needs_gender_mix) {
+                        if (!children.some(m => (m.gender||'').toLowerCase() === 'male') || !children.some(m => (m.gender||'').toLowerCase() === 'female')) missing.push('needs_gender_mix');
+                    }
+                    if (req.needs_baby && !children.some(m => { const a = parseInt(m.age); return !isNaN(a) && a <= 2; })) missing.push('needs_baby');
+                    if (req.needs_deceased_father) {
+                        const has = members.some(m => { const r = (m.relationship||'').toLowerCase(); return (r === 'father' || r === 'mother/father' || r === 'husband/wife') && (m.gender||'').toLowerCase() === 'male' && m.status === 'Deceased'; });
+                        if (!has) missing.push('needs_deceased_father');
+                    }
+                    if (req.needs_deceased_child && !children.some(m => m.status === 'Deceased')) missing.push('needs_deceased_child');
+                    if (req.needs_medical_condition) {
+                        const cond = req.needs_medical_condition.toLowerCase();
+                        if (!members.some(m => m.medical_condition && m.medical_condition.toLowerCase().includes(cond))) missing.push('needs_' + cond);
+                    }
+                    if (req.adult2_status) {
+                        const father = members.find(m => { const r = (m.relationship||'').toLowerCase(); return (r === 'father' || r === 'mother/father' || r === 'husband/wife') && (m.gender||'').toLowerCase() === 'male'; });
+                        if (!father || (father.status||'').toLowerCase() !== req.adult2_status.toLowerCase()) missing.push('adult2_status=' + req.adult2_status);
+                    }
+                    if (req.religious_context) {
+                        const rel = (f.religion || this.detailFamily.computed?.religion || '').toLowerCase();
+                        if (rel !== req.religious_context.toLowerCase()) missing.push('religious_context=' + req.religious_context);
+                    }
+                    if (req.age_constraints) {
+                        for (const [ref, con] of Object.entries(req.age_constraints)) {
+                            const ages = children.map(m => parseInt(m.age)).filter(a => !isNaN(a));
+                            if (ages.length === 0 || !ages.some(a => a >= (con.min||0) && a <= (con.max||100))) missing.push(ref + ':age[' + (con.min||0) + '-' + (con.max||100) + ']');
+                        }
+                    }
+                    return missing;
+                },
+                isTemplateEligible(t) {
+                    return this._checkReqs(t.requirements).length === 0;
+                },
+                getMissingRequirements(t) {
+                    const m = this._checkReqs(t.requirements);
+                    return m.length ? 'Missing: ' + m.join(', ') : '';
+                },
+                async saveConfig() {
+                    try {
+                        const res = await fetch(`/api/admin/family/${this.detailFamily.family.id}/config`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': this.authToken },
+                            body: JSON.stringify(this.detailConfig)
+                        });
+                        if (res.ok) {
+                            this.configSaved = true;
+                            setTimeout(() => { this.configSaved = false; }, 2000);
+                        } else {
+                            alert('Save failed: ' + (await res.json().catch(() => ({}))).error);
+                        }
+                    } catch (e) { alert('Error: ' + e.message); }
+                },
+                async generateSelected() {
+                    if (this.selectedTemplates.length === 0) return;
+                    this.generating = true;
+                    try {
+                        const res = await fetch(`/api/admin/family/${this.detailFamily.family.id}/generate-selected`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': this.authToken },
+                            body: JSON.stringify({ template_ids: this.selectedTemplates })
+                        });
+                        const data = await res.json();
+                        if (!res.ok) { alert('Generate failed: ' + (data.error || '')); return; }
+                        this.selectedTemplates = [];
+                        await this.fetchComments();
+                    } catch (e) { alert('Error: ' + e.message); }
+                    finally { this.generating = false; }
+                },
+                async fetchComments() {
+                    if (!this.detailFamily) return;
+                    try {
+                        let url = `/api/admin/family/${this.detailFamily.family.id}/comments`;
+                        if (this.commentFilter) url += `?status=${this.commentFilter}`;
+                        const res = await fetch(url, { headers: { 'x-admin-token': this.authToken } });
+                        if (res.ok) this.generatedComments = await res.json();
+                    } catch (e) { console.error('Fetch comments error:', e); }
+                },
+                async updateCommentStatus(comment, status) {
+                    try {
+                        const res = await fetch(`/api/admin/family/${this.detailFamily.family.id}/comments/${comment.id}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': this.authToken },
+                            body: JSON.stringify({ status })
+                        });
+                        if (res.ok) comment.status = status;
+                    } catch (e) { alert('Error: ' + e.message); }
+                },
+                async saveCommentEdit(comment) {
+                    try {
+                        const res = await fetch(`/api/admin/family/${this.detailFamily.family.id}/comments/${comment.id}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': this.authToken },
+                            body: JSON.stringify({ rendered_text: this.editingCommentText })
+                        });
+                        if (res.ok) {
+                            comment.rendered_text = this.editingCommentText;
+                            this.editingCommentId = null;
+                        }
+                    } catch (e) { alert('Error: ' + e.message); }
+                },
+                async fetchTemplates() {
+                    try {
+                        const res = await fetch('/api/admin/templates', { headers: { 'x-admin-token': this.authToken } });
+                        if (res.ok) this.allTemplates = await res.json();
+                    } catch (e) { console.error('Fetch templates error:', e); }
+                },
+                async syncTemplates() {
+                    if (!confirm('Replace all templates with comments.json? This deactivates existing templates.')) return;
+                    try {
+                        const res = await fetch('/api/admin/templates/sync', {
+                            method: 'POST',
+                            headers: { 'x-admin-token': this.authToken, 'Content-Type': 'application/json' },
+                            body: '{}',
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            alert(`Synced ${data.synced}/${data.total} templates (${data.inserted} new, ${data.updated} updated)`);
+                            // Reload templates
+                            const tRes = await fetch('/api/admin/templates', { headers: { 'x-admin-token': this.authToken } });
+                            if (tRes.ok) this.allTemplates = await tRes.json();
+                        } else {
+                            alert('Sync failed: ' + (data.error || ''));
+                        }
+                    } catch (e) { alert('Error: ' + e.message); }
                 }
             }
         }).mount('#app');
