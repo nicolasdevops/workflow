@@ -978,13 +978,13 @@
                         <!-- Greyscale background image -->
                         <img v-if="cropperImage" :src="cropperImage" class="absolute select-none pointer-events-none" draggable="false"
                              :style="{ transform: 'translate(' + cropperX + 'px, ' + cropperY + 'px) scale(' + cropperScale + ')', transformOrigin: '0 0', filter: 'grayscale(100%) brightness(0.5)' }">
-                        <!-- Color image — same exact transform, clipped to circle via clip-path -->
-                        <img v-if="cropperImage" :src="cropperImage" class="absolute select-none pointer-events-none" draggable="false"
-                             :style="{ transform: 'translate(' + cropperX + 'px, ' + cropperY + 'px) scale(' + cropperScale + ')', transformOrigin: '0 0', clipPath: 'circle(' + (80 / cropperScale) + 'px at ' + ((130 - cropperX) / cropperScale) + 'px ' + ((130 - cropperY) / cropperScale) + 'px)' }">
-                        <!-- Circle outline -->
-                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div style="width: 162px; height: 162px; border-radius: 50%; border: 2px solid rgba(50,116,181,0.7);"></div>
+                        <!-- Color image clipped to circle: 160px circle centered in 260px = starts at (50,50) -->
+                        <div class="absolute pointer-events-none" style="left: 50px; top: 50px; width: 160px; height: 160px; border-radius: 50%; overflow: hidden;">
+                            <img v-if="cropperImage" :src="cropperImage" class="absolute select-none" draggable="false"
+                                 :style="{ transform: 'translate(' + (cropperX - 50) + 'px, ' + (cropperY - 50) + 'px) scale(' + cropperScale + ')', transformOrigin: '0 0' }">
                         </div>
+                        <!-- Circle outline -->
+                        <div class="absolute pointer-events-none" style="left: 49px; top: 49px; width: 162px; height: 162px; border-radius: 50%; border: 2px solid rgba(50,116,181,0.7);"></div>
                     </div>
                     <!-- Zoom slider -->
                     <div class="flex items-center gap-2 px-6 mt-2">
@@ -1739,26 +1739,23 @@
                     canvas.height = size;
                     const ctx = canvas.getContext('2d');
                     const img = new Image();
-                    img.crossOrigin = 'anonymous';
                     img.src = this.cropperImage;
                     await new Promise(r => { img.onload = r; if (img.complete) r(); });
 
-                    // Circle is centered at (130,130) in the 260px container, radius 80
-                    // Canvas 320px maps to the 160px circle area (container 50..210)
-                    // scaleFactor = 320 / 160 = 2
-                    const sf = size / 160;
+                    // Circle covers container area (50,50)→(210,210) = 160px square
+                    // Image pixel (ix,iy) appears at container (ix*scale + cropperX, iy*scale + cropperY)
+                    // So the source rectangle in natural image pixels that fills the circle:
+                    const sx = (50 - this.cropperX) / this.cropperScale;
+                    const sy = (50 - this.cropperY) / this.cropperScale;
+                    const sw = 160 / this.cropperScale;
+                    const sh = 160 / this.cropperScale;
 
                     ctx.beginPath();
                     ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
                     ctx.clip();
 
-                    // Image natural pixel (0,0) is at container position (cropperX, cropperY)
-                    // Container (50, 50) maps to canvas (0, 0)
-                    const drawX = (this.cropperX - 50) * sf;
-                    const drawY = (this.cropperY - 50) * sf;
-                    const drawW = img.naturalWidth * this.cropperScale * sf;
-                    const drawH = img.naturalHeight * this.cropperScale * sf;
-                    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+                    // Draw source rect → full canvas (9-arg drawImage)
+                    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, size, size);
 
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
