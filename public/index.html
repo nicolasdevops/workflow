@@ -1384,7 +1384,7 @@
 
                         // If registered with @username, auto-trigger IG scrape after profile loads
                         if (this.isIgAuth) {
-                            const handle = this.form.email.replace(/^@/, '').trim();
+                            const handle = this.form.email.replace(/@/g, '').trim();
                             this.igUsernameInput = handle;
                             this.form.insta_username = handle;
                             // Wait for profile to load, then trigger scrape silently
@@ -1509,7 +1509,7 @@
                     this.igScrapeProgress = '';
                     this.igUsernameMissing = false;
 
-                    const handle = this.igUsernameInput.replace(/^@/, '').trim();
+                    const handle = this.igUsernameInput.replace(/@/g, '').trim();
                     this.profile.instagram_handle = handle;
                     this.form.insta_username = handle;
                     await this.updateProfile(true);
@@ -2115,7 +2115,7 @@
                     this.error = null;
                     this.scrapeMessage = null;
 
-                    const cleanUsername = this.form.insta_username.replace(/^@/, '').trim();
+                    const cleanUsername = this.form.insta_username.replace(/@/g, '').trim();
 
                     if (!cleanUsername) {
                         this.error = 'Please enter an Instagram username';

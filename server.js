@@ -1065,7 +1065,7 @@ app.post('/api/portal/register', async (req, res) => {
 
   if (ig_username) {
     // @username registration (admin quick-create, no password)
-    instagramHandle = ig_username.replace(/^@/, '').trim().toLowerCase();
+    instagramHandle = ig_username.replace(/@/g, '').trim().toLowerCase();
     email = `${instagramHandle}@ig.local`;
     passwordHash = crypto.randomBytes(32).toString('hex'); // random, unused
 
@@ -1122,7 +1122,7 @@ app.post('/api/portal/login', async (req, res) => {
 
   if (emailInput.startsWith('@')) {
     // @username login (no password required)
-    const handle = emailInput.replace(/^@/, '').toLowerCase();
+    const handle = emailInput.replace(/@/g, '').trim().toLowerCase();
     const result = await supabase
       .from('families')
       .select('*')
