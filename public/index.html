@@ -433,8 +433,16 @@
                                                             <div v-for="(member, index) in profile.children_details" :key="index" class="bg-gray-50 rounded border text-sm relative cursor-pointer hover:bg-[#3274B5]/10 transition-colors" @click="toggleMemberDetails(index)">
                                                                 <!-- × delete: top-right corner -->
                                                                 <button type="button" @click.stop="removeChild(index)" class="absolute top-1 right-1 text-gray-300 hover:text-gray-500 text-sm leading-none px-1 z-10">×</button>
+                                                                <!-- Profile pic circle: top-right -->
+                                                                <div class="absolute top-2 right-6 w-10 h-10 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors"
+                                                                     :class="member.profile_pic ? 'border-[#3274B5]/40' : 'border-gray-300 hover:border-[#3274B5]/40'"
+                                                                     @click.stop="openMemberPicUpload(index)">
+                                                                    <img v-if="member.profile_pic" :src="member.profile_pic" class="w-full h-full object-cover rounded-full">
+                                                                    <svg v-else class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                                                </div>
+                                                                <input type="file" :ref="'memberPic_' + index" @change="handleMemberPicSelect($event, index)" class="hidden" accept="image/*">
                                                                 <!-- Summary content -->
-                                                                <div class="p-2 pr-6" dir="ltr" style="text-align: left;">
+                                                                <div class="p-2 pr-[70px]" dir="ltr" style="text-align: left;">
                                                                     <span style="display: flex; gap: 0.25rem; align-items: center;">
                                                                         <span class="text-xs" dir="auto">{{ member.nameDisplay || member.name }}</span>
                                                                         <span class="text-xs" dir="ltr">|</span>
@@ -945,6 +953,43 @@
                 </div>
             </div>
 
+            <!-- Member Profile Pic Cropper -->
+            <div v-if="cropperOpen" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" @click="cropperOpen = false">
+                <div class="relative bg-gray-900 rounded-2xl overflow-hidden" style="width: 300px; height: 380px;" @click.stop>
+                    <button @click="cropperOpen = false" class="absolute top-2 right-2 text-white/60 hover:text-white z-20 text-xl leading-none">&times;</button>
+                    <p class="text-white/60 text-xs text-center pt-2 pb-1">Drag to position, scroll to zoom</p>
+                    <!-- Cropper area -->
+                    <div class="relative mx-auto" style="width: 260px; height: 260px; overflow: hidden; cursor: grab;"
+                         @mousedown="cropperStartDrag" @mousemove="cropperOnDrag" @mouseup="cropperStopDrag" @mouseleave="cropperStopDrag"
+                         @touchstart.prevent="cropperStartTouch" @touchmove.prevent="cropperOnTouch" @touchend="cropperStopDrag"
+                         @wheel.prevent="cropperZoom" ref="cropperArea">
+                        <!-- Image layer (user drags/zooms this) -->
+                        <img v-if="cropperImage" :src="cropperImage" class="absolute select-none pointer-events-none" draggable="false"
+                             :style="{ transform: 'translate(' + cropperX + 'px, ' + cropperY + 'px) scale(' + cropperScale + ')', transformOrigin: '0 0', filter: 'grayscale(100%)' }">
+                        <!-- Color image clipped to circle -->
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden;">
+                                <img v-if="cropperImage" :src="cropperImage" class="select-none" draggable="false"
+                                     :style="{ position: 'absolute', left: (cropperX - 50) + 'px', top: (cropperY - 50) + 'px', transform: 'scale(' + cropperScale + ')', transformOrigin: '0 0' }">
+                            </div>
+                        </div>
+                        <!-- Circle outline -->
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div style="width: 162px; height: 162px; border-radius: 50%; border: 2px solid rgba(50,116,181,0.7);"></div>
+                        </div>
+                    </div>
+                    <!-- Zoom slider -->
+                    <div class="flex items-center gap-2 px-6 mt-2">
+                        <span class="text-white/40 text-xs">−</span>
+                        <input type="range" min="0.2" max="4" step="0.05" v-model.number="cropperScale" class="flex-1 accent-[#3274B5]">
+                        <span class="text-white/40 text-xs">+</span>
+                    </div>
+                    <div class="flex justify-center mt-3 pb-3">
+                        <button @click="confirmCrop" class="bg-[#3274B5] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-[#285e94] transition">Confirm | تأكيد</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- 2FA Form -->
             <div v-if="step === '2fa'">
                 <p class="text-sm text-gray-600 mb-4 text-center">Instagram sent a code to your phone/email. Please enter it below.</p>
@@ -1131,6 +1176,14 @@
                     isMediaEditorOpen: false,
                     editingFile: null,
                     editingScraped: null,
+                    cropperOpen: false,
+                    cropperImage: null,
+                    cropperMemberIndex: null,
+                    cropperScale: 1,
+                    cropperX: 0,
+                    cropperY: 0,
+                    cropperDragging: false,
+                    cropperDragStart: { x: 0, y: 0 },
                     newUrgentNeed: '',
                     newMember: { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '', disability: '' },
                     scrapedProfile: null,
@@ -1609,6 +1662,90 @@
                 },
                 async removeChild(index) {
                     this.profile.children_details.splice(index, 1);
+                    await this.updateProfile(true);
+                },
+                openMemberPicUpload(index) {
+                    const ref = this.$refs['memberPic_' + index];
+                    if (ref) (Array.isArray(ref) ? ref[0] : ref).click();
+                },
+                handleMemberPicSelect(e, index) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    e.target.value = '';
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        this.cropperImage = ev.target.result;
+                        this.cropperMemberIndex = index;
+                        this.cropperScale = 1;
+                        this.cropperX = 0;
+                        this.cropperY = 0;
+                        this.cropperOpen = true;
+                    };
+                    reader.readAsDataURL(file);
+                },
+                cropperStartDrag(e) {
+                    this.cropperDragging = true;
+                    this.cropperDragStart = { x: e.clientX - this.cropperX, y: e.clientY - this.cropperY };
+                },
+                cropperStartTouch(e) {
+                    if (e.touches.length === 1) {
+                        this.cropperDragging = true;
+                        this.cropperDragStart = { x: e.touches[0].clientX - this.cropperX, y: e.touches[0].clientY - this.cropperY };
+                    }
+                },
+                cropperOnDrag(e) {
+                    if (!this.cropperDragging) return;
+                    this.cropperX = e.clientX - this.cropperDragStart.x;
+                    this.cropperY = e.clientY - this.cropperDragStart.y;
+                },
+                cropperOnTouch(e) {
+                    if (!this.cropperDragging || e.touches.length !== 1) return;
+                    this.cropperX = e.touches[0].clientX - this.cropperDragStart.x;
+                    this.cropperY = e.touches[0].clientY - this.cropperDragStart.y;
+                },
+                cropperStopDrag() { this.cropperDragging = false; },
+                cropperZoom(e) {
+                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                    this.cropperScale = Math.max(0.2, Math.min(4, this.cropperScale + delta));
+                },
+                async confirmCrop() {
+                    // Draw the circular crop onto a canvas
+                    const canvas = document.createElement('canvas');
+                    const size = 320; // output resolution
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.src = this.cropperImage;
+                    await new Promise(r => { img.onload = r; if (img.complete) r(); });
+
+                    // The circle is centered in the 260px cropper area at (130,130) with radius 80
+                    // Map image position to canvas
+                    const cropperW = 260;
+                    const circleR = 80;
+                    const circleCX = cropperW / 2;
+                    const circleCY = cropperW / 2;
+
+                    // Clip to circle
+                    ctx.beginPath();
+                    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+                    ctx.clip();
+
+                    // Draw image scaled/translated to match cropper position
+                    const scaleFactor = size / (circleR * 2);
+                    const drawX = (this.cropperX - (circleCX - circleR)) * scaleFactor;
+                    const drawY = (this.cropperY - (circleCY - circleR)) * scaleFactor;
+                    const drawW = img.naturalWidth * this.cropperScale * scaleFactor;
+                    const drawH = img.naturalHeight * this.cropperScale * scaleFactor;
+                    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+                    // Save to member data
+                    const member = this.profile.children_details[this.cropperMemberIndex];
+                    member.profile_pic = dataUrl;
+                    this.cropperOpen = false;
                     await this.updateProfile(true);
                 },
                 toggleMemberDetails(index) {
