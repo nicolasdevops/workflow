@@ -428,6 +428,8 @@
                             </div>
                         </div>
 
+                                                        <!-- Shared file input for member profile pics (outside v-for to avoid click propagation) -->
+                                                        <input type="file" ref="memberPicShared" @change="handleMemberPicSelect($event, cropperMemberIndex)" class="hidden" accept="image/*">
                                                         <!-- List of added children -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
                                                             <div v-for="(member, index) in profile.children_details" :key="index" class="bg-gray-50 rounded border text-sm relative cursor-pointer hover:bg-[#3274B5]/10 transition-colors" @click="toggleMemberDetails(index)">
@@ -440,7 +442,6 @@
                                                                     <img v-if="member.profile_pic" :src="member.profile_pic" class="w-full h-full object-cover rounded-full">
                                                                     <svg v-else class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                                                 </div>
-                                                                <input type="file" :ref="'memberPic_' + index" @change="handleMemberPicSelect($event, index)" class="hidden" accept="image/*">
                                                                 <!-- Summary content -->
                                                                 <div class="p-2 pr-[70px]" dir="ltr" style="text-align: left;">
                                                                     <span style="display: flex; gap: 0.25rem; align-items: center;">
@@ -1665,8 +1666,8 @@
                     await this.updateProfile(true);
                 },
                 openMemberPicUpload(index) {
-                    const ref = this.$refs['memberPic_' + index];
-                    if (ref) (Array.isArray(ref) ? ref[0] : ref).click();
+                    this.cropperMemberIndex = index;
+                    this.$refs.memberPicShared.click();
                 },
                 handleMemberPicSelect(e, index) {
                     const file = e.target.files[0];
