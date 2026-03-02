@@ -717,52 +717,62 @@
                 </div>
 
                 <!-- Tab: Media -->
-                <div v-if="tab === 'media'">
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg px-8 py-4 text-center mb-6">
-                        <input type="file" multiple @change="handleFileUpload" class="hidden" id="fileInput" accept="image/*,video/*">
-                        <label for="fileInput" class="cursor-pointer block group hover:text-[#3274B5] transition-colors">
-                            <div class="text-black group-hover:text-[#3274B5] leading-tight text-center">
-                                <div class="text-base font-bold mb-3">صور وفيديوهات لإنشاء فيديو ريلز بالذكاء الاصطناعي. اضغط هنا للرفع</div>
-                                <div class="text-sm">Photos and Videos For AI Reel Generation. Click to Upload</div>
-                            </div>
-                        </label>
-                    </div>
+                <div v-if="tab === 'media'" class="w-full max-w-[350px] mx-auto">
                     <div v-if="uploadStatus" class="mb-4 text-sm text-center" :class="uploadStatus.type === 'success' ? 'text-green-600' : 'text-red-600'">
                         {{ uploadStatus.message }}
                     </div>
 
-                    <!-- Media Gallery -->
-                    <div v-if="mediaFiles.length > 0" class="grid grid-cols-3 gap-2">
-                        <div v-for="file in mediaFiles" :key="file.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
-                            <!-- Clickable Area for Preview -->
-                            <div @click="previewFile = file" class="w-full h-full cursor-pointer">
-                                <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
-                                <div v-else class="w-full h-full relative">
-                                    <video :src="file.url + '#t=0.5'" class="w-full h-full object-cover bg-gray-900 pointer-events-none" preload="metadata" muted playsinline></video>
-                                    <div class="absolute top-1 right-1 bg-black/60 rounded-full p-1 pointer-events-none">
-                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
-                                    </div>
-                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                        <div class="bg-black/30 rounded-full p-2">
-                                            <svg class="w-8 h-8 text-white opacity-80" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+                    <!-- Categorized Upload Sections -->
+                    <div v-for="cat in uploadCategories" :key="cat.value" class="mb-3">
+                        <div class="flex items-center justify-between bg-gray-50 rounded-lg border border-gray-200 px-3 py-2">
+                            <div>
+                                <span class="text-sm font-bold text-gray-800">{{ cat.emoji }} {{ cat.ar }}</span>
+                                <span class="text-xs text-gray-500 ml-1">| {{ cat.en }}</span>
+                                <span v-if="mediaByCat(cat.value).length" class="text-xs text-[#3274B5] ml-1">({{ mediaByCat(cat.value).length }})</span>
+                            </div>
+                            <label :for="'catUpload_' + cat.value" class="cursor-pointer bg-[#3274B5]/10 text-[#3274B5] text-xs font-bold px-3 py-1.5 rounded hover:bg-[#3274B5]/20 transition">
+                                رفع | Upload
+                            </label>
+                            <input :id="'catUpload_' + cat.value" type="file" multiple @change="handleCategoryUpload($event, cat.value)" class="hidden" accept="image/*,video/*">
+                        </div>
+                        <!-- Thumbnails for this category -->
+                        <div v-if="mediaByCat(cat.value).length" class="grid grid-cols-4 gap-1.5 mt-1.5 mb-1">
+                            <div v-for="file in mediaByCat(cat.value)" :key="file.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
+                                <div @click="previewFile = file" class="w-full h-full cursor-pointer">
+                                    <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
+                                    <div v-else class="w-full h-full relative">
+                                        <video :src="file.url + '#t=0.5'" class="w-full h-full object-cover bg-gray-900 pointer-events-none" preload="metadata" muted playsinline></video>
+                                        <div class="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 pointer-events-none">
+                                            <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
                                         </div>
                                     </div>
                                 </div>
+                                <button @click.stop="deleteMedia(file)" class="absolute bottom-0.5 right-0.5 bg-red-600 text-white p-1 rounded-full hover:bg-red-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
                             </div>
-                            
-                            <!-- Delete Button (Bottom Right) - visible on hover -->
-                            <button @click.stop="deleteMedia(file)" class="absolute bottom-1 right-1 bg-red-600 text-white p-1.5 rounded-full hover:bg-red-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-
-                            <!-- Edit/Info Button (Bottom Left) - visible on hover -->
-                            <button @click.stop="openEditMedia(file)" title="Edit Text Description | تعديل الوصف" class="absolute bottom-1 left-1 bg-green-600 text-white p-1.5 rounded-full hover:bg-green-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </button>
                         </div>
                     </div>
-                    <div v-else-if="!loading" class="text-center text-gray-400 text-sm mt-4">
-                        No media uploaded yet.
+
+                    <!-- Uncategorized media (from before categories existed) -->
+                    <div v-if="mediaByCat(null).length" class="mt-4">
+                        <p class="text-xs text-gray-500 mb-2 font-bold">Other Uploads | رفعات سابقة</p>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <div v-for="file in mediaByCat(null)" :key="file.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
+                                <div @click="previewFile = file" class="w-full h-full cursor-pointer">
+                                    <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
+                                    <div v-else class="w-full h-full relative">
+                                        <video :src="file.url + '#t=0.5'" class="w-full h-full object-cover bg-gray-900 pointer-events-none" preload="metadata" muted playsinline></video>
+                                        <div class="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 pointer-events-none">
+                                            <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button @click.stop="deleteMedia(file)" class="absolute bottom-0.5 right-0.5 bg-red-600 text-white p-1 rounded-full hover:bg-red-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div v-if="loading" class="flex justify-center mt-4"><div class="loader"></div></div>
                 </div>
@@ -1106,6 +1116,16 @@
                     showInstaLogin: false,
                     uploadStatus: null,
                     mediaFiles: [],
+                    uploadCategories: [
+                        { value: 'inside_house', ar: 'جوا البيت', en: 'Inside the House', emoji: '🏠' },
+                        { value: 'outside_house', ar: 'برا البيت', en: 'Outside the House', emoji: '🏕️' },
+                        { value: 'cooking', ar: 'الطبخ', en: 'Cooking', emoji: '🍳' },
+                        { value: 'playing', ar: 'اللعب', en: 'Playing', emoji: '⚽' },
+                        { value: 'clinic', ar: 'بالعيادة', en: 'In the Clinic', emoji: '🏥' },
+                        { value: 'family', ar: 'مع العيلة', en: 'With Family', emoji: '👨‍👩‍👧‍👦' },
+                        { value: 'sickness', ar: 'المرض', en: 'Sickness', emoji: '🤒' },
+                        { value: 'dreams', ar: 'أحلام', en: 'Dreams', emoji: '✨' },
+                    ],
                     profile: {},
                     mediaStaging: [],
                     isMediaEditorOpen: false,
@@ -1308,12 +1328,16 @@
                         this.step = 'dashboard';
                         this.fetchProfile(); // Get full details
 
-                        // If registered with @username, auto-trigger IG scrape
+                        // If registered with @username, auto-trigger IG scrape after profile loads
                         if (this.isIgAuth) {
                             const handle = this.form.email.replace(/^@/, '').trim();
                             this.igUsernameInput = handle;
                             this.form.insta_username = handle;
-                            this.$nextTick(() => this.saveIgUsername());
+                            // Wait for profile to load, then trigger scrape silently
+                            this.$nextTick(async () => {
+                                await this.fetchProfile();
+                                this.triggerPostRegistrationScrape(handle);
+                            });
                         }
                     } catch (e) { this.error = e.message; } finally { this.loading = false; }
                 },
@@ -1379,6 +1403,46 @@
                         }
                     } catch (e) {
                         console.error('Fetch profile error', e);
+                    }
+                },
+                async triggerPostRegistrationScrape(handle) {
+                    // Silent scrape after @username registration — no red errors shown
+                    try {
+                        // 1. Check if public
+                        const checkRes = await fetch('/api/portal/instagram/check-public', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ username: handle })
+                        });
+                        const checkData = await checkRes.json();
+                        if (!checkRes.ok || !checkData.isPublic) {
+                            console.log('[Registration scrape] Account not public or check failed:', checkData.error);
+                            return;
+                        }
+                        // 2. Use profile pic immediately
+                        if (checkData.profilePicUrl) {
+                            this.profile.profile_pic_url = checkData.profilePicUrl;
+                        }
+                        // 3. Trigger full scrape in background
+                        await fetch('/api/portal/instagram/scrape', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ username: handle, skip_public_check: true })
+                        });
+                        // 4. Poll for content
+                        let polls = 0;
+                        const pollForContent = async () => {
+                            polls++;
+                            await this.fetchScrapedProfile();
+                            if (this.scrapedProfile?.profile_pic_url) {
+                                this.profile.profile_pic_url = this.scrapedProfile.profile_pic_url;
+                            }
+                            if (this.scrapedContent && this.scrapedContent.length > 0) return;
+                            if (polls < 36) setTimeout(pollForContent, 5000);
+                        };
+                        setTimeout(pollForContent, 5000);
+                    } catch (e) {
+                        console.error('[Registration scrape] Error:', e);
                     }
                 },
                 async saveIgUsername() {
@@ -1704,10 +1768,36 @@
                         return `${text} ${translation}`;
                     }
                 },
+                mediaByCat(cat) {
+                    return this.mediaFiles.filter(f => (f.metadata?.category || null) === cat);
+                },
+                async handleCategoryUpload(e, category) {
+                    const files = Array.from(e.target.files);
+                    if (!files.length) return;
+                    e.target.value = '';
+                    this.uploadStatus = { type: 'info', message: `Uploading ${files.length} file(s)...` };
+                    let successCount = 0;
+                    for (const file of files) {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('category', category);
+                        try {
+                            const res = await fetch('/api/portal/upload', {
+                                method: 'POST',
+                                headers: { 'x-portal-token': this.token },
+                                body: formData
+                            });
+                            if (res.ok) successCount++;
+                        } catch (e) { console.error('Upload failed', e); }
+                    }
+                    this.uploadStatus = { type: 'success', message: `Uploaded ${successCount} item(s).` };
+                    setTimeout(() => this.uploadStatus = null, 3000);
+                    this.fetchMedia();
+                },
                 async handleFileUpload(e) {
                     const files = Array.from(e.target.files);
                     if (!files.length) return;
-                    
+
                     for (const file of files) {
                         this.mediaStaging.push({
                             file,

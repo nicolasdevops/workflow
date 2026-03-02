@@ -1253,6 +1253,7 @@ app.post('/api/portal/upload', portalAuth, upload.single('file'), async (req, re
   const userFolder = req.user.instagram_handle || req.user.email.replace(/[^a-z0-9]/gi, '_');
   const fileName = `${userFolder}/${Date.now()}.${fileExt}`;
   const description = req.body.description || '';
+  const category = req.body.category || null;
 
   try {
     let filePath = fileName;
@@ -1288,7 +1289,8 @@ app.post('/api/portal/upload', portalAuth, upload.single('file'), async (req, re
         family_id: req.user.id,
         file_path: filePath,
         b2_url: b2Url, // Will be null if using Supabase storage
-        description: description
+        description: description,
+        category: category
       }]);
 
     if (dbError) {
@@ -1367,7 +1369,8 @@ app.get('/api/portal/media', portalAuth, async (req, res) => {
         isB2: !!file.b2_url,
         metadata: {
             mimetype: getMimeType(file.file_path),
-            description: file.description
+            description: file.description,
+            category: file.category || null
         },
         created_at: file.created_at
       };
@@ -3003,6 +3006,10 @@ app.listen(PORT, '0.0.0.0', () => {
         const { error } = await supabase.from('families').select('first_name').limit(1);
         if (error && error.message.includes('first_name')) {
           console.log('[Migration] first_name column missing — run manually: ALTER TABLE families ADD COLUMN IF NOT EXISTS first_name TEXT;');
+        }
+        const { error: e2 } = await supabase.from('media_uploads').select('category').limit(1);
+        if (e2 && e2.message.includes('category')) {
+          console.log('[Migration] category column missing — run manually: ALTER TABLE media_uploads ADD COLUMN IF NOT EXISTS category TEXT;');
         }
       } catch (e) { /* ignore */ }
     })();
