@@ -67,7 +67,7 @@ async function checkAccountPublic(username) {
         return { isPublic: false, error: 'APIFY_API_TOKEN not configured' };
     }
 
-    const cleanUsername = username.replace(/^@/, '').trim().toLowerCase();
+    const cleanUsername = username.replace(/@/g, '').trim().toLowerCase();
 
     try {
         // Run a minimal scrape to check if profile is public
@@ -215,7 +215,7 @@ async function scrapeProfile(username, postsLimit = 50) {
         return { error: 'APIFY_API_TOKEN not configured' };
     }
 
-    const cleanUsername = username.replace(/^@/, '').trim().toLowerCase();
+    const cleanUsername = username.replace(/@/g, '').trim().toLowerCase();
 
     try {
         console.log(`[Apify] Starting scrape for @${cleanUsername}`);
