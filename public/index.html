@@ -47,7 +47,7 @@
         <div class="w-full bg-[#3274B5] text-white h-20 flex items-center pl-4 pr-2 md:pl-[37px] md:pr-[11px] shadow-md relative">
             <div class="text-sm opacity-90 font-light border-r border-white/30 pr-3 md:pr-6 h-16 flex flex-col justify-center">
                 <div class="font-bold text-[9px] md:text-xs leading-tight md:leading-none mb-[3.5px] whitespace-nowrap tracking-tight">[72H] منصة سند الرقمية | SANAD Digital Platform</div>
-                <div class="font-bold text-[10px] leading-none">System Active | v2.7.3</div>
+                <div class="font-bold text-[8px] leading-none">System Active | v2.7.3</div>
             </div>
             <div class="ml-3 md:ml-6 flex items-center justify-center">
                 <img src="/logo3.png" alt="Logo" class="h-8 md:h-10 object-contain">
@@ -139,7 +139,7 @@
                     </div>
 
                     <div class="mb-6">
-                        <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">كلمة المرور</span> <span class="text-[11px]">| Password (optional)</span></label>
+                        <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">كلمة المرور (اختياري)</span> <span class="text-[11px]">| Password</span></label>
                         <input v-model="form.password" type="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" dir="ltr" placeholder="••••••••">
                     </div>
 
@@ -311,16 +311,16 @@
                                                                 <span class="text-sm">📍</span>
                                                                 <span class="text-sm text-black">المنطقة</span>
                                                             </label>
-                                                            <select v-model="profile.gaza_zone" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px]" style="width: calc(66.666667% - 20px);">
+                                                            <select v-model="profile.gaza_zone" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px] text-right" style="width: calc(66.666667% - 20px);" dir="rtl">
                                                                 <option value="" disabled>اختر...</option>
-                                                                <option value="rafah">رفح | Rafah</option>
-                                                                <option value="khan_younis">خان يونس | Khan Younis</option>
-                                                                <option value="deir_al_balah">دير البلح | Deir al-Balah</option>
-                                                                <option value="gaza_city">مدينة غزة | Gaza City</option>
-                                                                <option value="jabalia">جباليا | Jabalia</option>
-                                                                <option value="beit_hanoun">بيت حانون | Beit Hanoun</option>
-                                                                <option value="nuseirat">النصيرات | Nuseirat</option>
-                                                                <option value="bureij">البريج | Bureij</option>
+                                                                <option value="rafah">Rafah | رفح</option>
+                                                                <option value="khan_younis">Khan Younis | خان يونس</option>
+                                                                <option value="deir_al_balah">Deir al-Balah | دير البلح</option>
+                                                                <option value="gaza_city">Gaza City | مدينة غزة</option>
+                                                                <option value="jabalia">Jabalia | جباليا</option>
+                                                                <option value="beit_hanoun">Beit Hanoun | بيت حانون</option>
+                                                                <option value="nuseirat">Nuseirat | النصيرات</option>
+                                                                <option value="bureij">Bureij | البريج</option>
                                                             </select>
                                                         </div>
                                                         <div class="flex items-center px-1">
@@ -332,27 +332,27 @@
                                                                 <span class="text-sm">🕊️</span>
                                                                 <span class="text-sm text-black">الديانة</span>
                                                             </label>
-                                                            <select v-model="profile.religion" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px]" style="width: calc(66.666667% - 20px);">
+                                                            <select v-model="profile.religion" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px] text-right" style="width: calc(66.666667% - 20px);" dir="rtl">
                                                                 <option value="" disabled>اختر...</option>
-                                                                <option value="muslim">مسلم | Muslim</option>
-                                                                <option value="christian">مسيحي | Christian</option>
+                                                                <option value="muslim">Muslim | مسلم</option>
+                                                                <option value="christian">Christian | مسيحي</option>
                                                             </select>
                                                         </div>
                                                     </div>
 
                                                     <!-- Children Details Section -->
                                                     <div class="mb-6 border-t pt-4">
-                                                        <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1">
-                                                            <span class="text-base text-[#3274B5]">أفراد العائلة</span>
-                                                            <span class="text-xs text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
+                                                        <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1 justify-end" dir="rtl">
                                                             <span class="text-xs">Family Members</span>
+                                                            <span class="text-xs text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
+                                                            <span class="text-base text-[#3274B5]">أفراد العائلة</span>
                                                         </label>
-                                                        
+
                                                         <!-- Add new child form -->
                                                         <div class="bg-blue-50 p-3 rounded border border-blue-100">
-                                                            <div class="mb-2 flex items-baseline gap-1 font-bold">
+                                                            <div class="mb-2 flex items-baseline gap-1 font-bold justify-end" dir="rtl">
+                                                                <span class="text-xs">Add Member |</span>
                                                                 <span class="text-base text-[#3274B5]">إضافة فرد</span>
-                                                                <span class="text-xs">| Add Member</span>
                                                             </div>
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
@@ -428,17 +428,13 @@
                                         <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-sm placeholder:text-sm placeholder:text-black w-full h-[30px]">
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-[3fr_1fr_2fr] gap-2 mb-0">
-                                    <div class="flex items-center gap-3 h-[30px]">
-                                        <label class="flex items-center gap-1 cursor-pointer">
-                                            <input type="radio" v-model="newMember.disability" value="no" @change="showDisabilityWarning = false" class="accent-[#3274B5]">
-                                            <span class="text-xs">لأ</span>
-                                        </label>
-                                        <label class="flex items-center gap-1 cursor-pointer">
-                                            <input type="radio" v-model="newMember.disability" value="yes" @change="confirmDisability" class="accent-[#3274B5]">
-                                            <span class="text-xs">آه</span>
-                                        </label>
-                                        <span class="text-lg text-black whitespace-nowrap">إعاقة ؟</span>
+                                <div class="grid grid-cols-[2fr_1fr_3fr] gap-2 mb-0">
+                                    <div class="flex items-center gap-2 justify-start">
+                                        <button type="button" @click="addMember" class="px-2 py-0.5 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[26px] flex-shrink-0">
+                                            <span class="text-base">إضافة</span>
+                                            <span> | Add +</span>
+                                        </button>
+                                        <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                     </div>
                                     <div v-if="showDisabilityWarning" class="col-span-3 bg-amber-50 border border-amber-300 rounded p-2 text-xs leading-relaxed mb-1" dir="rtl">
                                         <p class="font-bold text-amber-800 mb-1">تأكد: هل هذا الشخص يعاني من إعاقة جسدية أو ذهنية دائمة وخطيرة تمنعه من الحركة أو العمل؟</p>
@@ -446,12 +442,16 @@
                                         <p class="text-amber-700 mt-1" dir="ltr" style="text-align: left;">This will impact AI content output. Only select for serious permanent incapacitation (e.g. cerebral palsy, double amputee, nonverbal).</p>
                                     </div>
                                     <div></div>
-                                    <div class="flex items-center gap-2 justify-end">
-                                        <button type="button" @click="addMember" class="px-2 py-0.5 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[26px] flex-shrink-0">
-                                            <span>+ Add | </span>
-                                            <span class="text-base">إضافة</span>
-                                        </button>
-                                        <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    <div class="flex items-center gap-3 h-[30px] justify-end" dir="rtl">
+                                        <span class="text-lg text-black whitespace-nowrap">إعاقة ؟</span>
+                                        <label class="flex items-center gap-1 cursor-pointer">
+                                            <span class="text-xs">آه</span>
+                                            <input type="radio" v-model="newMember.disability" value="yes" @change="confirmDisability" class="accent-[#3274B5]">
+                                        </label>
+                                        <label class="flex items-center gap-1 cursor-pointer">
+                                            <span class="text-xs">لأ</span>
+                                            <input type="radio" v-model="newMember.disability" value="no" @change="showDisabilityWarning = false" class="accent-[#3274B5]">
+                                        </label>
                                     </div>
                                 </div>
                             </div>
