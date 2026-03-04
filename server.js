@@ -1073,14 +1073,13 @@ app.post('/api/portal/register', async (req, res) => {
     const { data: existingIg } = await supabase.from('families').select('id').eq('instagram_handle', instagramHandle).single();
     if (existingIg) return res.status(400).json({ error: 'Instagram username already registered' });
   } else {
-    // Standard registration (now prefers instagram_handle + password)
-    if (!password) return res.status(400).json({ error: 'Password required' });
-    passwordHash = crypto.createHash('sha256').update(password).digest('hex');
-    
+    // Standard registration (now prefers instagram_handle, password optional)
+    passwordHash = password ? crypto.createHash('sha256').update(password).digest('hex') : null;
+
     if (bodyHandle) {
       instagramHandle = bodyHandle.replace(/@/g, '').trim().toLowerCase();
       email = req.body.email ? req.body.email.toLowerCase() : `${instagramHandle}@ig.local`;
-      
+
       const { data: existingIg } = await supabase.from('families').select('id').eq('instagram_handle', instagramHandle).single();
       if (existingIg) return res.status(400).json({ error: 'Instagram username already registered' });
     } else {
@@ -1131,17 +1130,24 @@ app.post('/api/portal/login', async (req, res) => {
   let data, error;
   const { password } = req.body;
 
-  if (handleInput && password) {
-    // Login with Instagram handle + password
+  if (handleInput) {
+    // Login with Instagram handle (password optional)
     const result = await supabase
       .from('families')
       .select('*')
       .eq('instagram_handle', handleInput.toLowerCase())
-      .eq('password', crypto.createHash('sha256').update(password).digest('hex'))
       .single();
     data = result.data;
     error = result.error;
-  } else if (emailInput.startsWith('@') && !password) {
+
+    // If password provided, verify it
+    if (data && password) {
+      const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+      if (data.password && data.password !== passwordHash) {
+        return res.status(401).json({ error: 'Invalid password' });
+      }
+    }
+  } else if (emailInput.startsWith('@')) {
     // @username login (no password required - Admin quick login)
     const handle = emailInput.replace(/@/g, '').trim().toLowerCase();
     const result = await supabase
@@ -1152,16 +1158,22 @@ app.post('/api/portal/login', async (req, res) => {
     data = result.data;
     error = result.error;
   } else {
-    // Standard email+password login
-    if (!password) return res.status(400).json({ error: 'Password required' });
+    // Standard email login (password optional)
     const result = await supabase
       .from('families')
       .select('*')
       .eq('email', emailInput.toLowerCase())
-      .eq('password', crypto.createHash('sha256').update(password).digest('hex'))
       .single();
     data = result.data;
     error = result.error;
+
+    // If password provided, verify it
+    if (data && password) {
+      const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+      if (data.password && data.password !== passwordHash) {
+        return res.status(401).json({ error: 'Invalid password' });
+      }
+    }
   }
 
   if (error || !data) {
@@ -1209,6 +1221,31 @@ app.post('/api/portal/profile', portalAuth, async (req, res) => {
     .eq('email', req.user.email);
 
   if (error) return res.status(500).json({ error: error.message });
+  res.json({ status: 'SUCCESS' });
+});
+
+// User Password Update
+app.post('/api/portal/update', portalAuth, async (req, res) => {
+  const { password } = req.body;
+
+  if (!password || !password.trim()) {
+    return res.status(400).json({ error: 'Password required' });
+  }
+
+  const passwordHash = crypto.createHash('sha256').update(password.trim()).digest('hex');
+
+  const { error } = await supabase
+    .from('families')
+    .update({ password: passwordHash })
+    .eq('email', req.user.email);
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Update session data
+  const updatedUser = { ...req.user, password: passwordHash };
+  const token = req.headers['x-portal-token'];
+  portalSessions.set(token, updatedUser);
+
   res.json({ status: 'SUCCESS' });
 });
 
