@@ -368,17 +368,17 @@
 
                                                     <!-- Children Details Section -->
                                                     <div class="mb-6 border-t pt-4 text-right">
-                                                        <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1 justify-end" dir="rtl">
-                                                            <span class="text-xs">Family Members</span>
-                                                            <span class="text-xs text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
+                                                        <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1 justify-start" dir="rtl">
                                                             <span class="text-base text-[#3274B5]">أفراد العائلة</span>
+                                                            <span class="text-xs text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
+                                                            <span class="text-xs">Family Members</span>
                                                         </label>
 
                                                         <!-- Add new child form -->
                                                         <div class="bg-blue-50 p-3 rounded border border-blue-100">
-                                                            <div class="mb-2 flex items-baseline gap-1 font-bold justify-end" dir="rtl">
-                                                                <span class="text-xs">Add Member |</span>
+                                                            <div class="mb-2 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                                                 <span class="text-base text-[#3274B5]">إضافة فرد</span>
+                                                                <span class="text-xs">| Add Member</span>
                                                             </div>
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
@@ -701,9 +701,9 @@
 
                         <!-- Urgent Needs Section -->
                         <div class="mb-6 border-t pt-4 text-right">
-                            <label class="block mb-1 flex items-baseline gap-1 font-bold justify-end" dir="rtl">
-                                <span class="text-xs">Urgent Needs |</span>
+                            <label class="block mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                 <span class="text-base text-[#3274B5]">احتياجات عاجلة</span>
+                                <span class="text-xs">| Urgent Needs</span>
                             </label>
 
                             <div class="mb-4 flex gap-2 flex-row-reverse">
@@ -732,9 +732,9 @@
                                 </div>
                             </div>
                             <div class="mb-4">
-                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-end" dir="rtl">
-                                    <span>Cash Amount Needed |</span>
+                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                     <span class="text-base text-[#3274B5]">المبلغ المطلوب</span>
+                                    <span>| Cash Amount Needed</span>
                                 </label>
                                 <input v-model="profile.urgent_need_amount" type="text" class="w-[60%] border p-2 rounded text-sm h-[30px] text-right" style="width: calc(60% + 4px);" placeholder="مثلاً: $500" dir="rtl">
                             </div>
@@ -743,16 +743,16 @@
                         <!-- PalPay Wallet Section -->
                         <div class="mb-6 border-t pt-4 text-right">
                             <div class="mb-4">
-                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-end" dir="rtl">
-                                    <span class="text-[10px]">Gaza PalPay Wallet phone number |</span>
+                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                     <span class="text-base text-[#3274B5]">رقم محفظة بالباي غزة</span>
+                                    <span class="text-[10px]">| Gaza PalPay Wallet phone number</span>
                                 </label>
                                 <input v-model="profile.palpay_phone" type="tel" class="w-full border p-2 rounded text-sm h-[30px] text-right" placeholder="مثلاً: 0599123456" dir="rtl">
                             </div>
                             <div class="mb-4">
-                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-end" dir="rtl">
-                                    <span class="text-[10px]">Full name as registered on Wallet |</span>
+                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                     <span class="text-base text-[#3274B5]">الاسم المسجل بالمحفظة</span>
+                                    <span class="text-[10px]">| Full name as registered on Wallet</span>
                                 </label>
                                 <input v-model="profile.palpay_name" type="text" class="w-full border p-2 rounded text-sm h-[30px] text-right" placeholder="الاسم الكامل" dir="rtl">
                             </div>
@@ -761,9 +761,9 @@
                         <!-- WhatsApp Number -->
                         <div class="mb-6 border-t pt-4 text-right">
                             <div class="mb-4">
-                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-end" dir="rtl">
-                                    <span class="text-[10px]">WhatsApp Number |</span>
+                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                     <span class="text-base text-[#3274B5]">رقم الواتساب (اختياري)</span>
+                                    <span class="text-[10px]">| WhatsApp Number</span>
                                 </label>
                                 <input v-model="profile.whatsapp_phone" type="tel" class="w-full border p-2 rounded text-sm h-[30px] text-right" placeholder="مثلاً: +972599123456" dir="rtl">
                             </div>
