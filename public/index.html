@@ -91,7 +91,7 @@
             
             <!-- Header -->
             <div class="text-center mt-6 mb-4">
-                <h1 class="text-xl text-[#3274B5] tracking-wide leading-none">أهلاً وسهلاً فيكم</h1>
+                <h1 class="text-xl text-[#3274B5] leading-none font-bold">أهلاً وسهلاً فيكم</h1>
                 <p class="text-gray-500 text-sm mt-[6px]">مساحة آمنة لعيلتكم</p>
             </div>
 
@@ -107,20 +107,20 @@
             <!-- Portal Login -->
             <div v-if="step === 'portal_login'" class="w-full max-w-[350px] mx-auto">
                 <div class="flex flex-row-reverse border-b border-[#3274B5] mb-6">
-                    <button @click="authMode = 'register'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register', 'font-normal': authMode !== 'register'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-right pr-2 transition-all">تسجيل جديد | 1. Register</button>
+                    <button @click="authMode = 'register'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register', 'font-normal': authMode !== 'register'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-right pr-2 transition-all">تسجيل جديد | 1.</button>
                     <div class="w-px h-5 bg-[#3274B5] self-center"></div>
-                    <button @click="authMode = 'login'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login', 'font-normal': authMode !== 'login'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-left pl-2 transition-all">تسجيل الدخول | 2. Login</button>
+                    <button @click="authMode = 'login'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login', 'font-normal': authMode !== 'login'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-left pl-2 transition-all">تسجيل الدخول | 2.</button>
                 </div>
 
                 <form @submit.prevent="authMode === 'login' ? handlePortalLogin() : handlePortalRegister()" dir="rtl" class="text-right">
                     
                     <div v-if="authMode === 'register'" class="mb-4 flex gap-3">
                         <div class="flex-1">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">الاسم الأول | First Name</label>
+                            <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">الاسم الأول</span> <span class="text-[11px]">| First Name</span></label>
                             <input v-model="form.first_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" required placeholder="مثال: أحمد">
                         </div>
                         <div class="flex-1">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">اسم العائلة | Family Name</label>
+                            <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">اسم العائلة</span> <span class="text-[11px]">| Family Name</span></label>
                             <input v-model="form.family_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" required placeholder="مثال: المصري">
                         </div>
                     </div>
@@ -134,12 +134,12 @@
                     -->
 
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">اسم حساب الانستغرام | Instagram Username</label>
+                        <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">اسم حساب الانستغرام</span> <span class="text-[11px]">| Instagram Username</span></label>
                         <input v-model="form.instagram_handle" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" dir="ltr" required placeholder="@username">
                     </div>
-                    
+
                     <div class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">كلمة المرور | Password</label>
+                        <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">كلمة المرور</span> <span class="text-[11px]">| Password</span></label>
                         <input v-model="form.password" type="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" dir="ltr" required placeholder="••••••••">
                     </div>
 
@@ -1168,7 +1168,7 @@
             <div class="mt-6 text-center">
                 <p class="text-xs text-gray-400" dir="rtl">
                     <span class="inline-block w-2 h-2 bg-green-500 rounded-full ml-1"></span>
-                    مشفّر من الطرف للطرف | End-to-End Encrypted
+                    مشفّر من الطرف للطرف <span class="text-[10px]">| End-to-End Encrypted</span>
                 </p>
             </div>
         </div>
