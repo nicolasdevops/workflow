@@ -383,9 +383,12 @@
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                            <span class="text-xs">👤</span>
+                                            <span class="text-xs">👫</span>
                                         </div>
-                                        <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="الاسم *" autocomplete="off" :class="['border py-0 pl-8 pr-2 rounded text-sm placeholder:text-base w-full h-[30px]', showValidationError && !newMember.name ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black']">
+                                        <select v-model="newMember.gender" class="border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px]">
+                                            <option value="Male">ذكر ♂</option>
+                                            <option value="Female">أنثى ♀</option>
+                                        </select>
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -396,12 +399,9 @@
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                            <span class="text-xs">👫</span>
+                                            <span class="text-xs">👤</span>
                                         </div>
-                                        <select v-model="newMember.gender" class="border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px]">
-                                            <option value="Male">ذكر ♂</option>
-                                            <option value="Female">أنثى ♀</option>
-                                        </select>
+                                        <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="الاسم *" autocomplete="off" :class="['border py-0 pl-8 pr-2 rounded text-sm placeholder:text-base w-full h-[30px]', showValidationError && !newMember.name ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black']">
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 mb-2">
@@ -468,7 +468,7 @@
                                         <p class="text-amber-700 mt-1" dir="ltr" style="text-align: left;">This will impact AI content output. Only select for serious permanent incapacitation (e.g. cerebral palsy, double amputee, nonverbal).</p>
                                     </div>
                                     <div></div>
-                                    <div class="flex items-center gap-3 h-[30px] justify-end" dir="rtl">
+                                    <div class="flex items-center gap-3 h-[30px] justify-start" dir="rtl">
                                         <span class="text-lg text-black whitespace-nowrap">إعاقة ؟</span>
                                         <label class="flex items-center gap-1 cursor-pointer">
                                             <span class="text-xs">آه</span>
@@ -488,31 +488,31 @@
                                                         <!-- List of added children -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
                                                             <div v-for="(member, index) in profile.children_details" :key="index" class="bg-gray-50 rounded border text-sm relative cursor-pointer hover:bg-[#3274B5]/10 transition-colors" @click="toggleMemberDetails(index)">
-                                                                <!-- × delete: top-right corner -->
-                                                                <button type="button" @click.stop="removeChild(index)" class="absolute top-1 right-1 text-gray-300 hover:text-gray-500 text-sm leading-none px-1 z-10">×</button>
-                                                                <!-- Profile pic circle: top-right -->
-                                                                <div class="absolute top-2 right-6 w-10 h-10 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors"
+                                                                <!-- × delete: top-left corner -->
+                                                                <button type="button" @click.stop="removeChild(index)" class="absolute top-1 left-1 text-gray-300 hover:text-gray-500 text-sm leading-none px-1 z-10">×</button>
+                                                                <!-- Profile pic circle: top-left -->
+                                                                <div class="absolute top-2 left-6 w-10 h-10 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors"
                                                                      :class="member.profile_pic ? 'border-[#3274B5]/40' : 'border-gray-300 hover:border-[#3274B5]/40'"
                                                                      @click.stop="openMemberPicUpload(index)">
                                                                     <img v-if="member.profile_pic" :src="member.profile_pic" class="w-full h-full object-cover rounded-full">
                                                                     <svg v-else class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                                                 </div>
                                                                 <!-- Summary content -->
-                                                                <div class="p-2 pr-[70px]" dir="ltr" style="text-align: left;">
-                                                                    <span style="display: flex; gap: 0.25rem; align-items: center;">
-                                                                        <span class="text-xs" dir="auto">{{ member.nameDisplay || member.name }}</span>
+                                                                <div class="p-2 pl-[70px]" dir="rtl" style="text-align: right;">
+                                                                    <span style="display: flex; gap: 0.25rem; align-items: center; justify-content: flex-start; flex-wrap: wrap;">
+                                                                        <span class="text-xs font-bold" dir="auto">{{ member.nameDisplay || member.name }}</span>
                                                                         <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="rtl">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).ar }}</span>
                                                                         <span class="text-xs" dir="ltr">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).en }}</span>
-                                                                        <span dir="rtl">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).ar }}</span>
                                                                         <span class="text-xs" dir="ltr">|</span>
                                                                         <span class="text-xs" dir="ltr">{{ member.gender === 'Male' ? '♂' : '♀' }}</span>
                                                                         <span class="text-xs" dir="ltr">|</span>
                                                                         <span class="text-xs" dir="ltr">{{ member.age }}</span>
                                                                     </span>
-                                                                    <div class="text-xs text-gray-500" style="display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap;">
+                                                                    <div class="text-xs text-gray-500 mt-1" style="display: flex; gap: 0.25rem; align-items: center; justify-content: flex-start; flex-wrap: wrap;">
                                                                         <template v-if="member.status">
-                                                                            <span class="text-xs" dir="ltr" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).en }}</span>
                                                                             <span dir="rtl" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).ar }}</span>
+                                                                            <span class="text-xs" dir="ltr" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).en }}</span>
                                                                             <span v-if="member.status === 'Deceased' && member.days_deceased" class="text-xs" dir="ltr">| {{ member.days_deceased }} days</span>
                                                                             <span v-if="member.status === 'Unknown' && member.days_missing" class="text-xs" dir="ltr">| {{ member.days_missing }} days</span>
                                                                         </template>
@@ -724,11 +724,11 @@
                             <!-- List of added needs -->
                             <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="mb-4 space-y-2">
                                 <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-gray-50 px-2 py-1 rounded border h-[30px]" dir="rtl">
-                                    <button type="button" @click="removeUrgentNeed(index)" class="text-gray-300 hover:text-gray-500 px-2 text-sm">×</button>
-                                    <span class="text-sm">
-                                        <span v-if="getUrgentNeedLabel(need).includes('|')" class="text-xs text-gray-600">{{ getUrgentNeedLabel(need).split('|')[1] }} | </span>
+                                    <span class="text-sm flex items-center gap-1 justify-start">
                                         <span>{{ getUrgentNeedLabel(need).split('|')[0] }}</span>
+                                        <span v-if="getUrgentNeedLabel(need).includes('|')" class="text-xs text-gray-600">| {{ getUrgentNeedLabel(need).split('|')[1] }}</span>
                                     </span>
+                                    <button type="button" @click="removeUrgentNeed(index)" class="text-gray-300 hover:text-gray-500 px-2 text-sm">×</button>
                                 </div>
                             </div>
                             <div class="mb-4">
