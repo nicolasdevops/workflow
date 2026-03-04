@@ -788,7 +788,7 @@
 
                     <div class="mb-4 text-center">
                         <p class="text-[13px] font-bold text-[#3274B5]">هالصور رح نستخدمها لنحكي قصتكم للناس،<br>يا ريت تكون حقيقية وبتعطي أمل.</p>
-                        <p class="text-[10px] text-gray-500 mt-1">These images will be used for visual storytelling.</p>
+                        <p class="text-[8px] text-gray-500 mt-1">These images will be used for visual storytelling.</p>
                     </div>
 
                     <!-- Categorized Upload Sections -->
@@ -860,7 +860,7 @@
                         <button @click="unlinkInstagram" class="absolute top-2 left-2 text-[#3274B5] hover:text-red-500 transition p-1 rounded-full hover:bg-red-50" title="Unlink Instagram | إلغاء الربط">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
-                        <div class="flex items-start gap-3">
+                        <div class="flex items-start gap-3 flex-row-reverse">
                             <img v-if="scrapedProfile.profile_pic_url" :src="scrapedProfile.profile_pic_url" @click="previewFile = { url: scrapedProfile.profile_pic_url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition flex-shrink-0">
                             <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold flex-shrink-0">?</div>
                             <div class="flex-1 text-right" dir="rtl">
@@ -914,14 +914,14 @@
                                     <span class="text-base font-bold leading-none">اسم حساب الانستغرام</span>
                                     <span class="text-xs font-normal leading-none">IG username</span>
                                 </label>
-                                <input v-model="form.insta_username" type="text" class="w-full border p-2 rounded text-sm text-right" dir="ltr" placeholder="@instagram_username">
+                                <input v-model="form.insta_username" type="text" class="w-1/2 ml-auto block border p-2 rounded text-sm text-right" dir="ltr" placeholder="@instagram_username">
                             </div>
                             <div class="mb-4">
                                 <label class="block mb-1 flex flex-col items-end gap-[5px] text-[#3274B5]">
                                     <span class="text-base font-bold leading-none">كلمة السر (اختياري)</span>
                                     <span class="text-xs font-normal leading-none">Password (Optional)</span>
                                 </label>
-                                <input v-model="form.insta_password" type="password" :disabled="!profile.instagram_password_enabled" class="w-full border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed text-right" dir="ltr" placeholder="••••••••">
+                                <input v-model="form.insta_password" type="password" :disabled="!profile.instagram_password_enabled" class="w-1/2 ml-auto block border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed text-right" dir="ltr" placeholder="••••••••">
                                 <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1 text-right">تواصل مع الإدارة لتفعيل كلمة السر</p>
                                 <p v-else class="text-xs text-gray-400 mt-1 text-right">Password saved for admin-managed account recovery only</p>
                             </div>
