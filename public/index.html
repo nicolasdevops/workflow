@@ -90,9 +90,9 @@
         <div class="max-w-2xl w-full bg-white rounded-2xl shadow-lg p-4 md:p-8">
             
             <!-- Header -->
-            <div class="text-center mb-[29px]">
-                <h1 class="text-xl text-[#3274B5] tracking-wide leading-none" style="font-family: 'Tajawal', sans-serif;">أهلاً وسهلاً فيكم</h1>
-                <p class="text-gray-500 text-sm mt-[6px]" style="font-family: 'Tajawal', sans-serif;">مساحة آمنة لعيلتكم</p>
+            <div class="text-center mt-6 mb-4">
+                <h1 class="text-xl text-[#3274B5] tracking-wide leading-none">أهلاً وسهلاً فيكم</h1>
+                <p class="text-gray-500 text-sm mt-[6px]">مساحة آمنة لعيلتكم</p>
             </div>
 
             <!-- Success State -->
@@ -100,38 +100,56 @@
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
                     <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900" style="font-family: 'Tajawal', sans-serif;">تم التوصيل بنجاح</h3>
-                <p class="text-sm text-gray-500 mt-2" style="font-family: 'Tajawal', sans-serif;">حسابكم صار مربوط بأمان. فيكم تسكروا هاي الصفحة.</p>
+                <h3 class="text-lg font-medium text-gray-900">تم التوصيل بنجاح</h3>
+                <p class="text-sm text-gray-500 mt-2">حسابكم صار مربوط بأمان. فيكم تسكروا هاي الصفحة.</p>
             </div>
 
             <!-- Portal Login -->
             <div v-if="step === 'portal_login'" class="w-full max-w-[350px] mx-auto">
-                <div class="flex border-b border-[#3274B5] mb-6">
-                    <button @click="authMode = 'register'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-sm text-left">1. Register | تسجيل جديد</button>
+                <div class="flex flex-row-reverse border-b border-[#3274B5] mb-6">
+                    <button @click="authMode = 'register'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register', 'font-normal': authMode !== 'register'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-right pr-2 transition-all">تسجيل جديد | 1. Register</button>
                     <div class="w-px h-5 bg-[#3274B5] self-center"></div>
-                    <button @click="authMode = 'login'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-sm text-right">2. Login | تسجيل الدخول</button>
+                    <button @click="authMode = 'login'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login', 'font-normal': authMode !== 'login'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-left pl-2 transition-all">تسجيل الدخول | 2. Login</button>
                 </div>
 
-                <form @submit.prevent="authMode === 'login' ? handlePortalLogin() : handlePortalRegister()">
-                    <div v-if="authMode === 'register'" class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Family Name | اسم العائلة</label>
-                        <input v-model="form.family_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="e.g. Al-Masri Family | مثال: عائلة المصري">
+                <form @submit.prevent="authMode === 'login' ? handlePortalLogin() : handlePortalRegister()" dir="rtl" class="text-right">
+                    
+                    <div v-if="authMode === 'register'" class="mb-4 flex gap-3">
+                        <div class="flex-1">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">الاسم الأول | First Name</label>
+                            <input v-model="form.first_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" required placeholder="مثال: أحمد">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">اسم العائلة | Family Name</label>
+                            <input v-model="form.family_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" required placeholder="مثال: المصري">
+                        </div>
                     </div>
+
+                    <!-- Commented out old email-based field for possible future use
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">{{ isIgAuth ? 'Instagram Username | اسم حساب الانستغرام' : 'Email Address | البريد الإلكتروني' }}</label>
-                        <input v-model="form.email" :type="isIgAuth ? 'text' : 'email'" :pattern="isIgAuth ? null : '[^@\\s]+@[^@\\s]+\\.[^@\\s]+'" :title="isIgAuth ? '' : 'Must be a valid email address'" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required :placeholder="isIgAuth ? '@instagram_username' : 'family@example.com'">
+                        <input v-model="form.email" :type="isIgAuth ? 'text' : 'email'" :pattern="isIgAuth ? null : '[^@\\s]+@[^@\\s]+\\.[^@\\s]+'" :title="isIgAuth ? '' : 'Must be a valid email address'" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" :placeholder="isIgAuth ? '@instagram_username' : 'family@example.com'">
                         <p v-if="isIgAuth && authMode === 'register'" class="text-xs text-gray-500 mt-1">Admin quick-create: no password needed</p>
                     </div>
-                    <div v-if="!isIgAuth" class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Password | كلمة المرور</label>
-                        <input v-model="form.password" type="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="••••••••">
+                    -->
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">اسم حساب الانستغرام | Instagram Username</label>
+                        <input v-model="form.instagram_handle" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" dir="ltr" required placeholder="@username">
                     </div>
-                    <div v-if="authMode === 'login'" class="mb-6 text-right">
-                        <button type="button" @click="step = 'forgot_password'" class="text-xs text-[#3274B5] hover:underline">Forgot Password? | نسيت كلمة المرور؟</button>
+                    
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">كلمة المرور | Password</label>
+                        <input v-model="form.password" type="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" dir="ltr" required placeholder="••••••••">
                     </div>
+
+                    <div v-if="authMode === 'login'" class="mb-6 text-left">
+                        <button type="button" @click="step = 'forgot_password'" class="text-xs text-[#3274B5] hover:underline" dir="ltr">Forgot Password? | نسيت كلمة المرور؟</button>
+                    </div>
+
                     <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm gap-1">
-                        <span v-if="!loading && authMode === 'login'" class="flex items-center gap-1">Enter Portal | <span class="text-base">دخول</span></span>
-                        <span v-if="!loading && authMode === 'register'" class="flex items-center gap-1">Create Account | <span class="text-base">إنشاء حساب</span></span>
+                        <span v-if="!loading && authMode === 'login'" class="flex items-center gap-1">دخول | Enter Portal</span>
+                        <span v-if="!loading && authMode === 'register'" class="flex items-center gap-1">إنشاء حساب | Create Account</span>
                         <div v-if="loading" class="loader"></div>
                     </button>
                 </form>
@@ -1148,9 +1166,9 @@
             </div>
 
             <div class="mt-6 text-center">
-                <p class="text-xs text-gray-400">
-                    <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                    End-to-End Encrypted
+                <p class="text-xs text-gray-400" dir="rtl">
+                    <span class="inline-block w-2 h-2 bg-green-500 rounded-full ml-1"></span>
+                    مشفّر من الطرف للطرف | End-to-End Encrypted
                 </p>
             </div>
         </div>
@@ -1246,7 +1264,7 @@
                         { value: "campaign", label: "💻 دعم الحملة | Financing" },
                         { value: "other", label: "❓ احتياجات تانية | Necessities" }
                     ],
-                    form: { email: '', family_name: '', password: '', instagram_handle: '', insta_username: '', insta_password: '', code: '' } 
+                    form: { first_name: '', email: '', family_name: '', password: '', instagram_handle: '', insta_username: '', insta_password: '', code: '' } 
                 } 
             },
             watch: {
@@ -1306,9 +1324,7 @@
                 }
             },
             computed: {
-                isIgAuth() {
-                    return this.form.email && this.form.email.startsWith('@');
-                }
+                // Computed properties
             },
             methods: {
                 getRunningTime() {
@@ -1362,9 +1378,10 @@
                 async handlePortalLogin() {
                     this.loading = true; this.error = null;
                     try {
-                        const body = this.isIgAuth
-                            ? { email: this.form.email } // @username login, no password
-                            : { email: this.form.email, password: this.form.password };
+                        const body = { 
+                            instagram_handle: this.form.instagram_handle || this.form.email, 
+                            password: this.form.password 
+                        };
                         const res = await fetch('/api/portal/login', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -1385,9 +1402,12 @@
                 async handlePortalRegister() {
                     this.loading = true; this.error = null;
                     try {
-                        const body = this.isIgAuth
-                            ? { ig_username: this.form.email, family_name: this.form.family_name }
-                            : { email: this.form.email, password: this.form.password, family_name: this.form.family_name };
+                        const body = { 
+                            instagram_handle: this.form.instagram_handle || this.form.email, 
+                            password: this.form.password, 
+                            family_name: this.form.family_name,
+                            first_name: this.form.first_name
+                        };
                         const res = await fetch('/api/portal/register', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -1402,9 +1422,9 @@
                         this.step = 'dashboard';
                         this.fetchProfile(); // Get full details
 
-                        // If registered with @username, auto-trigger IG scrape after profile loads
-                        if (this.isIgAuth) {
-                            const handle = this.form.email.replace(/@/g, '').trim();
+                        // Auto-trigger IG scrape after profile loads
+                        if (this.form.instagram_handle) {
+                            const handle = this.form.instagram_handle.replace(/@/g, '').trim();
                             this.igUsernameInput = handle;
                             this.form.insta_username = handle;
                             // Wait for profile to load, then trigger scrape silently

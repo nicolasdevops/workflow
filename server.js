@@ -1057,7 +1057,7 @@ app.post('/api/transliterate', portalAuth, async (req, res) => {
 
 // Portal Register
 app.post('/api/portal/register', async (req, res) => {
-  const { family_name, ig_username } = req.body;
+  const { family_name, first_name, ig_username, instagram_handle: bodyHandle, password } = req.body;
 
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
 
@@ -1073,12 +1073,20 @@ app.post('/api/portal/register', async (req, res) => {
     const { data: existingIg } = await supabase.from('families').select('id').eq('instagram_handle', instagramHandle).single();
     if (existingIg) return res.status(400).json({ error: 'Instagram username already registered' });
   } else {
-    // Standard email+password registration
-    email = req.body.email.toLowerCase();
-    const { password } = req.body;
+    // Standard registration (now prefers instagram_handle + password)
     if (!password) return res.status(400).json({ error: 'Password required' });
     passwordHash = crypto.createHash('sha256').update(password).digest('hex');
-    instagramHandle = null;
+    
+    if (bodyHandle) {
+      instagramHandle = bodyHandle.replace(/@/g, '').trim().toLowerCase();
+      email = req.body.email ? req.body.email.toLowerCase() : `${instagramHandle}@ig.local`;
+      
+      const { data: existingIg } = await supabase.from('families').select('id').eq('instagram_handle', instagramHandle).single();
+      if (existingIg) return res.status(400).json({ error: 'Instagram username already registered' });
+    } else {
+      email = req.body.email.toLowerCase();
+      instagramHandle = null;
+    }
   }
 
   // Check if email exists
@@ -1092,6 +1100,7 @@ app.post('/api/portal/register', async (req, res) => {
     email,
     password: passwordHash,
     name: family_name,
+    first_name: first_name || null,
     status: 'active',
     ...cityConfig
   };
@@ -1115,13 +1124,25 @@ app.post('/api/portal/register', async (req, res) => {
 // Portal Login
 app.post('/api/portal/login', async (req, res) => {
   const emailInput = (req.body.email || '').trim();
+  const handleInput = (req.body.instagram_handle || '').trim().replace(/@/g, '');
 
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
 
   let data, error;
+  const { password } = req.body;
 
-  if (emailInput.startsWith('@')) {
-    // @username login (no password required)
+  if (handleInput && password) {
+    // Login with Instagram handle + password
+    const result = await supabase
+      .from('families')
+      .select('*')
+      .eq('instagram_handle', handleInput.toLowerCase())
+      .eq('password', crypto.createHash('sha256').update(password).digest('hex'))
+      .single();
+    data = result.data;
+    error = result.error;
+  } else if (emailInput.startsWith('@') && !password) {
+    // @username login (no password required - Admin quick login)
     const handle = emailInput.replace(/@/g, '').trim().toLowerCase();
     const result = await supabase
       .from('families')
@@ -1132,7 +1153,6 @@ app.post('/api/portal/login', async (req, res) => {
     error = result.error;
   } else {
     // Standard email+password login
-    const { password } = req.body;
     if (!password) return res.status(400).json({ error: 'Password required' });
     const result = await supabase
       .from('families')
