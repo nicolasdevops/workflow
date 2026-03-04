@@ -92,7 +92,7 @@
         <div class="max-w-2xl w-full bg-white rounded-2xl shadow-lg p-4 md:p-8">
             
             <!-- Header -->
-            <div class="text-center mt-6 mb-4">
+            <div class="text-center mt-6 mb-8">
                 <h1 class="text-xl text-[#3274B5] leading-none font-bold" style="font-family: 'Alexandria', sans-serif;">أهلاً وسهلاً فيكم</h1>
                 <p class="text-gray-500 text-sm mt-[6px]" style="font-family: 'Alexandria', sans-serif;">مساحة آمنة لعيلتكم</p>
             </div>
@@ -109,9 +109,13 @@
             <!-- Portal Login -->
             <div v-if="step === 'portal_login'" class="w-full max-w-[350px] mx-auto">
                 <div class="flex flex-row-reverse border-b border-[#3274B5] mb-6">
-                    <button @click="authMode = 'register'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register', 'font-normal': authMode !== 'register'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-right pr-2 transition-all">تسجيل جديد | 1.</button>
+                    <button @click="authMode = 'register'" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-right pr-2 transition-all">
+                        <span :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register', 'font-normal': authMode !== 'register'}" class="inline-block pb-[11px]">تسجيل جديد | 1.</span>
+                    </button>
                     <div class="w-px h-5 bg-[#3274B5] self-center"></div>
-                    <button @click="authMode = 'login'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login', 'font-normal': authMode !== 'login'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-left pl-2 transition-all">تسجيل الدخول | 2.</button>
+                    <button @click="authMode = 'login'" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-left pl-2 transition-all">
+                        <span :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login', 'font-normal': authMode !== 'login'}" class="inline-block pb-[11px]">تسجيل الدخول | 2.</span>
+                    </button>
                 </div>
 
                 <form @submit.prevent="authMode === 'login' ? handlePortalLogin() : handlePortalRegister()" dir="rtl" class="text-right">
@@ -363,7 +367,7 @@
                                                     </div>
 
                                                     <!-- Children Details Section -->
-                                                    <div class="mb-6 border-t pt-4">
+                                                    <div class="mb-6 border-t pt-4 text-right">
                                                         <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1 justify-end" dir="rtl">
                                                             <span class="text-xs">Family Members</span>
                                                             <span class="text-xs text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
@@ -696,7 +700,7 @@
                                                         </div><!-- /member list -->
 
                         <!-- Urgent Needs Section -->
-                        <div class="mb-6 border-t pt-4">
+                        <div class="mb-6 border-t pt-4 text-right">
                             <label class="block mb-1 flex items-baseline gap-1 font-bold justify-end" dir="rtl">
                                 <span class="text-xs">Urgent Needs |</span>
                                 <span class="text-base text-[#3274B5]">احتياجات عاجلة</span>
@@ -737,7 +741,7 @@
                         </div>
 
                         <!-- PalPay Wallet Section -->
-                        <div class="mb-6 border-t pt-4">
+                        <div class="mb-6 border-t pt-4 text-right">
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-end" dir="rtl">
                                     <span class="text-[10px]">Gaza PalPay Wallet phone number |</span>
@@ -755,7 +759,7 @@
                         </div>
 
                         <!-- WhatsApp Number -->
-                        <div class="mb-6 border-t pt-4">
+                        <div class="mb-6 border-t pt-4 text-right">
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-end" dir="rtl">
                                     <span class="text-[10px]">WhatsApp Number |</span>
