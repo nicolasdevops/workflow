@@ -1184,10 +1184,9 @@
             <!-- IG Popup Modal -->
             <div v-if="igPopupOpen" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" @click="igPopupOpen = false">
                 <div class="bg-white rounded-lg shadow-xl p-4 max-w-lg w-full max-h-[90vh] overflow-y-auto" @click.stop>
-                    <div class="flex justify-between items-center mb-4 border-b pb-2">
-                        <h3 class="font-bold text-lg flex items-center gap-2">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2 flex-row-reverse">
+                        <h3 class="font-bold text-lg flex items-center gap-2" style="font-family: 'Alexandria', sans-serif;">
                             <span class="text-[#3274B5]">انستغرام</span>
-                            <span>| Instagram</span>
                         </h3>
                         <button @click="igPopupOpen = false" class="text-gray-500 hover:text-red-500">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -1196,7 +1195,7 @@
 
                     <!-- Creative Profile Picture Display -->
                     <div class="flex justify-center mb-6 mt-2 relative">
-                        <div class="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] shadow-lg">
+                        <div class="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-[#3274B5] via-[#3274B5] to-[#e63c73] shadow-lg">
                             <img v-if="scrapedProfile?.profile_pic_url || profile.profile_pic_url" :src="scrapedProfile?.profile_pic_url || profile.profile_pic_url" class="w-full h-full rounded-full border-4 border-white object-cover">
                             <div v-else class="w-full h-full rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-gray-400 text-3xl font-bold">?</div>
                         </div>
@@ -1222,7 +1221,7 @@
                                 <p v-else class="text-xs text-gray-400 mt-1 text-right">Password saved for admin-managed account recovery only</p>
                             </div>
                             <button :disabled="loading" type="submit" class="w-auto px-3 mx-auto block bg-[#3274B5] text-white font-bold py-1.5 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                                <span v-if="!loading">{{ scrapedProfile ? 'Rescrape Profile | إعادة الجلب' : 'Scrape Profile | جلب الملف' }}</span>
+                                <span v-if="!loading">{{ scrapedProfile ? 'إعادة الجلب' : 'جلب الملف' }}</span>
                                 <div v-else class="loader"></div>
                             </button>
                         </form>
@@ -1242,7 +1241,7 @@
                                 </span>
                             </div>
                             <button @click="backupFollowers" disabled class="w-auto px-3 mx-auto block bg-gray-400 text-white font-bold py-1.5 rounded-lg transition flex justify-center items-center text-sm opacity-50 cursor-not-allowed mt-3">
-                                <span v-if="!backupLoading">Backup Followers | نسخ المتابعين</span>
+                                <span v-if="!backupLoading">نسخ المتابعين</span>
                                 <div v-else class="loader"></div>
                             </button>
                             <p v-if="backupMessage" class="text-center text-xs mt-2" :class="backupMessage.type === 'success' ? 'text-green-600' : 'text-red-600'">
