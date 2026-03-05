@@ -258,8 +258,8 @@
                     <!-- Merged Profile Header -->
                     <div class="bg-[#3274B5]/10 border border-[#3274B5]/30 p-3 rounded-lg mb-[20px] relative">
                         <!-- Unlink X Button (only if scrapedProfile exists) -->
-                        <button v-if="scrapedProfile" @click="unlinkInstagram" class="absolute top-2 left-2 text-[#3274B5] hover:text-red-500 transition p-1 rounded-full hover:bg-red-50" title="Unlink Instagram | إلغاء الربط">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <button v-if="scrapedProfile" @click="unlinkInstagram" class="absolute top-1 left-1 text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-200" title="Unlink Instagram | إلغاء الربط">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                         
                         <div class="flex items-start gap-2 flex-row-reverse">
@@ -301,12 +301,12 @@
                             
                             <!-- Left section (Name & Password) -->
                             <div class="w-[38%] flex flex-col justify-end items-start text-left border-r border-[#3274B5]/20 pr-2 gap-1 pb-0.5">
-                                <p class="font-bold text-xs leading-tight text-[#3274B5] truncate w-full pl-6"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }}</p>
+                                <p class="font-bold text-xs leading-tight text-[#3274B5] truncate w-full pl-2"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }}</p>
                                 <div class="w-full">
                                     <label class="block text-[9px] font-bold mb-0.5 text-gray-600 text-left">حط كلمة سر (اختياري):</label>
                                     <div class="flex gap-1 items-center">
-                                        <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-base leading-none hover:text-[#285e94] pl-0 pr-1">&rsaquo;</button>
-                                        <input v-model="newPassword" type="text" class="w-[70%] border py-0 px-1 rounded text-xs h-[22px] text-left" placeholder="••••" dir="ltr">
+                                        <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-base leading-none hover:text-[#285e94] pl-0 pr-1">&lt;</button>
+                                        <input v-model="newPassword" type="text" class="w-[70%] border py-0 px-1 rounded text-[10px] h-[18px] text-left" placeholder="••••" dir="ltr">
                                     </div>
                                     <p v-if="passwordSaveStatus" class="text-[8px] mt-0.5 text-left" :class="passwordSaveStatus.includes('saved') ? 'text-green-600' : 'text-red-600'">{{ passwordSaveStatus }}</p>
                                 </div>
