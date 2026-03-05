@@ -140,7 +140,7 @@
                     -->
 
                     <div class="mb-4">
-                        <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">اسم حساب الانستغرام</span> <span class="text-[11px]">| Instagram Username</span></label>
+                        <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">اسم حساب الانستغرام</span> <span class="text-[11px]">| Instagram</span></label>
                         <input v-model="form.instagram_handle" type="text" class="w-2/3 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right ml-auto" dir="ltr" required placeholder="@username">
                     </div>
 
@@ -149,13 +149,16 @@
                         <input v-model="form.password" type="password" class="w-2/3 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right ml-auto" dir="ltr" placeholder="••••••••">
                     </div>
 
-                    <div v-if="authMode === 'login'" class="mb-6 text-left">
-                        <button type="button" @click="step = 'forgot_password'" class="text-xs text-[#3274B5] hover:underline" dir="ltr">Forgot Password? | نسيت كلمة المرور؟</button>
+                    <div v-if="authMode === 'login'" class="mb-6 flex justify-end">
+                        <button type="button" @click="step = 'forgot_password'" class="hover:underline flex items-baseline gap-1.5" dir="rtl">
+                            <span class="text-[14px] text-[#3274B5] font-bold">نسيت كلمة المرور؟</span>
+                            <span class="text-[10px] text-[#3274B5]/80">| Forgot Password?</span>
+                        </button>
                     </div>
 
-                    <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm gap-1">
-                        <span v-if="!loading && authMode === 'login'" class="flex items-center gap-1">دخول | Enter Portal</span>
-                        <span v-if="!loading && authMode === 'register'" class="flex items-center gap-1">إنشاء حساب | Create Account</span>
+                    <button :disabled="loading" type="submit" class="w-auto px-6 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center gap-1">
+                        <span v-if="!loading && authMode === 'login'" class="flex items-center gap-1 text-[17px]">دخول</span>
+                        <span v-if="!loading && authMode === 'register'" class="flex items-center gap-1 text-[17px]">إنشاء حساب</span>
                         <div v-if="loading" class="loader"></div>
                     </button>
                 </form>
