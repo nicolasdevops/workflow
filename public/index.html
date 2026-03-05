@@ -318,11 +318,11 @@
                                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                                                                 <span class="text-sm text-black">نوع السكن</span>
                                                             </label>
-                                                            <select v-model="profile.housing_type" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px] text-right" style="width: calc(66.666667% - 20px);" dir="ltr">
-                                                                <option style="font-size: 14px;" value="tent">Tent | ⛺ خيمة</option>
-                                                                <option style="font-size: 14px;" value="school">School | 🏫 مدرسة</option>
-                                                                <option style="font-size: 14px;" value="damaged_home">Damaged Home | 🏚️ بيت متضرر</option>
-                                                                <option style="font-size: 14px;" value="open_air">Open Air | 💀 بالعراء</option>
+                                                            <select v-model="profile.housing_type" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px] text-right" style="width: calc(66.666667% - 20px);" dir="rtl">
+                                                                <option style="font-size: 14px;" value="tent">⛺ خيمة</option>
+                                                                <option style="font-size: 14px;" value="school">🏫 مدرسة</option>
+                                                                <option style="font-size: 14px;" value="damaged_home">🏚️ بيت متضرر</option>
+                                                                <option style="font-size: 14px;" value="open_air">💀 بالعراء</option>
                                                             </select>
                                                         </div>
                                                         <div class="mb-1">
@@ -360,10 +360,10 @@
                                                                 <span class="text-sm">🕊️</span>
                                                                 <span class="text-sm text-black">الديانة</span>
                                                             </label>
-                                                            <select v-model="profile.religion" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px] text-right" style="width: calc(66.666667% - 20px);" dir="ltr">
-                                                                <option value="" disabled>Choose... | اختر...</option>
-                                                                <option value="muslim">Muslim | مسلم</option>
-                                                                <option value="christian">Christian | مسيحي</option>
+                                                            <select v-model="profile.religion" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px] text-right" style="width: calc(66.666667% - 20px);" dir="rtl">
+                                                                <option value="" disabled>اختر...</option>
+                                                                <option value="muslim">مسلم</option>
+                                                                <option value="christian">مسيحي</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -371,14 +371,14 @@
                                                     <!-- Children Details Section -->
                                                     <div class="mb-6 border-t pt-4 text-right">
                                                         <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1 justify-start" dir="rtl">
-                                                            <span class="text-base text-[#3274B5]">أفراد العائلة</span>
+                                                            <span class="text-lg text-[#3274B5]">أفراد العائلة</span>
                                                             <span class="text-xs text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
                                                         </label>
 
                                                         <!-- Add new child form -->
                                                         <div class="bg-blue-50 p-3 rounded border border-blue-100">
                                                             <div class="mb-2 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
-                                                                <span class="text-base text-[#3274B5]">إضافة فرد</span>
+                                                                <span class="text-lg text-[#3274B5]">إضافة فرد</span>
                                                             </div>
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
@@ -700,7 +700,7 @@
                         <!-- Urgent Needs Section -->
                         <div class="mb-6 border-t pt-4 text-right">
                             <label class="block mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
-                                <span class="text-base text-[#3274B5]">احتياجات عاجلة</span>
+                                <span class="text-lg text-[#3274B5]">احتياجات عاجلة</span>
                             </label>
 
                             <div class="mb-4 flex gap-2 flex-row-reverse">
@@ -730,7 +730,7 @@
                             </div>
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
-                                    <span class="text-base text-[#3274B5]">المبلغ المطلوب</span>
+                                    <span class="text-lg text-[#3274B5]">المبلغ المطلوب</span>
                                 </label>
                                 <input v-model="profile.urgent_need_amount" type="text" class="w-[60%] border p-2 rounded text-sm h-[30px] text-right" style="width: calc(60% + 4px);" placeholder="مثلاً: $500" dir="rtl">
                             </div>
@@ -752,10 +752,6 @@
                                 </label>
                                 <input v-model="profile.palpay_name" type="text" class="w-full border p-2 rounded text-sm h-[30px] text-right" placeholder="الاسم الكامل" dir="rtl">
                             </div>
-                        </div>
-
-                        <!-- WhatsApp Number -->
-                        <div class="mb-6 text-right">
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                     <span class="text-base text-[#3274B5]">رقم الواتساب (اختياري)</span>
