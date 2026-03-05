@@ -52,7 +52,7 @@
                 <div class="font-bold text-[8px] leading-none">System Active | v2.7.3</div>
             </div>
             <div class="ml-3 md:ml-6 flex items-center justify-center">
-                <img src="/logo3-hq.png" alt="Logo" class="h-8 md:h-10 object-contain">
+                <img src="/logo3-hq.png" alt="Logo" class="h-10 md:h-12 object-contain">
             </div>
             <button v-if="profile.email" @click="signOut" class="absolute bottom-[9px] right-[20.5px] md:right-[40px] text-white hover:text-gray-200 text-[8px] border border-white px-2 py-0 rounded transition flex items-center justify-center gap-1 h-[18px]">
                 <span class="text-[10px] leading-none pb-[2px]">تسجيل خروج</span>
@@ -155,7 +155,7 @@
                         </button>
                     </div>
 
-                    <button :disabled="loading" type="submit" class="w-auto px-6 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center gap-1">
+                    <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-1 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center gap-1">
                         <span v-if="!loading && authMode === 'login'" class="flex items-center gap-1 text-[17px]">دخول</span>
                         <span v-if="!loading && authMode === 'register'" class="flex items-center gap-1 text-[17px]">إنشاء حساب</span>
                         <div v-if="loading" class="loader"></div>
