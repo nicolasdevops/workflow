@@ -373,14 +373,12 @@
                                                         <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1 justify-start" dir="rtl">
                                                             <span class="text-base text-[#3274B5]">أفراد العائلة</span>
                                                             <span class="text-xs text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
-                                                            <span class="text-xs">Family Members</span>
                                                         </label>
 
                                                         <!-- Add new child form -->
                                                         <div class="bg-blue-50 p-3 rounded border border-blue-100">
                                                             <div class="mb-2 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                                                 <span class="text-base text-[#3274B5]">إضافة فرد</span>
-                                                                <span class="text-xs">| Add Member</span>
                                                             </div>
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
@@ -703,7 +701,6 @@
                         <div class="mb-6 border-t pt-4 text-right">
                             <label class="block mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                 <span class="text-base text-[#3274B5]">احتياجات عاجلة</span>
-                                <span class="text-xs">| Urgent Needs</span>
                             </label>
 
                             <div class="mb-4 flex gap-2 flex-row-reverse">
@@ -734,7 +731,6 @@
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                     <span class="text-base text-[#3274B5]">المبلغ المطلوب</span>
-                                    <span>| Cash Amount Needed</span>
                                 </label>
                                 <input v-model="profile.urgent_need_amount" type="text" class="w-[60%] border p-2 rounded text-sm h-[30px] text-right" style="width: calc(60% + 4px);" placeholder="مثلاً: $500" dir="rtl">
                             </div>
