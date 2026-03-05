@@ -7,7 +7,7 @@
     <meta property="og:title" content="Gaza Protocol - Family Connect">
     <meta property="og:description" content="Secure family registration portal">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="/og-image.png">
+    <meta property="og:image" content="/logo3.png">
     <meta name="twitter:card" content="summary_large_image">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -141,12 +141,12 @@
 
                     <div class="mb-4">
                         <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">اسم حساب الانستغرام</span> <span class="text-[11px]">| Instagram Username</span></label>
-                        <input v-model="form.instagram_handle" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" dir="ltr" required placeholder="@username">
+                        <input v-model="form.instagram_handle" type="text" class="w-2/3 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right ml-auto" dir="ltr" required placeholder="@username">
                     </div>
 
                     <div class="mb-6">
                         <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">كلمة المرور (اختياري)</span> <span class="text-[11px]">| Password</span></label>
-                        <input v-model="form.password" type="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" dir="ltr" placeholder="••••••••">
+                        <input v-model="form.password" type="password" class="w-2/3 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right ml-auto" dir="ltr" placeholder="••••••••">
                     </div>
 
                     <div v-if="authMode === 'login'" class="mb-6 text-left">
@@ -457,8 +457,8 @@
                                 <div class="grid grid-cols-[2fr_1fr_3fr] gap-2 mb-0">
                                     <div class="flex items-center gap-2 justify-start">
                                         <button type="button" @click="addMember" class="px-2 py-0.5 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[26px] flex-shrink-0">
+                                            <span>Add + | </span>
                                             <span class="text-base">إضافة</span>
-                                            <span> | Add +</span>
                                         </button>
                                         <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                     </div>
@@ -713,9 +713,9 @@
                                 </select>
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="px-2 py-0.5 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed gap-1 h-[26px] whitespace-nowrap flex-shrink-0">
-                                        <span class="text-base">إضافة</span>
-                                        <span class="text-[10px] text-white/70">|</span>
                                         <span>Add</span>
+                                        <span class="text-[10px] text-white/70">|</span>
+                                        <span class="text-base">إضافة</span>
                                     </button>
                                     <svg v-if="urgentNeedSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 </div>
