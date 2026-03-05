@@ -273,8 +273,8 @@
                                         <div class="w-2 h-2 bg-[#3274B5] rounded-full animate-pulse"></div>
                                         <span class="text-base">تم الجلب</span>
                                     </div>
-                                    <p class="text-[11px] text-gray-600" dir="ltr" style="text-align: right;">@{{ scrapedProfile.instagram_username }}</p>
-                                    <p v-if="scrapedProfile.full_name && scrapedProfile.full_name.toLowerCase() !== scrapedProfile.instagram_username?.toLowerCase()" class="text-[11px] text-gray-600">{{ scrapedProfile.full_name }}</p>
+                                    <p class="text-[9px] text-gray-600 leading-tight mb-[1px]" dir="ltr" style="text-align: right;">@{{ scrapedProfile.instagram_username }}</p>
+                                    <p v-if="scrapedProfile.full_name && scrapedProfile.full_name.toLowerCase() !== scrapedProfile.instagram_username?.toLowerCase()" class="text-[9px] text-gray-600 leading-tight">{{ scrapedProfile.full_name }}</p>
                                     <div class="flex gap-2 text-[10px] text-gray-500 mt-1 justify-start">
                                         <span class="flex items-center gap-0.5">
                                             <span>{{ scrapedProfile.followers_count?.toLocaleString() || 0 }} متابع</span>
@@ -300,13 +300,13 @@
                             </div>
                             
                             <!-- Left section (Name & Password) -->
-                            <div class="w-[38%] flex flex-col justify-between items-start text-left border-r border-[#3274B5]/20 pr-2">
-                                <p class="font-bold text-xs leading-tight text-[#3274B5] mb-2 truncate w-full"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }}</p>
+                            <div class="w-[38%] flex flex-col justify-end items-start text-left border-r border-[#3274B5]/20 pr-2 gap-1 pb-0.5">
+                                <p class="font-bold text-xs leading-tight text-[#3274B5] truncate w-full pl-6"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }}</p>
                                 <div class="w-full">
-                                    <label class="block text-[9px] font-bold mb-1 text-gray-600 text-left">حط كلمة سر (اختياري):</label>
+                                    <label class="block text-[9px] font-bold mb-0.5 text-gray-600 text-left">حط كلمة سر (اختياري):</label>
                                     <div class="flex gap-1 items-center">
-                                        <input v-model="newPassword" type="password" class="w-[70%] border p-1 rounded text-xs h-6 text-left" placeholder="••••" dir="ltr">
-                                        <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-base leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
+                                        <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-base leading-none hover:text-[#285e94] pl-0 pr-1">&rsaquo;</button>
+                                        <input v-model="newPassword" type="text" class="w-[70%] border py-0 px-1 rounded text-xs h-[22px] text-left" placeholder="••••" dir="ltr">
                                     </div>
                                     <p v-if="passwordSaveStatus" class="text-[8px] mt-0.5 text-left" :class="passwordSaveStatus.includes('saved') ? 'text-green-600' : 'text-red-600'">{{ passwordSaveStatus }}</p>
                                 </div>
