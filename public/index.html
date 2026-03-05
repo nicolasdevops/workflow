@@ -255,32 +255,62 @@
 
                 <!-- Tab: Profile -->
                 <div v-if="tab === 'profile'" class="w-full max-w-[350px] mx-auto">
-                    <!-- Profile Header with Image -->
-                    <div class="flex items-center gap-4 mb-[20px] px-4 py-3 bg-gray-50 rounded-lg border border-gray-100">
-                        <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" @click="previewFile = { url: profile.profile_pic_url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition">
-                        <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
-                        <div class="flex-1">
-                            <p class="font-bold text-lg leading-tight"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }} <span class="font-normal text-xs text-gray-500">({{ profile.email }})</span></p>
-                            <!-- IG username: hidden once profile pic is scraped (unless validation warning) -->
-                            <div v-if="!profile.profile_pic_url || igValidationWarning" class="mt-1.5">
-                                <label class="block text-xs font-bold mb-1 text-[#3274B5]">اسم حساب الانستغرام | IG username</label>
-                                <div class="flex gap-1.5 items-center">
-                                    <input v-model="igUsernameInput" @keyup.enter="saveIgUsername" type="text" class="flex-1 border p-1.5 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing || igValidationWarning}" placeholder="@instagram_username">
-                                    <button type="button" @click="saveIgUsername" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
+                    <!-- Merged Profile Header -->
+                    <div class="bg-[#3274B5]/10 border border-[#3274B5]/30 p-3 rounded-lg mb-[20px] relative">
+                        <!-- Unlink X Button (only if scrapedProfile exists) -->
+                        <button v-if="scrapedProfile" @click="unlinkInstagram" class="absolute top-2 left-2 text-[#3274B5] hover:text-red-500 transition p-1 rounded-full hover:bg-red-50" title="Unlink Instagram | إلغاء الربط">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                        
+                        <div class="flex items-start gap-2 flex-row-reverse">
+                            <img v-if="scrapedProfile?.profile_pic_url || profile.profile_pic_url" :src="scrapedProfile?.profile_pic_url || profile.profile_pic_url" @click="previewFile = { url: scrapedProfile?.profile_pic_url || profile.profile_pic_url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition flex-shrink-0">
+                            <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold flex-shrink-0">?</div>
+                            
+                            <!-- Middle section (Instagram / Profile) -->
+                            <div class="flex-1 text-right" dir="rtl">
+                                <template v-if="scrapedProfile">
+                                    <div class="flex items-center gap-2 text-[#3274B5] font-bold mb-1 justify-start">
+                                        <div class="w-2 h-2 bg-[#3274B5] rounded-full animate-pulse"></div>
+                                        <span class="text-base">تم الجلب</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-600" dir="ltr" style="text-align: right;">@{{ scrapedProfile.instagram_username }}</p>
+                                    <p v-if="scrapedProfile.full_name && scrapedProfile.full_name.toLowerCase() !== scrapedProfile.instagram_username?.toLowerCase()" class="text-[11px] text-gray-600">{{ scrapedProfile.full_name }}</p>
+                                    <div class="flex gap-2 text-[10px] text-gray-500 mt-1 justify-start">
+                                        <span class="flex items-center gap-0.5">
+                                            <span>{{ scrapedProfile.followers_count?.toLocaleString() || 0 }} متابع</span>
+                                        </span>
+                                        <span class="flex items-center gap-0.5">
+                                            <span>{{ scrapedProfile.posts_count || 0 }} منشور</span>
+                                        </span>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <!-- IG username: hidden once profile pic is scraped (unless validation warning) -->
+                                    <div v-if="!profile.profile_pic_url || igValidationWarning" class="mt-1.5">
+                                        <label class="block text-[10px] font-bold mb-1 text-[#3274B5]">اسم الانستغرام | IG username</label>
+                                        <div class="flex gap-1 items-center">
+                                            <input v-model="igUsernameInput" @keyup.enter="saveIgUsername" type="text" class="flex-1 border p-1 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing || igValidationWarning}" placeholder="@instagram_username">
+                                            <button type="button" @click="saveIgUsername" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
+                                        </div>
+                                        <p v-if="igUsernameMissing && !igValidationWarning" class="text-red-500 text-[10px] mt-0.5">مطلوب | Required</p>
+                                        <p v-if="igValidationWarning" class="text-red-600 text-[10px] mt-1 font-bold leading-snug">مهم: لازم تدخل اسم حسابك أولاً!</p>
+                                        <p v-if="igScrapeProgress" class="text-[10px] text-[#3274B5] mt-1">{{ igScrapeProgress }}</p>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <!-- Left section (Name & Password) -->
+                            <div class="w-[38%] flex flex-col justify-between items-start text-left border-r border-[#3274B5]/20 pr-2">
+                                <p class="font-bold text-xs leading-tight text-[#3274B5] mb-2 truncate w-full"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }}</p>
+                                <div class="w-full">
+                                    <label class="block text-[9px] font-bold mb-1 text-gray-600 text-left">حط كلمة سر (اختياري):</label>
+                                    <div class="flex gap-1 items-center">
+                                        <input v-model="newPassword" type="password" class="w-[70%] border p-1 rounded text-xs h-6 text-left" placeholder="••••" dir="ltr">
+                                        <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-base leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
+                                    </div>
+                                    <p v-if="passwordSaveStatus" class="text-[8px] mt-0.5 text-left" :class="passwordSaveStatus.includes('saved') ? 'text-green-600' : 'text-red-600'">{{ passwordSaveStatus }}</p>
                                 </div>
-                                <p v-if="igUsernameMissing && !igValidationWarning" class="text-red-500 text-xs mt-0.5">مطلوب | Required</p>
-                                <p v-if="igValidationWarning" class="text-red-600 text-xs mt-1 font-bold leading-snug">مهم: لازم تدخل اسم حسابك على انستغرام (اللي ظاهر بملفك الشخصي) أولاً! أو تواصل مع الإدارة للمساعدة</p>
-                                <p v-if="igScrapeProgress" class="text-xs text-[#3274B5] mt-1">{{ igScrapeProgress }}</p>
                             </div>
-                        </div>
-                        <!-- Set Password -->
-                        <div class="mt-3 px-2">
-                            <label class="block text-sm font-bold mb-1">حط كلمة سر (اختياري):</label>
-                            <div class="flex gap-1.5 items-center">
-                                <input v-model="newPassword" type="password" class="flex-1 border p-1 rounded text-xs h-4" placeholder="••••••••" dir="ltr">
-                                <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
-                            </div>
-                            <p v-if="passwordSaveStatus" class="text-xs mt-0.5" :class="passwordSaveStatus.includes('saved') ? 'text-green-600' : 'text-red-600'">{{ passwordSaveStatus }}</p>
                         </div>
                     </div>
 
@@ -312,73 +342,64 @@
                     </div>
 
                     <form @submit.prevent="updateProfile">
-                        <div class="grid grid-cols-2 gap-4">
-                                                        <div class="mb-1">
-                                                            <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
-                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                                                                <span class="text-sm text-black">نوع السكن</span>
-                                                            </label>
-                                                            <select v-model="profile.housing_type" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px] text-right" style="width: calc(66.666667% - 20px);" dir="rtl">
-                                                                <option style="font-size: 14px;" value="tent">⛺ خيمة</option>
-                                                                <option style="font-size: 14px;" value="school">🏫 مدرسة</option>
-                                                                <option style="font-size: 14px;" value="damaged_home">🏚️ بيت متضرر</option>
-                                                                <option style="font-size: 14px;" value="open_air">💀 بالعراء</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="mb-1">
-                                                            <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                                <span class="text-sm text-black">مرات النزوح</span>
-                                                            </label>
-                                                            <input v-model="profile.displacement_count" type="number" class="mx-auto block border p-1 rounded text-sm h-[32px]" style="width: calc(66.666667% - 20px);">
-                                                        </div>
-                                                    </div>
-                                                    <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: end;" class="mb-4">
-                                                        <div>
-                                                            <label class="block text-sm font-bold mb-[3px] mt-[2px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
-                                                                <span class="text-sm">📍</span>
-                                                                <span class="text-sm text-black">المنطقة</span>
-                                                            </label>
-                                                            <select v-model="profile.gaza_zone" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px] text-right" style="width: calc(66.666667% - 20px);" dir="ltr">
-                                                                <option value="" disabled>Choose... | اختر...</option>
-                                                                <option value="rafah">Rafah | رفح</option>
-                                                                <option value="khan_younis">Khan Younis | خان يونس</option>
-                                                                <option value="deir_al_balah">Deir al-Balah | دير البلح</option>
-                                                                <option value="gaza_city">Gaza City | مدينة غزة</option>
-                                                                <option value="jabalia">Jabalia | جباليا</option>
-                                                                <option value="beit_hanoun">Beit Hanoun | بيت حانون</option>
-                                                                <option value="nuseirat">Nuseirat | النصيرات</option>
-                                                                <option value="bureij">Bureij | البريج</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="flex items-center px-1">
-                                                            <span v-if="profileSaved" class="text-green-500 text-sm">&#10003;</span>
-                                                            <button v-else type="button" @click="updateProfile()" class="text-[#3274B5] font-bold text-xl leading-none hover:text-[#285e94]">&rsaquo;</button>
-                                                        </div>
-                                                        <div>
-                                                            <label class="block text-sm font-bold mb-[3px] mt-[2px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
-                                                                <span class="text-sm">🕊️</span>
-                                                                <span class="text-sm text-black">الديانة</span>
-                                                            </label>
-                                                            <select v-model="profile.religion" class="mx-auto block border py-0 px-2 rounded text-sm h-[32px] text-right" style="width: calc(66.666667% - 20px);" dir="rtl">
-                                                                <option value="" disabled>اختر...</option>
-                                                                <option value="muslim">مسلم</option>
-                                                                <option value="christian">مسيحي</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
+                        <div class="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end mb-4" dir="rtl">
+                            <div class="text-center">
+                                <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-1 text-[#3274B5]">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                                    <span class="text-xs text-black">نوع السكن</span>
+                                </label>
+                                <select v-model="profile.housing_type" class="w-full border py-0 px-1 rounded text-sm h-[32px] text-right" dir="rtl">
+                                    <option class="text-sm" value="tent">⛺ خيمة</option>
+                                    <option class="text-sm" value="school">🏫 مدرسة</option>
+                                    <option class="text-sm" value="damaged_home">🏚️ بيت متضرر</option>
+                                    <option class="text-sm" value="open_air">💀 بالعراء</option>
+                                </select>
+                            </div>
+                            <div class="text-center">
+                                <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-1 text-[#3274B5]">
+                                    <span class="text-sm">📍</span>
+                                    <span class="text-xs text-black">المنطقة</span>
+                                </label>
+                                <select v-model="profile.gaza_zone" class="w-full border py-0 px-1 rounded text-sm h-[32px] text-right" dir="rtl">
+                                    <option class="text-sm" value="" disabled>اختر...</option>
+                                    <option class="text-sm" value="rafah">رفح</option>
+                                    <option class="text-sm" value="khan_younis">خان يونس</option>
+                                    <option class="text-sm" value="deir_al_balah">دير البلح</option>
+                                    <option class="text-sm" value="gaza_city">مدينة غزة</option>
+                                    <option class="text-sm" value="jabalia">جباليا</option>
+                                    <option class="text-sm" value="beit_hanoun">بيت حانون</option>
+                                    <option class="text-sm" value="nuseirat">النصيرات</option>
+                                    <option class="text-sm" value="bureij">البريج</option>
+                                </select>
+                            </div>
+                            <div class="text-center">
+                                <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-1 text-[#3274B5]">
+                                    <span class="text-sm">🕊️</span>
+                                    <span class="text-xs text-black">الديانة</span>
+                                </label>
+                                <select v-model="profile.religion" class="w-full border py-0 px-1 rounded text-sm h-[32px] text-right" dir="rtl">
+                                    <option class="text-sm" value="" disabled>اختر...</option>
+                                    <option class="text-sm" value="muslim">مسلم</option>
+                                    <option class="text-sm" value="christian">مسيحي</option>
+                                </select>
+                            </div>
+                            <div class="pb-[6px] pl-1">
+                                <span v-if="profileSaved" class="text-green-500 text-sm">&#10003;</span>
+                                <button v-else type="button" @click="updateProfile()" class="text-[#3274B5] font-bold text-xl leading-none hover:text-[#285e94]">&rsaquo;</button>
+                            </div>
+                        </div>
 
                                                     <!-- Children Details Section -->
                                                     <div class="mb-6 border-t pt-4 text-right">
                                                         <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1 justify-start" dir="rtl">
-                                                            <span class="text-lg text-[#3274B5]">أفراد العائلة</span>
-                                                            <span class="text-xs text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
+                                                            <span class="text-xl text-[#3274B5]">أفراد العائلة</span>
+                                                            <span class="text-sm text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
                                                         </label>
 
                                                         <!-- Add new child form -->
                                                         <div class="bg-blue-50 p-3 rounded border border-blue-100">
                                                             <div class="mb-2 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
-                                                                <span class="text-lg text-[#3274B5]">إضافة فرد</span>
+                                                                <span class="text-xl text-[#3274B5]">إضافة فرد</span>
                                                             </div>
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
@@ -700,7 +721,7 @@
                         <!-- Urgent Needs Section -->
                         <div class="mb-6 border-t pt-4 text-right">
                             <label class="block mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
-                                <span class="text-lg text-[#3274B5]">احتياجات عاجلة</span>
+                                <span class="text-xl text-[#3274B5]">احتياجات عاجلة</span>
                             </label>
 
                             <div class="mb-4 flex gap-2 flex-row-reverse">
@@ -730,7 +751,7 @@
                             </div>
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
-                                    <span class="text-lg text-[#3274B5]">المبلغ المطلوب</span>
+                                    <span class="text-xl text-[#3274B5]">المبلغ المطلوب</span>
                                 </label>
                                 <input v-model="profile.urgent_need_amount" type="text" class="w-[60%] border p-2 rounded text-sm h-[30px] text-right" style="width: calc(60% + 4px);" placeholder="مثلاً: $500" dir="rtl">
                             </div>
@@ -743,21 +764,21 @@
                                     <span class="text-base text-[#3274B5]">رقم محفظة بالباي غزة</span>
                                     <span class="text-[10px]">| Wallet</span>
                                 </label>
-                                <input v-model="profile.palpay_phone" type="tel" class="w-full border p-2 rounded text-sm h-[30px] text-right" placeholder="مثلاً: 0599123456" dir="rtl">
+                                <input v-model="profile.palpay_phone" type="tel" class="w-[60%] border p-2 rounded text-sm h-[30px] text-right" style="width: calc(60% + 34px);" placeholder="مثلاً: 0599123456" dir="rtl">
                             </div>
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                     <span class="text-base text-[#3274B5]">الاسم المسجل بالمحفظة</span>
                                     <span class="text-[10px]">| Wallet Name</span>
                                 </label>
-                                <input v-model="profile.palpay_name" type="text" class="w-full border p-2 rounded text-sm h-[30px] text-right" placeholder="الاسم الكامل" dir="rtl">
+                                <input v-model="profile.palpay_name" type="text" class="w-[60%] border p-2 rounded text-sm h-[30px] text-right" style="width: calc(60% + 34px);" placeholder="الاسم الكامل" dir="rtl">
                             </div>
                             <div class="mb-4">
                                 <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                     <span class="text-base text-[#3274B5]">رقم الواتساب (اختياري)</span>
                                     <span class="text-[10px]">| WhatsApp</span>
                                 </label>
-                                <input v-model="profile.whatsapp_phone" type="tel" class="w-full border p-2 rounded text-sm h-[30px] text-right" placeholder="مثلاً: +972599123456" dir="rtl">
+                                <input v-model="profile.whatsapp_phone" type="tel" class="w-[60%] border p-2 rounded text-sm h-[30px] text-right" style="width: calc(60% + 34px);" placeholder="مثلاً: +972599123456" dir="rtl">
                             </div>
                         </div>
 
@@ -846,36 +867,6 @@
 
                 <!-- Tab: Instagram (Apify Scraper Flow) -->
                 <div v-if="tab === 'instagram'">
-                    <!-- Scraped Profile Display -->
-                    <div v-if="scrapedProfile" class="bg-[#3274B5]/10 border border-[#3274B5]/30 p-3 rounded-lg mb-3 relative">
-                        <!-- Unlink X Button -->
-                        <button @click="unlinkInstagram" class="absolute top-2 left-2 text-[#3274B5] hover:text-red-500 transition p-1 rounded-full hover:bg-red-50" title="Unlink Instagram | إلغاء الربط">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                        <div class="flex items-start gap-3 flex-row-reverse">
-                            <img v-if="scrapedProfile.profile_pic_url" :src="scrapedProfile.profile_pic_url" @click="previewFile = { url: scrapedProfile.profile_pic_url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition flex-shrink-0">
-                            <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold flex-shrink-0">?</div>
-                            <div class="flex-1 text-right" dir="rtl">
-                                <div class="flex items-center gap-2 text-[#3274B5] font-bold mb-1 justify-start">
-                                    <div class="w-2 h-2 bg-[#3274B5] rounded-full animate-pulse"></div>
-                                    <span class="text-base">تم الجلب</span>
-                                </div>
-                                <p class="text-xs text-gray-600" dir="ltr" style="text-align: right;">@{{ scrapedProfile.instagram_username }}</p>
-                                <p v-if="scrapedProfile.full_name && scrapedProfile.full_name.toLowerCase() !== scrapedProfile.instagram_username?.toLowerCase()" class="text-xs text-gray-600">{{ scrapedProfile.full_name }}</p>
-                                <div class="flex gap-3 text-xs text-gray-500 mt-1 justify-start">
-                                    <span class="flex items-center gap-1">
-                                        <span>{{ scrapedProfile.followers_count?.toLocaleString() || 0 }} متابع</span>
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    </span>
-                                    <span class="flex items-center gap-1">
-                                        <span>{{ scrapedProfile.posts_count || 0 }} منشور</span>
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-gray-400 mt-[10px] text-right" dir="rtl">آخر فحص {{ formatScrapeDate(scrapedProfile.last_scraped_at) }}</p>
-                    </div>
 
                     <!-- Connected via cookies (legacy) -->
                     <div v-else-if="profile.cookies" class="bg-blue-50 border border-blue-100 p-2 rounded-lg mb-2 flex justify-center text-right" dir="rtl">
