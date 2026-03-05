@@ -300,15 +300,15 @@
                             </div>
                             
                             <!-- Left section (Name & Password) -->
-                            <div class="w-[38%] flex flex-col justify-end items-start text-left border-r border-[#3274B5]/20 pr-2 gap-1 pb-0.5">
-                                <p class="font-bold text-xs leading-tight text-[#3274B5] truncate w-full pl-2"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }}</p>
-                                <div class="w-full">
-                                    <label class="block text-[9px] font-bold mb-0.5 text-gray-600 text-left">حط كلمة سر (اختياري):</label>
-                                    <div class="flex gap-1 items-center">
-                                        <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-base leading-none hover:text-[#285e94] pl-0 pr-1">&lt;</button>
+                            <div class="w-[38%] flex flex-col justify-end items-end text-right border-r border-[#3274B5]/20 pr-2 gap-1 pb-0.5">
+                                <p class="font-bold text-xs leading-tight text-[#3274B5] truncate w-full text-right" dir="rtl"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }}</p>
+                                <div class="w-full flex flex-col items-end">
+                                    <label class="block text-[9px] font-bold mb-0.5 text-gray-600 text-right w-full" dir="rtl">حط كلمة سر (اختياري):</label>
+                                    <div class="flex gap-1 items-center justify-end w-full">
+                                        <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-xl leading-none hover:text-[#285e94] pl-0 pr-1 pb-[2px]">&rsaquo;</button>
                                         <input v-model="newPassword" type="text" class="w-[70%] border py-0 px-1 rounded text-[10px] h-[18px] text-left" placeholder="••••" dir="ltr">
                                     </div>
-                                    <p v-if="passwordSaveStatus" class="text-[8px] mt-0.5 text-left" :class="passwordSaveStatus.includes('saved') ? 'text-green-600' : 'text-red-600'">{{ passwordSaveStatus }}</p>
+                                    <p v-if="passwordSaveStatus" class="text-[8px] mt-0.5 text-right w-full" :class="passwordSaveStatus.includes('saved') ? 'text-green-600' : 'text-red-600'" dir="rtl">{{ passwordSaveStatus }}</p>
                                 </div>
                             </div>
                         </div>
@@ -348,11 +348,11 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                                     <span class="text-xs text-black">نوع السكن</span>
                                 </label>
-                                <select v-model="profile.housing_type" class="w-full border py-0 px-1 rounded text-sm h-[32px] text-right" dir="rtl">
-                                    <option class="text-sm" value="tent">⛺ خيمة</option>
-                                    <option class="text-sm" value="school">🏫 مدرسة</option>
-                                    <option class="text-sm" value="damaged_home">🏚️ بيت متضرر</option>
-                                    <option class="text-sm" value="open_air">💀 بالعراء</option>
+                                <select v-model="profile.housing_type" class="w-full border py-0 px-1 rounded text-base h-[32px] text-right" dir="rtl">
+                                    <option class="text-base" value="tent">⛺ خيمة</option>
+                                    <option class="text-base" value="school">🏫 مدرسة</option>
+                                    <option class="text-base" value="damaged_home">🏚️ بيت متضرر</option>
+                                    <option class="text-base" value="open_air">💀 بالعراء</option>
                                 </select>
                             </div>
                             <div class="text-center">
@@ -360,16 +360,16 @@
                                     <span class="text-sm">📍</span>
                                     <span class="text-xs text-black">المنطقة</span>
                                 </label>
-                                <select v-model="profile.gaza_zone" class="w-full border py-0 px-1 rounded text-sm h-[32px] text-right" dir="rtl">
-                                    <option class="text-sm" value="" disabled>اختر...</option>
-                                    <option class="text-sm" value="rafah">رفح</option>
-                                    <option class="text-sm" value="khan_younis">خان يونس</option>
-                                    <option class="text-sm" value="deir_al_balah">دير البلح</option>
-                                    <option class="text-sm" value="gaza_city">مدينة غزة</option>
-                                    <option class="text-sm" value="jabalia">جباليا</option>
-                                    <option class="text-sm" value="beit_hanoun">بيت حانون</option>
-                                    <option class="text-sm" value="nuseirat">النصيرات</option>
-                                    <option class="text-sm" value="bureij">البريج</option>
+                                <select v-model="profile.gaza_zone" class="w-full border py-0 px-1 rounded text-base h-[32px] text-right" dir="rtl">
+                                    <option class="text-base" value="" disabled>اختر...</option>
+                                    <option class="text-base" value="rafah">رفح</option>
+                                    <option class="text-base" value="khan_younis">خان يونس</option>
+                                    <option class="text-base" value="deir_al_balah">دير البلح</option>
+                                    <option class="text-base" value="gaza_city">مدينة غزة</option>
+                                    <option class="text-base" value="jabalia">جباليا</option>
+                                    <option class="text-base" value="beit_hanoun">بيت حانون</option>
+                                    <option class="text-base" value="nuseirat">النصيرات</option>
+                                    <option class="text-base" value="bureij">البريج</option>
                                 </select>
                             </div>
                             <div class="text-center">
@@ -377,10 +377,10 @@
                                     <span class="text-sm">🕊️</span>
                                     <span class="text-xs text-black">الديانة</span>
                                 </label>
-                                <select v-model="profile.religion" class="w-full border py-0 px-1 rounded text-sm h-[32px] text-right" dir="rtl">
-                                    <option class="text-sm" value="" disabled>اختر...</option>
-                                    <option class="text-sm" value="muslim">مسلم</option>
-                                    <option class="text-sm" value="christian">مسيحي</option>
+                                <select v-model="profile.religion" class="w-full border py-0 px-1 rounded text-base h-[32px] text-right" dir="rtl">
+                                    <option class="text-base" value="" disabled>اختر...</option>
+                                    <option class="text-base" value="muslim">مسلم</option>
+                                    <option class="text-base" value="christian">مسيحي</option>
                                 </select>
                             </div>
                             <div class="pb-[6px] pl-1">
