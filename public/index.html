@@ -263,7 +263,7 @@
                         </button>
                         
                         <div class="flex items-start gap-2 flex-row-reverse">
-                            <img v-if="scrapedProfile?.profile_pic_url || profile.profile_pic_url" :src="scrapedProfile?.profile_pic_url || profile.profile_pic_url" @click="previewFile = { url: scrapedProfile?.profile_pic_url || profile.profile_pic_url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition flex-shrink-0">
+                            <img v-if="scrapedProfile?.profile_pic_url || profile.profile_pic_url" :src="scrapedProfile?.profile_pic_url || profile.profile_pic_url" @click="igPopupOpen = true" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition flex-shrink-0">
                             <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold flex-shrink-0">?</div>
                             
                             <!-- Middle section (Instagram / Profile) -->
@@ -1181,6 +1181,117 @@
                 </div>
             </div>
 
+            <!-- IG Popup Modal -->
+            <div v-if="igPopupOpen" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" @click="igPopupOpen = false">
+                <div class="bg-white rounded-lg shadow-xl p-4 max-w-lg w-full max-h-[90vh] overflow-y-auto" @click.stop>
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="font-bold text-lg flex items-center gap-2">
+                            <span class="text-[#3274B5]">انستغرام</span>
+                            <span>| Instagram</span>
+                        </h3>
+                        <button @click="igPopupOpen = false" class="text-gray-500 hover:text-red-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+
+                    <!-- Creative Profile Picture Display -->
+                    <div class="flex justify-center mb-6 mt-2 relative">
+                        <div class="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] shadow-lg">
+                            <img v-if="scrapedProfile?.profile_pic_url || profile.profile_pic_url" :src="scrapedProfile?.profile_pic_url || profile.profile_pic_url" class="w-full h-full rounded-full border-4 border-white object-cover">
+                            <div v-else class="w-full h-full rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-gray-400 text-3xl font-bold">?</div>
+                        </div>
+                    </div>
+
+                    <!-- Duplicated IG Scrape Form and Gallery -->
+                    <div class="mt-4 border-t pt-4">
+                        <form @submit.prevent="handleInstaScrape">
+                            <div class="mb-4">
+                                <label class="block mb-1 flex flex-col items-end gap-[5px] text-[#3274B5]">
+                                    <span class="text-base font-bold leading-none">اسم حساب الانستغرام</span>
+                                    <span class="text-xs font-normal leading-none">IG username</span>
+                                </label>
+                                <input v-model="form.insta_username" type="text" class="w-2/3 ml-auto block border p-2 rounded text-sm text-right" dir="ltr" placeholder="@instagram_username">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block mb-1 flex flex-col items-end gap-[5px] text-[#3274B5]">
+                                    <span class="text-base font-bold leading-none">كلمة السر (اختياري)</span>
+                                    <span class="text-xs font-normal leading-none">Password (Optional)</span>
+                                </label>
+                                <input v-model="form.insta_password" type="password" :disabled="!profile.instagram_password_enabled" class="w-2/3 ml-auto block border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed text-right" dir="ltr" placeholder="••••••••">
+                                <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1 text-right">تواصل مع الإدارة لتفعيل كلمة السر</p>
+                                <p v-else class="text-xs text-gray-400 mt-1 text-right">Password saved for admin-managed account recovery only</p>
+                            </div>
+                            <button :disabled="loading" type="submit" class="w-auto px-3 mx-auto block bg-[#3274B5] text-white font-bold py-1.5 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span v-if="!loading">{{ scrapedProfile ? 'Rescrape Profile | إعادة الجلب' : 'Scrape Profile | جلب الملف' }}</span>
+                                <div v-else class="loader"></div>
+                            </button>
+                        </form>
+                        <p v-if="scrapeMessage" class="text-center text-xs mt-3" :class="scrapeMessage.type === 'success' ? 'text-green-600' : scrapeMessage.type === 'error' ? 'text-red-600' : 'text-blue-600'">
+                            {{ scrapeMessage.text }}
+                        </p>
+
+                        <!-- Backup Followers Button -->
+                        <div v-if="scrapedProfile" class="mt-4 pt-4 border-t border-gray-200" style="padding-bottom: 3px;">
+                            <div class="flex items-center justify-between mb-1 flex-row-reverse text-right">
+                                <div>
+                                    <h4 class="text-sm font-bold text-[#3274B5]">نسخة احتياطية للمتابعين</h4>
+                                    <p class="text-xs text-gray-500 mb-1">Backup Engaged Followers</p>
+                                </div>
+                                <span v-if="engagedFollowersCount" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                    {{ engagedFollowersCount }} backed up
+                                </span>
+                            </div>
+                            <button @click="backupFollowers" disabled class="w-auto px-3 mx-auto block bg-gray-400 text-white font-bold py-1.5 rounded-lg transition flex justify-center items-center text-sm opacity-50 cursor-not-allowed mt-3">
+                                <span v-if="!backupLoading">Backup Followers | نسخ المتابعين</span>
+                                <div v-else class="loader"></div>
+                            </button>
+                            <p v-if="backupMessage" class="text-center text-xs mt-2" :class="backupMessage.type === 'success' ? 'text-green-600' : 'text-red-600'">
+                                {{ backupMessage.text }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Scraped Content Preview -->
+                    <div v-if="scrapedContent && scrapedContent.length > 0" class="mt-4 mb-4 border-t pt-4" style="padding-bottom: 10px;">
+                        <h4 class="text-sm font-bold flex items-baseline gap-1 justify-start" style="margin-bottom: 10px;" dir="rtl">
+                            <span class="text-base text-[#3274B5]">محتوى مستورد</span>
+                            <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
+                        </h4>
+                        <div style="height: 6px;"></div>
+                        <div class="grid grid-cols-3 gap-1">
+                            <div v-for="item in scrapedContent.slice(0, contentDisplayLimit)" :key="item.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
+                                <!-- Clickable Area for Preview -->
+                                <div @click="openScrapedPreview(item)" class="w-full h-full cursor-pointer">
+                                    <template v-if="item.is_video">
+                                        <img v-if="item.display_url" :src="item.display_url" loading="lazy" class="w-full h-full object-cover">
+                                        <div class="absolute top-1 right-1 bg-black/60 rounded-full p-1 pointer-events-none">
+                                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
+                                        </div>
+                                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div class="bg-black/30 rounded-full p-2">
+                                                <svg class="w-8 h-8 text-white opacity-80" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template v-else>
+                                        <img v-if="item.display_url" :src="item.display_url" loading="lazy" class="w-full h-full object-cover">
+                                        <div v-else class="w-full h-full flex items-center justify-center text-gray-400 text-xs">No image</div>
+                                    </template>
+                                </div>
+
+                                <!-- Edit Button (Bottom Left) - visible on hover -->
+                                <button @click.stop="openEditScraped(item)" title="Edit Text Description | تعديل الوصف" class="absolute bottom-1 left-1 bg-green-600 text-white p-1.5 rounded-full hover:bg-green-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </button>
+                            </div>
+                            <button v-if="scrapedContent.length > contentDisplayLimit" @click="contentDisplayLimit += 20" class="w-full mt-2 py-1.5 bg-gray-100 text-[#3274B5] font-bold rounded text-sm hover:bg-gray-200 transition">
+                                عرض المزيد ({{ Math.min(scrapedContent.length, contentDisplayLimit + 20) - contentDisplayLimit }})
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Error Message -->
             <div v-if="error" class="mt-4 p-3 bg-red-50 text-red-700 text-sm rounded border border-red-200">
                 {{ error }}
@@ -1236,6 +1347,7 @@
                     isMediaEditorOpen: false,
                     editingFile: null,
                     editingScraped: null,
+                    igPopupOpen: false,
                     cropperOpen: false,
                     cropperImage: null,
                     cropperMemberIndex: null,
