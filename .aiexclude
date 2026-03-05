@@ -16,7 +16,6 @@ bun.lockb
 migrations.sql
 
 # Media & Binary
-*.png
 *.jpg
 *.jpeg
 *.gif

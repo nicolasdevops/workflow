@@ -20,6 +20,7 @@
     "pg": "latest",
     "playwright": "^1.48.0",
     "socks-proxy-agent": "^8.0.5",
+    "totp-generator": "^2.0.1",
     "transliteration": "^2.6.1"
   }
 }

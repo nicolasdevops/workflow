@@ -1,4 +1,5 @@
 const { firefox } = require('playwright');
+const totp = require('totp-generator');
 
 /**
  * Gaza Protocol Instagram Automation
@@ -259,14 +260,20 @@ class InstagramAutomation {
       // Block analytics, tracking, ads (saves bandwidth + looks privacy-conscious)
       else if (
         url.includes('facebook.com/tr') ||
+        url.includes('logging_client_events') ||
+        url.includes('tracking') ||
         url.includes('google-analytics') ||
         url.includes('/ads/') ||
         url.includes('doubleclick')
       ) {
         route.abort();
       }
-      // Allow compressed images and videos but with quality reduction hint
-      else if (resourceType === 'image' || resourceType === 'media') {
+      // CRITICAL: Block heavy media (videos/audio) to save massive mobile proxy bandwidth
+      else if (resourceType === 'media') {
+        route.abort();
+      }
+      // Allow compressed images but with quality reduction hint
+      else if (resourceType === 'image') {
         headers['Save-Data'] = 'on'; // Standard HTTP header for data saver
         route.continue({ headers });
       }
@@ -756,19 +763,40 @@ class InstagramAutomation {
   }
 
   /**
-   * Submit 2FA code
+   * Generate and submit 2FA code using the stored secret
    */
-  async submitTwoFactorCode(code) {
+  async submitTwoFactorCode(secret) {
+    console.log('Generating 2FA code from secret...');
     try {
-      await humanType(this.page, 'input[name="verificationCode"]', code);
-      await this.page.click('button:has-text("Confirm")');
+      if (!secret) {
+        throw new Error('No 2FA secret provided');
+      }
+
+      // Generate the current 6-digit TOTP code
+      const token = totp(secret);
+      console.log(`Generated TOTP code: ${token}`);
+
+      await this.page.waitForSelector('input[name="verificationCode"]', { timeout: 15000 });
+      await humanType(this.page, 'input[name="verificationCode"]', token);
+      
+      const confirmBtn = await this.page.$('button:has-text("Confirm")');
+      if (confirmBtn) {
+        await confirmBtn.click();
+      } else {
+        await this.page.keyboard.press('Enter');
+      }
+      
       await this.page.waitForTimeout(5000);
 
       const errorMsg = await this.page.$('p[id="twoFactorErrorAlert"]');
       if (errorMsg) {
-        return { status: 'ERROR', message: 'Invalid code' };
+        const msg = await errorMsg.textContent();
+        return { status: 'ERROR', message: `Invalid code or error: ${msg}` };
       }
 
+      // Wait for login to complete and cookies to be set
+      await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+      
       const cookies = await this.page.context().cookies();
       return { status: 'SUCCESS', cookies };
     } catch (error) {
