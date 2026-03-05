@@ -89,7 +89,7 @@
             </div>
         </div>
 
-        <div class="max-w-2xl w-full bg-white rounded-2xl shadow-lg p-4 md:p-8">
+        <div class="max-w-2xl w-full bg-white rounded-3xl shadow-lg p-4 md:p-8">
             
             <!-- Header -->
             <div class="text-center mt-6 mb-8">
@@ -290,7 +290,7 @@
                                         <label class="block text-[10px] font-bold mb-1 text-[#3274B5]">اسم الانستغرام | IG username</label>
                                         <div class="flex gap-1 items-center">
                                             <input v-model="igUsernameInput" @keyup.enter="saveIgUsername" type="text" class="flex-1 border p-1 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing || igValidationWarning}" placeholder="@instagram_username">
-                                            <button type="button" @click="saveIgUsername" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
+                                            <button type="button" @click="saveIgUsername" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&lsaquo;</button>
                                         </div>
                                         <p v-if="igUsernameMissing && !igValidationWarning" class="text-red-500 text-[10px] mt-0.5">مطلوب | Required</p>
                                         <p v-if="igValidationWarning" class="text-red-600 text-[10px] mt-1 font-bold leading-snug">مهم: لازم تدخل اسم حسابك أولاً!</p>
@@ -305,7 +305,7 @@
                                 <div class="w-full flex flex-col items-end">
                                     <label class="block text-[9px] font-bold mb-0.5 text-gray-600 text-right w-full" dir="rtl">حط كلمة سر (اختياري):</label>
                                     <div class="flex gap-1 items-center justify-end w-full">
-                                        <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-xl leading-none hover:text-[#285e94] pl-0 pr-1 pb-[2px]">&rsaquo;</button>
+                                        <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-xl leading-none hover:text-[#285e94] pl-0 pr-1 pb-[2px]">&lsaquo;</button>
                                         <input v-model="newPassword" type="text" class="w-[70%] border py-0 px-1 rounded text-[10px] h-[18px] text-left" placeholder="••••" dir="ltr">
                                     </div>
                                     <p v-if="passwordSaveStatus" class="text-[8px] mt-0.5 text-right w-full" :class="passwordSaveStatus.includes('saved') ? 'text-green-600' : 'text-red-600'" dir="rtl">{{ passwordSaveStatus }}</p>
@@ -385,7 +385,7 @@
                             </div>
                             <div class="pb-[6px] pl-1">
                                 <span v-if="profileSaved" class="text-green-500 text-sm">&#10003;</span>
-                                <button v-else type="button" @click="updateProfile()" class="text-[#3274B5] font-bold text-xl leading-none hover:text-[#285e94]">&rsaquo;</button>
+                                <button v-else type="button" @click="updateProfile()" class="text-[#3274B5] font-bold text-xl leading-none hover:text-[#285e94]">&lsaquo;</button>
                             </div>
                         </div>
 
@@ -488,7 +488,7 @@
                                     </div>
                                     <div></div>
                                     <div class="flex items-center gap-3 h-[30px] justify-start" dir="rtl">
-                                        <span class="text-lg text-black whitespace-nowrap">إعاقة ؟</span>
+                                        <span class="text-lg text-black whitespace-nowrap">إعاقة شديدة؟</span>
                                         <label class="flex items-center gap-1 cursor-pointer">
                                             <span class="text-xs">آه</span>
                                             <input type="radio" v-model="newMember.disability" value="yes" @change="confirmDisability" class="accent-[#3274B5]">
