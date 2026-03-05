@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gaza Protocol - Family Connect</title>
+    <meta property="og:title" content="Gaza Protocol - Family Connect">
+    <meta property="og:description" content="Secure family registration portal">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/logo3-hq.png">
+    <meta name="twitter:card" content="summary_large_image">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -11,6 +16,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Asap+Condensed:wght@400;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@400;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         .loader {
             border: 3px solid #f3f3f3;
@@ -40,10 +47,12 @@
     <div id="app" class="min-h-screen bg-gray-100">
         <!-- Navy Header Bar -->
         <div class="w-full bg-[#3274B5] text-white h-20 flex items-center pl-4 pr-2 md:pl-[37px] md:pr-[11px] shadow-md relative">
-            <div class="text-3xl md:text-4xl whitespace-nowrap" style="font-family: 'Asap Condensed', sans-serif; letter-spacing: 0.03em;">[D|H<span style="letter-spacing: calc(0.03em + 1px)">|S]</span></div>
-            <div class="ml-3 md:ml-6 text-sm opacity-90 font-light border-l border-white/30 pl-3 md:pl-6 h-16 flex flex-col justify-center">
-                <div class="font-bold text-[9px] md:text-xs leading-tight md:leading-none mb-[3.5px] whitespace-nowrap tracking-tight">[72H] تسجيل دخول مجموعة الاختبار | Test Group Login</div>
-                <div class="font-bold text-[10px] leading-none">System Active | v2.4.0</div>
+            <div class="text-sm opacity-90 font-light border-r border-white/30 pr-3 md:pr-6 h-16 flex flex-col justify-center">
+                <div class="font-bold text-[9px] md:text-xs leading-tight md:leading-none mb-[3.5px] whitespace-nowrap tracking-tight">[72H] منصة سند الرقمية | SANAD Digital Platform</div>
+                <div class="font-bold text-[8px] leading-none">System Active | v2.7.3</div>
+            </div>
+            <div class="ml-3 md:ml-6 flex items-center justify-center">
+                <img src="/logo3-hq.png" alt="Logo" class="h-10 md:h-12 object-contain">
             </div>
             <button v-if="profile.email" @click="signOut" class="absolute bottom-[9px] right-[20.5px] md:right-[40px] text-white hover:text-gray-200 text-[8px] border border-white px-2 py-0 rounded transition flex items-center justify-center gap-1 h-[18px]">
                 <span class="text-[10px] leading-none pb-[2px]">تسجيل خروج</span>
@@ -55,7 +64,7 @@
         <!-- Mobile User Bar (Aligned with Card) -->
         <div class="max-w-2xl w-full flex justify-between items-end mb-3 px-1" v-if="profile.email">
             <div class="flex items-center gap-2 mb-[3px]">
-                <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-8 h-8 rounded-full border border-gray-300 object-cover">
+                <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-8 h-8 rounded-full border-2 border-[#3274B5] object-cover">
                 <div v-else class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
                     {{ (profile.name || profile.family_name || 'F')[0].toUpperCase() }}
                 </div>
@@ -80,12 +89,12 @@
             </div>
         </div>
 
-        <div class="max-w-2xl w-full bg-white rounded-lg shadow-lg p-4 md:p-8">
+        <div class="max-w-2xl w-full bg-white rounded-2xl shadow-lg p-4 md:p-8">
             
             <!-- Header -->
-            <div class="text-center mb-[29px]">
-                <h1 class="text-xl text-[#3274B5] uppercase tracking-wide leading-none" style="font-family: 'Oswald', sans-serif;">Test Group Portal</h1>
-                <p class="text-gray-500 text-xs uppercase mt-[2px]" style="font-family: 'Roboto Mono', monospace; letter-spacing: 0.18em;">Secure Environment</p>
+            <div class="text-center mt-6 mb-8">
+                <h1 class="text-xl text-[#3274B5] leading-none font-bold" style="font-family: 'Alexandria', sans-serif;">أهلاً وسهلاً فيكم</h1>
+                <p class="text-gray-500 text-sm mt-[6px]" style="font-family: 'Alexandria', sans-serif;">مساحة آمنة لعيلتكم</p>
             </div>
 
             <!-- Success State -->
@@ -93,37 +102,62 @@
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
                     <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900">Connected Successfully</h3>
-                <p class="text-sm text-gray-500 mt-2">Your account is now linked securely. You can close this page.</p>
+                <h3 class="text-lg font-medium text-gray-900">تم التوصيل بنجاح</h3>
+                <p class="text-sm text-gray-500 mt-2">حسابكم صار مربوط بأمان. فيكم تسكروا هاي الصفحة.</p>
             </div>
 
             <!-- Portal Login -->
             <div v-if="step === 'portal_login'" class="w-full max-w-[350px] mx-auto">
-                <div class="flex border-b border-[#3274B5] mb-6">
-                    <button @click="authMode = 'login'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-sm text-left">Login | تسجيل الدخول</button>
+                <div class="flex flex-row-reverse mb-6">
+                    <button @click="authMode = 'register'" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-right pr-2 transition-all">
+                        <span :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register', 'font-normal': authMode !== 'register'}" class="inline-block pb-[11px]">تسجيل جديد | 1.</span>
+                    </button>
                     <div class="w-px h-5 bg-[#3274B5] self-center"></div>
-                    <button @click="authMode = 'register'" :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register'}" class="flex-1 pt-2 pb-[11px] text-gray-600 text-sm text-right">Register | تسجيل جديد</button>
+                    <button @click="authMode = 'login'" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-left pl-2 transition-all">
+                        <span :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login', 'font-normal': authMode !== 'login'}" class="inline-block pb-[11px]">تسجيل الدخول | 2.</span>
+                    </button>
                 </div>
 
-                <form @submit.prevent="authMode === 'login' ? handlePortalLogin() : handlePortalRegister()">
-                    <div v-if="authMode === 'register'" class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Family Name | اسم العائلة</label>
-                        <input v-model="form.family_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="e.g. Al-Masri Family | مثال: عائلة المصري">
+                <form @submit.prevent="authMode === 'login' ? handlePortalLogin() : handlePortalRegister()" dir="rtl" class="text-right">
+                    
+                    <div v-if="authMode === 'register'" class="mb-4 flex gap-3">
+                        <div class="flex-1">
+                            <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">الاسم الأول</span> <span class="text-[11px]">| First Name</span></label>
+                            <input v-model="form.first_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" required placeholder="مثال: أحمد">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">اسم العائلة</span> <span class="text-[11px]">| Family Name</span></label>
+                            <input v-model="form.family_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" required placeholder="مثال: المصري">
+                        </div>
                     </div>
+
+                    <!-- Commented out old email-based field for possible future use
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Email Address | البريد الإلكتروني</label>
-                        <input v-model="form.email" type="email" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" title="Must be a valid email address" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="family@example.com">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">{{ isIgAuth ? 'Instagram Username | اسم حساب الانستغرام' : 'Email Address | البريد الإلكتروني' }}</label>
+                        <input v-model="form.email" :type="isIgAuth ? 'text' : 'email'" :pattern="isIgAuth ? null : '[^@\\s]+@[^@\\s]+\\.[^@\\s]+'" :title="isIgAuth ? '' : 'Must be a valid email address'" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" :placeholder="isIgAuth ? '@instagram_username' : 'family@example.com'">
+                        <p v-if="isIgAuth && authMode === 'register'" class="text-xs text-gray-500 mt-1">Admin quick-create: no password needed</p>
                     </div>
+                    -->
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">اسم حساب الانستغرام</span> <span class="text-[11px]">| Instagram</span></label>
+                        <input v-model="form.instagram_handle" type="text" class="w-2/3 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right ml-auto" dir="ltr" required placeholder="@username">
+                    </div>
+
                     <div class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Password | كلمة المرور</label>
-                        <input v-model="form.password" type="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="••••••••">
+                        <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">كلمة المرور (اختياري)</span> <span class="text-[11px]">| Password</span></label>
+                        <input v-model="form.password" type="password" class="w-2/3 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right ml-auto" dir="ltr" placeholder="••••••••">
                     </div>
-                    <div v-if="authMode === 'login'" class="mb-6 text-right">
-                        <button type="button" @click="step = 'forgot_password'" class="text-xs text-[#3274B5] hover:underline">Forgot Password? | نسيت كلمة المرور؟</button>
+
+                    <div v-if="authMode === 'login'" class="mb-6 flex justify-end">
+                        <button type="button" @click="step = 'forgot_password'" class="hover:underline flex items-baseline gap-1.5" dir="rtl">
+                            <span class="text-[14px] text-[#3274B5] font-bold">نسيت كلمة المرور؟</span>
+                        </button>
                     </div>
-                    <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm gap-1">
-                        <span v-if="!loading && authMode === 'login'" class="flex items-center gap-1">Enter Portal | <span class="text-base">دخول</span></span>
-                        <span v-if="!loading && authMode === 'register'" class="flex items-center gap-1">Create Account | <span class="text-base">إنشاء حساب</span></span>
+
+                    <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-1 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center gap-1">
+                        <span v-if="!loading && authMode === 'login'" class="flex items-center gap-1 text-[17px]">دخول</span>
+                        <span v-if="!loading && authMode === 'register'" class="flex items-center gap-1 text-[17px]">إنشاء حساب</span>
                         <div v-if="loading" class="loader"></div>
                     </button>
                 </form>
@@ -166,34 +200,54 @@
                 <!-- Admin Impersonation Banner -->
                 <div v-if="isImpersonating" class="bg-purple-600 text-white text-center py-2 px-4 mb-4 rounded-lg max-w-[350px] mx-auto flex items-center justify-between">
                     <span class="text-sm font-medium">👁️ Viewing as: {{ profile?.name || profile?.email }}</span>
-                    <button @click="signOut" class="text-xs bg-white/20 px-2 py-1 rounded hover:bg-white/30">Exit</button>
+                    <button @click="exitImpersonation" class="text-xs bg-white/20 px-2 py-1 rounded hover:bg-white/30">Exit</button>
                 </div>
 
-                <div class="flex border-b mb-6 w-full max-w-[350px] mx-auto">
+                <div class="flex flex-row-reverse border-b mb-6 w-full max-w-[350px] mx-auto">
                     <button @click="tab = 'profile'" class="flex-1 px-1 md:px-4 py-2 font-medium text-gray-600 text-sm md:text-lg flex flex-col items-center transition-all">
                         <div class="flex flex-col items-center">
-                            <svg class="w-5 h-5" :class="tab === 'profile' ? 'text-[#3274B5]' : 'text-black'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            <div class="relative">
+                                <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center" :class="tab === 'profile' ? 'border-[#3274B5]' : 'border-black'">
+                                    <svg class="w-4 h-4" :class="tab === 'profile' ? 'text-[#3274B5]' : 'text-black'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                </div>
+                                <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold" :class="tab === 'profile' ? 'bg-[#3274B5]' : 'bg-black'">1</span>
+                            </div>
                             <span class="whitespace-nowrap" :class="{'text-[#3274B5]': tab === 'profile'}">حسابي</span>
                         </div>
                     </button>
                     <div class="w-px h-[0.7cm] bg-[#3274B5] self-center"></div>
                     <button @click="tab = 'instagram'" class="flex-1 px-1 md:px-4 py-2 font-medium text-gray-600 text-sm md:text-lg flex flex-col items-center transition-all">
                         <div class="flex flex-col items-center">
-                            <svg class="w-5 h-5" :class="tab === 'instagram' ? 'text-[#3274B5]' : 'text-black'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <div class="relative">
+                                <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center" :class="tab === 'instagram' ? 'border-[#3274B5]' : 'border-black'">
+                                    <svg class="w-4 h-4" :class="tab === 'instagram' ? 'text-[#3274B5]' : 'text-black'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </div>
+                                <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold" :class="tab === 'instagram' ? 'bg-[#3274B5]' : 'bg-black'">2</span>
+                            </div>
                             <span class="whitespace-nowrap" :class="{'text-[#3274B5]': tab === 'instagram'}">انستغرام</span>
                         </div>
                     </button>
                     <div class="w-px h-[0.7cm] bg-[#3274B5] self-center"></div>
                     <button @click="tab = 'media'" class="flex-1 px-1 md:px-4 py-2 font-medium text-gray-600 text-sm md:text-lg flex flex-col items-center transition-all">
                         <div class="flex flex-col items-center">
-                            <svg class="w-5 h-5" :class="tab === 'media' ? 'text-[#3274B5]' : 'text-black'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            <div class="relative">
+                                <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center" :class="tab === 'media' ? 'border-[#3274B5]' : 'border-black'">
+                                    <svg class="w-4 h-4" :class="tab === 'media' ? 'text-[#3274B5]' : 'text-black'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                </div>
+                                <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold" :class="tab === 'media' ? 'bg-[#3274B5]' : 'bg-black'">3</span>
+                            </div>
                             <span class="whitespace-nowrap" :class="{'text-[#3274B5]': tab === 'media'}">رفع ميديا</span>
                         </div>
                     </button>
                     <div class="w-px h-[0.7cm] bg-[#3274B5] self-center"></div>
                     <button @click="tab = 'ai'" class="flex-1 px-1 md:px-4 py-2 font-medium text-gray-600 text-sm md:text-lg flex flex-col items-center transition-all">
                         <div class="flex flex-col items-center">
-                            <svg class="w-5 h-5" :class="tab === 'ai' ? 'text-[#3274B5]' : 'text-black'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                            <div class="relative">
+                                <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center" :class="tab === 'ai' ? 'border-[#3274B5]' : 'border-black'">
+                                    <svg class="w-4 h-4" :class="tab === 'ai' ? 'text-[#3274B5]' : 'text-black'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                                </div>
+                                <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold" :class="tab === 'ai' ? 'bg-[#3274B5]' : 'bg-black'">4</span>
+                            </div>
                             <span class="whitespace-nowrap" :class="{'text-[#3274B5]': tab === 'ai'}">ذكاء صنعي</span>
                         </div>
                     </button>
@@ -201,246 +255,628 @@
 
                 <!-- Tab: Profile -->
                 <div v-if="tab === 'profile'" class="w-full max-w-[350px] mx-auto">
-                    <!-- Profile Header with Image -->
-                    <div class="flex items-center gap-4 mb-[20px] px-4 bg-gray-50 rounded-lg border border-gray-100">
-                        <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-gray-200 object-cover">
-                        <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
-                        <div>
-                            <h3 class="font-bold text-lg">{{ profile.name || profile.family_name || 'Family Profile' }}</h3>
-                            <p class="text-xs text-gray-500">{{ profile.email }}</p>
+                    <!-- Merged Profile Header -->
+                    <div class="bg-[#3274B5]/10 border border-[#3274B5]/30 p-3 rounded-lg mb-[20px] relative">
+                        <!-- Unlink X Button (only if scrapedProfile exists) -->
+                        <button v-if="scrapedProfile" @click="unlinkInstagram" class="absolute top-2 left-2 text-[#3274B5] hover:text-red-500 transition p-1 rounded-full hover:bg-red-50" title="Unlink Instagram | إلغاء الربط">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                        
+                        <div class="flex items-start gap-2 flex-row-reverse">
+                            <img v-if="scrapedProfile?.profile_pic_url || profile.profile_pic_url" :src="scrapedProfile?.profile_pic_url || profile.profile_pic_url" @click="previewFile = { url: scrapedProfile?.profile_pic_url || profile.profile_pic_url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition flex-shrink-0">
+                            <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold flex-shrink-0">?</div>
+                            
+                            <!-- Middle section (Instagram / Profile) -->
+                            <div class="flex-1 text-right" dir="rtl">
+                                <template v-if="scrapedProfile">
+                                    <div class="flex items-center gap-2 text-[#3274B5] font-bold mb-1 justify-start">
+                                        <div class="w-2 h-2 bg-[#3274B5] rounded-full animate-pulse"></div>
+                                        <span class="text-base">تم الجلب</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-600" dir="ltr" style="text-align: right;">@{{ scrapedProfile.instagram_username }}</p>
+                                    <p v-if="scrapedProfile.full_name && scrapedProfile.full_name.toLowerCase() !== scrapedProfile.instagram_username?.toLowerCase()" class="text-[11px] text-gray-600">{{ scrapedProfile.full_name }}</p>
+                                    <div class="flex gap-2 text-[10px] text-gray-500 mt-1 justify-start">
+                                        <span class="flex items-center gap-0.5">
+                                            <span>{{ scrapedProfile.followers_count?.toLocaleString() || 0 }} متابع</span>
+                                        </span>
+                                        <span class="flex items-center gap-0.5">
+                                            <span>{{ scrapedProfile.posts_count || 0 }} منشور</span>
+                                        </span>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <!-- IG username: hidden once profile pic is scraped (unless validation warning) -->
+                                    <div v-if="!profile.profile_pic_url || igValidationWarning" class="mt-1.5">
+                                        <label class="block text-[10px] font-bold mb-1 text-[#3274B5]">اسم الانستغرام | IG username</label>
+                                        <div class="flex gap-1 items-center">
+                                            <input v-model="igUsernameInput" @keyup.enter="saveIgUsername" type="text" class="flex-1 border p-1 rounded text-xs" :class="{'border-red-500 border-2': igUsernameMissing || igValidationWarning}" placeholder="@instagram_username">
+                                            <button type="button" @click="saveIgUsername" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
+                                        </div>
+                                        <p v-if="igUsernameMissing && !igValidationWarning" class="text-red-500 text-[10px] mt-0.5">مطلوب | Required</p>
+                                        <p v-if="igValidationWarning" class="text-red-600 text-[10px] mt-1 font-bold leading-snug">مهم: لازم تدخل اسم حسابك أولاً!</p>
+                                        <p v-if="igScrapeProgress" class="text-[10px] text-[#3274B5] mt-1">{{ igScrapeProgress }}</p>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <!-- Left section (Name & Password) -->
+                            <div class="w-[38%] flex flex-col justify-between items-start text-left border-r border-[#3274B5]/20 pr-2">
+                                <p class="font-bold text-xs leading-tight text-[#3274B5] mb-2 truncate w-full"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }}</p>
+                                <div class="w-full">
+                                    <label class="block text-[9px] font-bold mb-1 text-gray-600 text-left">حط كلمة سر (اختياري):</label>
+                                    <div class="flex gap-1 items-center">
+                                        <input v-model="newPassword" type="password" class="w-[70%] border p-1 rounded text-xs h-6 text-left" placeholder="••••" dir="ltr">
+                                        <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-base leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
+                                    </div>
+                                    <p v-if="passwordSaveStatus" class="text-[8px] mt-0.5 text-left" :class="passwordSaveStatus.includes('saved') ? 'text-green-600' : 'text-red-600'">{{ passwordSaveStatus }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin: Editable Account Fields (only visible during impersonation) -->
+                    <div v-if="isImpersonating" class="mb-4 px-3 py-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <p class="text-xs font-bold text-purple-700 mb-2">Admin: Edit Account</p>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-xs text-purple-600 mb-0.5">First Name</label>
+                                <input v-model="adminEditFirstName" type="text" class="w-full border border-purple-300 p-1.5 rounded text-sm" placeholder="e.g. Fatima">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-purple-600 mb-0.5">Family Name</label>
+                                <input v-model="adminEditName" type="text" class="w-full border border-purple-300 p-1.5 rounded text-sm" placeholder="Family name">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-purple-600 mb-0.5">Email</label>
+                                <input v-model="adminEditEmail" type="text" class="w-full border border-purple-300 p-1.5 rounded text-sm" placeholder="email@example.com">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-purple-600 mb-0.5">New Password (leave blank to keep current)</label>
+                                <input v-model="adminEditPassword" type="text" class="w-full border border-purple-300 p-1.5 rounded text-sm" placeholder="Enter new password">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" @click="saveAdminAccountEdit" class="bg-purple-600 text-white text-xs px-3 py-1.5 rounded hover:bg-purple-700 transition font-bold">Save Account Changes</button>
+                                <span v-if="adminSaveStatus" class="text-xs" :class="adminSaveStatus === 'Saved!' ? 'text-green-600' : 'text-red-600'">{{ adminSaveStatus }}</span>
+                            </div>
                         </div>
                     </div>
 
                     <form @submit.prevent="updateProfile">
-                        <div class="grid grid-cols-2 gap-4">
-                                                        <div class="mb-4">
-                                                            <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
-                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                                                                <span class="text-sm text-black">نوع السكن</span>
-                                                            </label>
-                                                            <select v-model="profile.housing_type" class="w-[calc(100%-0.5cm)] mx-auto block border py-0 px-2 rounded text-sm h-[32px]">
-                                                                <option style="font-size: 14px;" value="tent">⛺ خيمة</option>
-                                                                <option style="font-size: 14px;" value="school">🏫 مدرسة</option>
-                                                                <option style="font-size: 14px;" value="damaged_home">🏚️ بيت متضرر</option>
-                                                                <option style="font-size: 14px;" value="open_air">💀 بالعراء</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="mb-4">
-                                                            <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-2 text-[#3274B5]">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                                <span class="text-sm text-black">مرات النزوح</span>
-                                                            </label>
-                                                            <input v-model="profile.displacement_count" type="number" class="w-2/3 mx-auto block border p-1 rounded text-sm h-[32px]">
-                                                        </div>
-                            
-                                                    </div>
-                            
+                        <div class="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end mb-4" dir="rtl">
+                            <div class="text-center">
+                                <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-1 text-[#3274B5]">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                                    <span class="text-xs text-black">نوع السكن</span>
+                                </label>
+                                <select v-model="profile.housing_type" class="w-full border py-0 px-1 rounded text-sm h-[32px] text-right" dir="rtl">
+                                    <option class="text-sm" value="tent">⛺ خيمة</option>
+                                    <option class="text-sm" value="school">🏫 مدرسة</option>
+                                    <option class="text-sm" value="damaged_home">🏚️ بيت متضرر</option>
+                                    <option class="text-sm" value="open_air">💀 بالعراء</option>
+                                </select>
+                            </div>
+                            <div class="text-center">
+                                <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-1 text-[#3274B5]">
+                                    <span class="text-sm">📍</span>
+                                    <span class="text-xs text-black">المنطقة</span>
+                                </label>
+                                <select v-model="profile.gaza_zone" class="w-full border py-0 px-1 rounded text-sm h-[32px] text-right" dir="rtl">
+                                    <option class="text-sm" value="" disabled>اختر...</option>
+                                    <option class="text-sm" value="rafah">رفح</option>
+                                    <option class="text-sm" value="khan_younis">خان يونس</option>
+                                    <option class="text-sm" value="deir_al_balah">دير البلح</option>
+                                    <option class="text-sm" value="gaza_city">مدينة غزة</option>
+                                    <option class="text-sm" value="jabalia">جباليا</option>
+                                    <option class="text-sm" value="beit_hanoun">بيت حانون</option>
+                                    <option class="text-sm" value="nuseirat">النصيرات</option>
+                                    <option class="text-sm" value="bureij">البريج</option>
+                                </select>
+                            </div>
+                            <div class="text-center">
+                                <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-1 text-[#3274B5]">
+                                    <span class="text-sm">🕊️</span>
+                                    <span class="text-xs text-black">الديانة</span>
+                                </label>
+                                <select v-model="profile.religion" class="w-full border py-0 px-1 rounded text-sm h-[32px] text-right" dir="rtl">
+                                    <option class="text-sm" value="" disabled>اختر...</option>
+                                    <option class="text-sm" value="muslim">مسلم</option>
+                                    <option class="text-sm" value="christian">مسيحي</option>
+                                </select>
+                            </div>
+                            <div class="pb-[6px] pl-1">
+                                <span v-if="profileSaved" class="text-green-500 text-sm">&#10003;</span>
+                                <button v-else type="button" @click="updateProfile()" class="text-[#3274B5] font-bold text-xl leading-none hover:text-[#285e94]">&rsaquo;</button>
+                            </div>
+                        </div>
+
                                                     <!-- Children Details Section -->
-                                                    <div class="mb-6 border-t pt-4">
-                                                        <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1">
-                                                            <span class="text-base">أفراد العائلة</span>
-                                                            <span>({{ profile.children_details?.length || 0 }})</span>
-                                                            <span>Family Members</span>
+                                                    <div class="mb-6 border-t pt-4 text-right">
+                                                        <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1 justify-start" dir="rtl">
+                                                            <span class="text-xl text-[#3274B5]">أفراد العائلة</span>
+                                                            <span class="text-sm text-[#3274B5]">({{ profile.children_details?.length || 0 }})</span>
                                                         </label>
-                                                        
-                                                        <!-- List of added children -->
-                                                        <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
-                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm">
-                                                                <span><span class="font-bold">{{ member.name }}</span> ({{ member.gender === 'Male' ? '♂' : '♀' }}, {{ member.age }}) <span v-if="member.condition" class="text-red-600 text-xs">- {{ member.condition }}</span></span>
-                                                                <button type="button" @click="removeChild(index)" class="text-red-500 hover:text-red-700 font-bold px-2">×</button>
-                                                            </div>
-                                                        </div>
-                            
+
                                                         <!-- Add new child form -->
                                                         <div class="bg-blue-50 p-3 rounded border border-blue-100">
-                                                            <div class="text-sm font-extrabold text-[#3274B5] mb-2 flex items-baseline gap-1">
-                                                                <span class="text-lg font-extrabold">إضافة فرد</span>
-                                                                <span>| Add Member </span>
+                                                            <div class="mb-2 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
+                                                                <span class="text-xl text-[#3274B5]">إضافة فرد</span>
                                                             </div>
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            <span class="text-xs">👫</span>
                                         </div>
-                                        <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="الاسم" autocomplete="off" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-lg placeholder:text-black w-full h-[30px]">
-                                    </div>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                        </div>
-                                        <input v-model="newMember.age" type="number" placeholder="العمر" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-lg placeholder:text-black w-full h-[30px]">
-                                    </div>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                                        </div>
-                                        <select v-model="newMember.gender" class="border py-0 pl-8 pr-1 rounded text-base w-full h-[30px]">
+                                        <select v-model="newMember.gender" class="border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px]">
                                             <option value="Male">ذكر ♂</option>
                                             <option value="Female">أنثى ♀</option>
                                         </select>
                                     </div>
-                                </div>
-                                <div class="mb-3 relative">
-                                    <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                            <span class="text-xs">🎂</span>
+                                        </div>
+                                        <input v-model="newMember.age" type="text" inputmode="numeric" placeholder="العمر *" @input="checkAgeArabic" :class="['border py-0 pl-8 pr-2 rounded text-sm placeholder:text-base w-full h-[30px]', showValidationError && !newMember.age ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black', showAgeArabicError ? 'border-red-500' : '']">
+                                        <p v-if="showAgeArabicError" class="text-red-500 text-[10px] mt-0.5 leading-tight">الرجاء كتابة العمر بالأرقام الغربية | Please write age using Western numerals (0-9)</p>
                                     </div>
-                                    <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-base placeholder:text-base placeholder:text-black w-full h-[30px]">
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                            <span class="text-xs">👤</span>
+                                        </div>
+                                        <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="الاسم *" autocomplete="off" :class="['border py-0 pl-8 pr-2 rounded text-sm placeholder:text-base w-full h-[30px]', showValidationError && !newMember.name ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black']">
+                                    </div>
                                 </div>
-                                <button type="button" @click="addMember" :disabled="!newMember.name || !newMember.age" class="w-auto px-3 py-1 mx-auto block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed gap-1 h-[30px]">
-                                    <span>+ Add | </span>
-                                    <span class="text-base">إضافة</span>
-                                </button>
+                                <div class="grid grid-cols-2 gap-2 mb-2">
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                            <span class="text-xs">👨‍👩‍👧</span>
+                                        </div>
+                                        <select v-model="newMember.relationship" :class="['border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white', showValidationError && !newMember.relationship ? 'border-red-500 text-red-500' : '']">
+                                            <option value="" disabled selected>صلة القرابة *</option>
+                                            <option value="Son/Daughter">ابن/ابنة</option>
+                                            <option value="Adopted Son/Daughter">ابن/ابنة بالتبني</option>
+                                            <option value="Orphan Boy/Girl">يتيم/يتيمة</option>
+                                            <option value="Husband/Wife">زوج/زوجة</option>
+                                            <option value="Brother/Sister">أخ/أخت</option>
+                                            <option value="Mother/Father">أم/أب</option>
+                                            <option value="Nephew/Niece">ابن أخ/بنت أخت</option>
+                                            <option value="Aunt/Uncle">عمة، خالة/عم، خال</option>
+                                        </select>
+                                    </div>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                            <span class="text-xs">🩵</span>
+                                        </div>
+                                        <select v-model="newMember.status" :class="['border py-0 pl-8 pr-1 rounded text-sm w-full h-[30px] appearance-none bg-white', showValidationError && !newMember.status ? 'border-red-500 text-red-500' : '']">
+                                            <option value="" disabled selected>على قيد الحياة؟ *</option>
+                                            <option value="Alive">حي يرزق</option>
+                                            <option value="Deceased">متوفي</option>
+                                            <option value="Unknown">مجهول</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 mb-2">
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                            <span class="text-xs">⏳</span>
+                                        </div>
+                                        <input
+                                            :value="newMember.status === 'Deceased' ? newMember.days_deceased : newMember.days_missing"
+                                            @input="newMember.status === 'Deceased' ? (newMember.days_deceased = $event.target.value) : (newMember.days_missing = $event.target.value)"
+                                            type="number"
+                                            :placeholder="newMember.status === 'Deceased' ? 'أيام الوفاة' : (newMember.status === 'Unknown' ? 'أيام الفقدان' : 'أيام')"
+                                            :disabled="!newMember.status || newMember.status === 'Alive'"
+                                            class="border py-0 pl-8 pr-2 rounded text-sm w-full h-[30px] disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                                        >
+                                    </div>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                            <span class="text-xs">🩺</span>
+                                        </div>
+                                        <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pl-8 pr-2 rounded text-sm placeholder:text-sm placeholder:text-black w-full h-[30px]">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-[2fr_1fr_3fr] gap-2 mb-0">
+                                    <div class="flex items-center gap-2 justify-start">
+                                        <button type="button" @click="addMember" class="px-2 py-0.5 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[26px] flex-shrink-0">
+                                            <span>Add + | </span>
+                                            <span class="text-base">إضافة</span>
+                                        </button>
+                                        <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    </div>
+                                    <div v-if="showDisabilityWarning" class="col-span-3 bg-amber-50 border border-amber-300 rounded p-2 text-xs leading-relaxed mb-1" dir="rtl">
+                                        <p class="font-bold text-amber-800">هالشي رح يأثر على محتوى الذكاء الاصطناعي. اختار هاد الخيار بس بحالات الإعاقة الدايمة والخطيرة (مثل: شلل دماغي، بتر، أخرس، أعمى).</p>
+                                    </div>
+                                    <div></div>
+                                    <div class="flex items-center gap-3 h-[30px] justify-start" dir="rtl">
+                                        <span class="text-lg text-black whitespace-nowrap">إعاقة ؟</span>
+                                        <label class="flex items-center gap-1 cursor-pointer">
+                                            <span class="text-xs">آه</span>
+                                            <input type="radio" v-model="newMember.disability" value="yes" @change="confirmDisability" class="accent-[#3274B5]">
+                                        </label>
+                                        <label class="flex items-center gap-1 cursor-pointer">
+                                            <span class="text-xs">لأ</span>
+                                            <input type="radio" v-model="newMember.disability" value="no" @change="showDisabilityWarning = false" class="accent-[#3274B5]">
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Urgent Needs Section -->
-                        <div class="mb-6 border-t pt-4">
-                            <label class="block mb-1 flex items-baseline gap-1 font-bold">
-                                <span class="text-base">احتياجات عاجلة</span>
-                                <span class="text-xs">| Urgent Needs</span>
-                            </label>
-                            
-                            <!-- List of added needs -->
-                            <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="mb-4 space-y-2">
-                                <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm">
-                                    <span>{{ getUrgentNeedLabel(need) }}</span>
-                                    <button type="button" @click="removeUrgentNeed(index)" class="text-red-500 hover:text-red-700 font-bold px-2">×</button>
-                                </div>
-                            </div>
+                                                        <!-- Shared file input for member profile pics (outside v-for to avoid click propagation) -->
+                                                        <input type="file" ref="memberPicShared" @change="handleMemberPicSelect($event, cropperMemberIndex)" class="hidden" accept="image/*">
+                                                        <!-- List of added children -->
+                                                        <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
+                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="bg-gray-50 rounded border text-sm relative cursor-pointer hover:bg-[#3274B5]/10 transition-colors" @click="toggleMemberDetails(index)">
+                                                                <!-- × delete: top-left corner -->
+                                                                <button type="button" @click.stop="removeChild(index)" class="absolute top-1 left-1 text-gray-300 hover:text-gray-500 text-sm leading-none px-1 z-10">×</button>
+                                                                <!-- Profile pic circle: top-left -->
+                                                                <div class="absolute top-2 left-6 w-10 h-10 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors"
+                                                                     :class="member.profile_pic ? 'border-[#3274B5]/40' : 'border-gray-300 hover:border-[#3274B5]/40'"
+                                                                     @click.stop="openMemberPicUpload(index)">
+                                                                    <img v-if="member.profile_pic" :src="member.profile_pic" class="w-full h-full object-cover rounded-full">
+                                                                    <svg v-else class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                                                </div>
+                                                                <!-- Summary content -->
+                                                                <div class="p-2 pl-[70px]" dir="rtl" style="text-align: right;">
+                                                                    <span style="display: flex; gap: 0.25rem; align-items: center; justify-content: flex-start; flex-wrap: wrap;">
+                                                                        <span class="text-xs font-bold" dir="auto">{{ member.nameDisplay || member.name }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="rtl">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).ar }}</span>
+                                                                        <span class="text-xs" dir="ltr">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: 'Member', ar: ''}).en }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="ltr">{{ member.gender === 'Male' ? '♂' : '♀' }}</span>
+                                                                        <span class="text-xs" dir="ltr">|</span>
+                                                                        <span class="text-xs" dir="ltr">{{ member.age }}</span>
+                                                                    </span>
+                                                                    <div class="text-xs text-gray-500 mt-1" style="display: flex; gap: 0.25rem; align-items: center; justify-content: flex-start; flex-wrap: wrap;">
+                                                                        <template v-if="member.status">
+                                                                            <span dir="rtl" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).ar }}</span>
+                                                                            <span class="text-xs" dir="ltr" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).en }}</span>
+                                                                            <span v-if="member.status === 'Deceased' && member.days_deceased" class="text-xs" dir="ltr">| {{ member.days_deceased }} days</span>
+                                                                            <span v-if="member.status === 'Unknown' && member.days_missing" class="text-xs" dir="ltr">| {{ member.days_missing }} days</span>
+                                                                        </template>
+                                                                        <span v-if="member.condition" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
+                                                                        <span v-if="member.disability === 'yes'" class="inline-flex items-center gap-1">|
+                                                                            <img src="icons/wheelchair.png" style="width: 19px; height: 19px;" class="object-contain inline-block" title="Disabled">
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- Detail popup overlay -->
+                                                                <div v-show="member.detailsOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);" @click.self="toggleMemberDetails(index)">
+                                                                <!-- Popup wrapper: close button outside panel, not scrollable -->
+                                                                <div class="relative mx-4 max-w-md w-full" @click.stop>
+                                                                    <button type="button" @click="toggleMemberDetails(index)" class="absolute -top-7 right-0 text-white hover:text-gray-300 text-2xl leading-none z-10">&times;</button>
+                                                                <div class="rounded-3xl p-4 max-h-[80vh] overflow-y-auto shadow-2xl" style="overscroll-behavior: contain; background: linear-gradient(135deg, #f0f7ff 0%, #fff8f0 50%, #f0fff4 100%);" dir="rtl">
+                                                                    <!-- Popup header: name left -->
+                                                                    <div class="mb-3 flex items-center gap-2" dir="ltr">
+                                                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#3274B5] to-[#5BA3D9] flex items-center justify-center text-white text-xs font-bold shadow-sm">{{ (member.nameDisplay || member.name || '?')[0] }}</div>
+                                                                        <span class="text-sm font-bold text-[#3274B5]">{{ member.nameDisplay || member.name }}</span>
+                                                                        <span class="text-xs text-gray-400">{{ (getRelationshipLabel(member.relationship, member.gender) || {en: ''}).en }}</span>
+                                                                    </div>
+                                                                    <!-- Section: Medical -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-1 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
+                                                                        <span class="text-sm">🏥</span>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">صحة | HEALTH</span>
+                                                                    </div>
+                                                                    <!-- Row 1: Medical condition + Physical state -->
+                                                                    <div class="grid grid-cols-2 gap-3 mb-2">
+                                                                        <div>
+                                                                            <label class="block text-xs font-bold mb-1 text-[#3274B5]">الحالة الطبية</label>
+                                                                            <select v-model="member.medical_condition" @change="updateProfile()" class="w-full border py-0 px-2 rounded text-xs h-[28px]">
+                                                                                <option value="">—</option>
+                                                                                <option value="none">لا شيء | None</option>
+                                                                                <option value="cerebral_palsy">شلل دماغي | Cerebral palsy</option>
+                                                                                <option value="heart_defect">عيب قلبي | Heart defect</option>
+                                                                                <option value="diabetes">سكري | Diabetes</option>
+                                                                                <option value="malnutrition">سوء تغذية | Malnutrition</option>
+                                                                                <option value="respiratory">تنفسي | Respiratory</option>
+                                                                                <option value="amputee">بتر | Amputee</option>
+                                                                                <option value="burns">حروق | Burns</option>
+                                                                                <option value="fracture">كسر | Fracture</option>
+                                                                                <option value="infection">التهاب | Infection</option>
+                                                                                <option value="other">أخرى | Other</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div>
+                                                                            <label class="block text-xs font-bold mb-1 text-[#3274B5]">الحالة البدنية</label>
+                                                                            <select v-model="member.physical_state" @change="updateProfile()" class="w-full border py-0 px-2 rounded text-xs h-[28px]">
+                                                                                <option value="">—</option>
+                                                                                <option value="healthy">سليم | Healthy</option>
+                                                                                <option value="thin">نحيف | Thin</option>
+                                                                                <option value="malnourished">ناقص تغذية | Malnourished</option>
+                                                                                <option value="emaciated">هزيل | Emaciated</option>
+                                                                                <option value="injured">مصاب | Injured</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <!-- Section: Mobility -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-2 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
+                                                                        <img src="icons/wheelchair.png" style="width: 18px; height: 18px;" class="object-contain inline-block">
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">حركة وإدراك | MOBILITY</span>
+                                                                    </div>
+                                                                    <!-- Row 2: Mobility + Cognitive -->
+                                                                    <div class="grid grid-cols-2 gap-3 mb-2">
+                                                                        <div>
+                                                                            <label class="block text-xs font-bold mb-1 text-[#3274B5]">الحركة</label>
+                                                                            <select v-model="member.mobility" @change="updateProfile()" class="w-full border py-0 px-2 rounded text-xs h-[28px]">
+                                                                                <option value="">—</option>
+                                                                                <option value="full">كاملة | Full</option>
+                                                                                <option value="limited">محدودة | Limited</option>
+                                                                                <option value="wheelchair">كرسي متحرك | Wheelchair</option>
+                                                                                <option value="immobile">غير قادر | Immobile</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div>
+                                                                            <label class="block text-xs font-bold mb-1 text-[#3274B5]">الإدراك</label>
+                                                                            <select v-model="member.cognitive" @change="updateProfile()" class="w-full border py-0 px-2 rounded text-xs h-[28px]">
+                                                                                <option value="">—</option>
+                                                                                <option value="typical">طبيعي | Typical</option>
+                                                                                <option value="delayed">تأخر | Delayed</option>
+                                                                                <option value="nonverbal">غير لفظي | Nonverbal</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <!-- Section: Medical detail -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-2 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
+                                                                        <span class="text-sm">🩺</span>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">تفاصيل | DETAILS</span>
+                                                                    </div>
+                                                                    <!-- Row 3: Medical detail (full width) -->
+                                                                    <div class="mb-2">
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">تفاصيل طبية</label>
+                                                                        <input v-model="member.medical_detail" @blur="updateProfile()" type="text" class="w-full border py-0 px-2 rounded text-xs h-[28px]" placeholder="مثال: ثقب في القلب، يحتاج بخاخ">
+                                                                    </div>
+                                                                    <!-- Section: Medication -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
+                                                                        <span class="text-sm">💊</span>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">أدوية | MEDICATION</span>
+                                                                    </div>
+                                                                    <!-- Row 4: Medication name + cost + remaining -->
+                                                                    <div class="grid grid-cols-3 gap-3 mb-2">
+                                                                        <div>
+                                                                            <label class="block text-xs font-bold mb-1 text-[#3274B5]">اسم الدواء</label>
+                                                                            <input v-model="member.medication_name" @blur="updateProfile()" type="text" class="w-full border py-0 px-2 rounded text-xs h-[28px]">
+                                                                        </div>
+                                                                        <div>
+                                                                            <label class="block text-xs font-bold mb-1 text-[#3274B5]">تكلفة ₪</label>
+                                                                            <input v-model="member.medication_cost" @blur="updateProfile()" type="number" class="w-full border py-0 px-2 rounded text-xs h-[28px]">
+                                                                        </div>
+                                                                        <div>
+                                                                            <label class="block text-xs font-bold mb-1 text-[#3274B5]">الكمية المتبقية</label>
+                                                                            <input v-model="member.medication_remaining" @blur="updateProfile()" type="text" class="w-full border py-0 px-2 rounded text-xs h-[28px]">
+                                                                        </div>
+                                                                    </div>
+                                                                    <!-- Section: Clothing -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
+                                                                        <span class="text-sm">👕</span>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">ملابس | CLOTHING</span>
+                                                                    </div>
+                                                                    <!-- Row 5: Clothing description (full width) -->
+                                                                    <div class="mb-2">
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">وصف الملابس</label>
+                                                                        <input v-model="member.clothing_description" @blur="updateProfile()" type="text" class="w-full border py-0 px-2 rounded text-xs h-[28px]" placeholder="مثال: بلوزة رمادية كبيرة، بنطلون ممزق">
+                                                                    </div>
+                                                                    <!-- Section: Media (all uploads) -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
+                                                                        <span class="text-sm">📸</span>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">صور وفيديو | MEDIA</span>
+                                                                    </div>
+                                                                    <!-- Clothing photos -->
+                                                                    <div class="mb-2" dir="ltr">
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Clothing of {{ member.name }} | صور الملابس</label>
+                                                                        <input type="file" multiple accept="image/*" @change="handleMemberFileUpload($event, index, 'clothing_photos')" class="w-full text-xs">
+                                                                        <div v-if="member.clothing_photos && member.clothing_photos.length" class="flex gap-2 mt-2 flex-wrap">
+                                                                            <div v-for="(url, pi) in member.clothing_photos" :key="pi" class="relative group">
+                                                                                <img :src="url" @click="previewFile = { url: url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 object-cover rounded-lg border shadow-sm cursor-pointer hover:opacity-80 transition">
+                                                                                <button type="button" @click="removeMemberFile(index, 'clothing_photos', pi)" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition">&times;</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <!-- Photos of [Name] -->
+                                                                    <div class="mb-2" dir="ltr">
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Pictures of {{ member.name }} | صور {{ member.name }}</label>
+                                                                        <input type="file" multiple accept="image/*" @change="handleMemberFileUpload($event, index, 'photo_refs')" class="w-full text-xs">
+                                                                        <div v-if="member.photo_refs && member.photo_refs.length" class="flex gap-2 mt-2 flex-wrap">
+                                                                            <div v-for="(url, pi) in member.photo_refs" :key="pi" class="relative group">
+                                                                                <img :src="url" @click="previewFile = { url: url, metadata: { mimetype: 'image/jpeg' } }" class="w-16 h-16 object-cover rounded-lg border shadow-sm cursor-pointer hover:opacity-80 transition">
+                                                                                <button type="button" @click="removeMemberFile(index, 'photo_refs', pi)" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition">&times;</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <!-- Videos of [Name] -->
+                                                                    <div class="mb-2" dir="ltr">
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">Videos of {{ member.name }} | فيديوهات {{ member.name }}</label>
+                                                                        <input type="file" multiple accept="video/*" @change="handleMemberFileUpload($event, index, 'video_refs')" class="w-full text-xs">
+                                                                        <div v-if="member.video_refs && member.video_refs.length" class="flex gap-2 mt-2 flex-wrap">
+                                                                            <div v-for="(url, vi) in member.video_refs" :key="vi" class="relative group">
+                                                                                <div @click="previewFile = { url: url, metadata: { mimetype: 'video/mp4' } }" class="w-16 h-16 bg-gray-800 rounded-lg border shadow-sm cursor-pointer hover:opacity-80 transition flex items-center justify-center">
+                                                                                    <span class="text-white text-lg">▶</span>
+                                                                                </div>
+                                                                                <button type="button" @click="removeMemberFile(index, 'video_refs', vi)" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition">&times;</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <!-- Section: Notes -->
+                                                                    <div class="flex items-center gap-1.5 mb-2 mt-3 pb-1" style="border-bottom: 2px solid rgba(50,116,181,0.15);">
+                                                                        <span class="text-sm">📝</span>
+                                                                        <span class="text-[10px] font-bold text-[#3274B5] tracking-wide">ملاحظات | NOTES</span>
+                                                                    </div>
+                                                                    <!-- Row 9: Notes (full width) -->
+                                                                    <div class="mb-3">
+                                                                        <label class="block text-xs font-bold mb-1 text-[#3274B5]">ملاحظات</label>
+                                                                        <textarea v-model="member.notes" @blur="updateProfile()" class="w-full border py-1 px-2 rounded text-xs" rows="2" placeholder="ملاحظات إضافية..."></textarea>
+                                                                    </div>
+                                                                    <!-- Save button -->
+                                                                    <button type="button" @click="saveMemberDetails(index)" class="px-5 py-1.5 text-white font-bold rounded-full hover:shadow-lg transition-all flex justify-center items-center text-xs gap-1 h-[34px] mx-auto mt-1" style="background: linear-gradient(135deg, #3274B5, #5BA3D9);">
+                                                                        <span class="text-base">حفظ</span>
+                                                                        <span class="opacity-80">|</span>
+                                                                        <span>Save</span>
+                                                                    </button>
+                                                                </div><!-- /popup content (scrollable) -->
+                                                                </div><!-- /popup wrapper (close btn) -->
+                                                                </div><!-- /popup overlay -->
+                                                            </div><!-- /member card -->
+                                                        </div><!-- /member list -->
 
-                            <div class="mb-4 flex gap-2">
-                                <select v-model="newUrgentNeed" class="w-full border py-0 px-2 rounded text-base h-[30px]">
+                        <!-- Urgent Needs Section -->
+                        <div class="mb-6 border-t pt-4 text-right">
+                            <label class="block mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
+                                <span class="text-xl text-[#3274B5]">احتياجات عاجلة</span>
+                            </label>
+
+                            <div class="mb-4 flex gap-2 flex-row-reverse">
+                                <select v-model="newUrgentNeed" class="w-full border py-0 px-2 rounded text-base h-[30px] text-right" dir="rtl">
                                     <option value="" disabled>اختر احتياج...</option>
                                     <option v-for="opt in urgentNeedOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                                 </select>
-                                <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="w-auto px-4 block bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed gap-1 h-[30px] whitespace-nowrap">
-                                    <span>Add</span>
-                                    <span class="text-[10px] text-white/70">|</span>
-                                    <span class="text-base">إضافة</span>
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="addUrgentNeed" :disabled="!newUrgentNeed" class="px-2 py-0.5 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs disabled:cursor-not-allowed gap-1 h-[26px] whitespace-nowrap flex-shrink-0">
+                                        <span>Add</span>
+                                        <span class="text-[10px] text-white/70">|</span>
+                                        <span class="text-base">إضافة</span>
+                                    </button>
+                                    <svg v-if="urgentNeedSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                </div>
+                            </div>
+
+                            <!-- List of added needs -->
+                            <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="mb-4 space-y-2">
+                                <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-gray-50 px-2 py-1 rounded border h-[30px]" dir="rtl">
+                                    <span class="text-sm flex items-center gap-1 justify-start">
+                                        <span>{{ getUrgentNeedLabel(need).split('|')[0] }}</span>
+                                        <span v-if="getUrgentNeedLabel(need).includes('|')" class="text-xs text-gray-600">| {{ getUrgentNeedLabel(need).split('|')[1] }}</span>
+                                    </span>
+                                    <button type="button" @click="removeUrgentNeed(index)" class="text-gray-300 hover:text-gray-500 px-2 text-sm">×</button>
+                                </div>
                             </div>
                             <div class="mb-4">
-                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
-                                    <span class="text-base">المبلغ المطلوب</span>
-                                    <span>| Cash Amount Needed</span>
+                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
+                                    <span class="text-xl text-[#3274B5]">المبلغ المطلوب</span>
                                 </label>
-                                <input v-model="profile.urgent_need_amount" type="text" class="w-[60%] border p-2 rounded text-sm h-[30px]" style="width: calc(60% + 4px);" placeholder="e.g. $500">
+                                <input v-model="profile.urgent_need_amount" type="text" class="w-[60%] border p-2 rounded text-sm h-[30px] text-right" style="width: calc(60% + 4px);" placeholder="مثلاً: $500" dir="rtl">
                             </div>
                         </div>
 
                         <!-- PalPay Wallet Section -->
-                        <div class="mb-6 border-t pt-4">
+                        <div class="mb-6 border-t pt-4 text-right">
                             <div class="mb-4">
-                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
-                                    <span class="text-base">رقم محفظة بالباي غزة</span>
-                                    <span class="text-[10px]">| Gaza PalPay Wallet phone number</span>
+                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
+                                    <span class="text-base text-[#3274B5]">رقم محفظة بالباي غزة</span>
+                                    <span class="text-[10px]">| Wallet</span>
                                 </label>
-                                <input v-model="profile.palpay_phone" type="tel" class="w-full border p-2 rounded text-sm h-[30px]" placeholder="e.g. 0599123456">
+                                <input v-model="profile.palpay_phone" type="tel" class="w-[60%] border p-2 rounded text-sm h-[30px] text-right" style="width: calc(60% + 34px);" placeholder="مثلاً: 0599123456" dir="rtl">
                             </div>
                             <div class="mb-4">
-                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold">
-                                    <span class="text-base">الاسم المسجل بالمحفظة</span>
-                                    <span class="text-[10px]">| Full name as registered on Wallet</span>
+                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
+                                    <span class="text-base text-[#3274B5]">الاسم المسجل بالمحفظة</span>
+                                    <span class="text-[10px]">| Wallet Name</span>
                                 </label>
-                                <input v-model="profile.palpay_name" type="text" class="w-full border p-2 rounded text-sm h-[30px]" placeholder="الاسم الكامل">
+                                <input v-model="profile.palpay_name" type="text" class="w-[60%] border p-2 rounded text-sm h-[30px] text-right" style="width: calc(60% + 34px);" placeholder="الاسم الكامل" dir="rtl">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-xs text-black mb-1 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
+                                    <span class="text-base text-[#3274B5]">رقم الواتساب (اختياري)</span>
+                                    <span class="text-[10px]">| WhatsApp</span>
+                                </label>
+                                <input v-model="profile.whatsapp_phone" type="tel" class="w-[60%] border p-2 rounded text-sm h-[30px] text-right" style="width: calc(60% + 34px);" placeholder="مثلاً: +972599123456" dir="rtl">
                             </div>
                         </div>
 
-                        <button type="submit" class="bg-[#3274B5] text-white px-4 py-1 rounded-full hover:bg-[#285e94] flex items-center justify-center gap-2 mx-auto h-[36px]">
-                            <span class="text-base font-bold">حفظ الملف</span>
-                            <span class="text-sm opacity-80">|</span>
-                            <span class="text-sm font-bold">Save</span>
-                        </button>
+                        <div class="flex items-center justify-center gap-2">
+                            <button type="submit" class="px-3 py-1 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[30px]">
+                                <span>Save</span>
+                                <span class="opacity-80">|</span>
+                                <span class="text-base">حفظ الملف</span>
+                            </button>
+                            <span v-if="profileSaved" class="text-green-500 text-lg transition">&#10003;</span>
+                        </div>
                     </form>
                 </div>
 
                 <!-- Tab: Media -->
-                <div v-if="tab === 'media'">
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6">
-                        <input type="file" multiple @change="handleFileUpload" class="hidden" id="fileInput" accept="image/*,video/*">
-                        <label for="fileInput" class="cursor-pointer block group hover:text-[#3274B5] transition-colors">
-                            <div class="text-black group-hover:text-[#3274B5] leading-tight text-center">
-                                <div class="text-base font-bold mb-1">صور وفيديوهات لإنشاء فيديو ريلز بالذكاء الاصطناعي. اضغط هنا للرفع</div>
-                                <div class="text-sm">Photos and Videos For AI Reel Generation. Click to Upload</div>
-                            </div>
-                        </label>
-                    </div>
+                <div v-if="tab === 'media'" class="w-full max-w-[350px] mx-auto">
                     <div v-if="uploadStatus" class="mb-4 text-sm text-center" :class="uploadStatus.type === 'success' ? 'text-green-600' : 'text-red-600'">
                         {{ uploadStatus.message }}
                     </div>
 
-                    <!-- Media Gallery -->
-                    <div v-if="mediaFiles.length > 0" class="grid grid-cols-3 gap-2">
-                        <div v-for="file in mediaFiles" :key="file.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
-                            <!-- Clickable Area for Preview -->
-                            <div @click="previewFile = file" class="w-full h-full cursor-pointer">
-                                <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
-                                <div v-else class="w-full h-full relative">
-                                    <video :src="file.url + '#t=0.5'" class="w-full h-full object-cover bg-gray-900 pointer-events-none" preload="metadata" muted playsinline></video>
-                                    <div class="absolute top-1 right-1 bg-black/60 rounded-full p-1 pointer-events-none">
-                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
-                                    </div>
-                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                        <div class="bg-black/30 rounded-full p-2">
-                                            <svg class="w-8 h-8 text-white opacity-80" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+                    <div class="mb-4 text-center">
+                        <p class="text-[13px] font-bold text-[#3274B5]">هالصور رح نستخدمها لنحكي قصتكم للناس،<br>يا ريت تكون حقيقية وبتعطي أمل.</p>
+                        <p class="text-[8px] text-gray-500 mt-1">These images will be used for visual storytelling.</p>
+                    </div>
+
+                    <!-- Categorized Upload Sections -->
+                    <div v-for="cat in uploadCategories" :key="cat.value" class="mb-3">
+                        <div class="flex items-center justify-between bg-gray-50 rounded-lg border border-gray-200 px-3 py-2" dir="rtl">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold text-gray-800">{{ cat.emoji }} {{ cat.ar }}</span>
+                                <span class="text-xs text-gray-500">| {{ cat.en }}</span>
+                                <span v-if="mediaByCat(cat.value).length" class="text-xs text-[#3274B5]">({{ mediaByCat(cat.value).length }})</span>
+                            </div>
+                            <label :for="'catUpload_' + cat.value" class="cursor-pointer bg-[#3274B5]/10 text-[#3274B5] text-xs font-bold px-3 py-1.5 rounded hover:bg-[#3274B5]/20 transition">
+                                رفع
+                            </label>
+                            <input :id="'catUpload_' + cat.value" type="file" multiple @change="handleCategoryUpload($event, cat.value)" class="hidden" accept="image/*,video/*">
+                        </div>
+                        <!-- Thumbnails for this category -->
+                        <div v-if="mediaByCat(cat.value).length" class="grid grid-cols-4 gap-1.5 mt-1.5 mb-1">
+                            <div v-for="file in mediaByCat(cat.value)" :key="file.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
+                                <div @click="previewFile = file" class="w-full h-full cursor-pointer">
+                                    <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
+                                    <div v-else class="w-full h-full relative">
+                                        <video :src="file.url + '#t=0.5'" class="w-full h-full object-cover bg-gray-900 pointer-events-none" preload="metadata" muted playsinline></video>
+                                        <div class="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 pointer-events-none">
+                                            <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
                                         </div>
                                     </div>
                                 </div>
+                                <button @click.stop="openEditMedia(file)" class="absolute bottom-0.5 left-0.5 bg-green-600 text-white p-1 rounded-full hover:bg-green-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </button>
+                                <button @click.stop="deleteMedia(file)" class="absolute bottom-0.5 right-0.5 bg-red-600 text-white p-1 rounded-full hover:bg-red-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
                             </div>
-                            
-                            <!-- Delete Button (Bottom Right) - visible on hover -->
-                            <button @click.stop="deleteMedia(file)" class="absolute bottom-1 right-1 bg-red-600 text-white p-1.5 rounded-full hover:bg-red-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-
-                            <!-- Edit/Info Button (Bottom Left) - visible on hover -->
-                            <button @click.stop="openEditMedia(file)" title="Edit Text Description | تعديل الوصف" class="absolute bottom-1 left-1 bg-green-600 text-white p-1.5 rounded-full hover:bg-green-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </button>
                         </div>
                     </div>
-                    <div v-else-if="!loading" class="text-center text-gray-400 text-sm mt-4">
-                        No media uploaded yet.
+
+                    <!-- Uncategorized media (from before categories existed) -->
+                    <div v-if="mediaByCat(null).length" class="mt-4" dir="rtl">
+                        <p class="text-xs text-gray-500 mb-2 font-bold text-right">رفعات سابقة | Other Uploads</p>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <div v-for="file in mediaByCat(null)" :key="file.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
+                                <div @click="previewFile = file" class="w-full h-full cursor-pointer">
+                                    <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
+                                    <div v-else class="w-full h-full relative">
+                                        <video :src="file.url + '#t=0.5'" class="w-full h-full object-cover bg-gray-900 pointer-events-none" preload="metadata" muted playsinline></video>
+                                        <div class="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 pointer-events-none">
+                                            <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button @click.stop="openEditMedia(file)" class="absolute bottom-0.5 left-0.5 bg-green-600 text-white p-1 rounded-full hover:bg-green-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </button>
+                                <button @click.stop="deleteMedia(file)" class="absolute bottom-0.5 right-0.5 bg-red-600 text-white p-1 rounded-full hover:bg-red-700 shadow-sm opacity-0 group-hover:opacity-100 transition z-10">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div v-if="loading" class="flex justify-center mt-4"><div class="loader"></div></div>
                 </div>
 
                 <!-- Tab: Instagram (Apify Scraper Flow) -->
                 <div v-if="tab === 'instagram'">
-                    <!-- Scraped Profile Display -->
-                    <div v-if="scrapedProfile" class="bg-[#3274B5]/10 border border-[#3274B5]/30 p-3 rounded-lg mb-3 relative">
-                        <!-- Unlink X Button -->
-                        <button @click="unlinkInstagram" class="absolute top-2 right-2 text-[#3274B5] hover:text-red-500 transition p-1 rounded-full hover:bg-red-50" title="Unlink Instagram | إلغاء الربط">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                        <div class="flex items-start gap-3">
-                            <img v-if="scrapedProfile.profile_pic_url" :src="scrapedProfile.profile_pic_url" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover">
-                            <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">?</div>
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 text-[#3274B5] font-bold mb-1">
-                                    <div class="w-2 h-2 bg-[#3274B5] rounded-full animate-pulse"></div>
-                                    <span class="text-base">تم الجلب</span>
-                                </div>
-                                <p class="text-xs text-gray-600">@{{ scrapedProfile.instagram_username }}</p>
-                                <p v-if="scrapedProfile.full_name" class="text-xs text-gray-600">{{ scrapedProfile.full_name }}</p>
-                                <div class="flex gap-3 text-xs text-gray-500 mt-1">
-                                    <span>{{ scrapedProfile.followers_count?.toLocaleString() || 0 }} followers</span>
-                                    <span>{{ scrapedProfile.posts_count || 0 }} posts</span>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-gray-400 mt-[10px]">Last checked: {{ formatScrapeDate(scrapedProfile.last_scraped_at) }}</p>
-                    </div>
 
                     <!-- Connected via cookies (legacy) -->
-                    <div v-else-if="profile.cookies" class="bg-blue-50 border border-blue-100 p-2 rounded-lg mb-2 flex justify-center">
+                    <div v-else-if="profile.cookies" class="bg-blue-50 border border-blue-100 p-2 rounded-lg mb-2 flex justify-center text-right" dir="rtl">
                         <div class="flex flex-col items-start">
                             <div class="flex items-center gap-2 text-blue-700 font-bold mb-2">
                                 <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                                <span class="text-sm tracking-wide">CONNECTED</span>
                                 <span class="text-lg">متصل</span>
+                                <span class="text-sm tracking-wide">| CONNECTED</span>
                             </div>
-                            <p class="text-base font-mono text-gray-800 mb-2">@{{ profile.instagram_handle || profile.handle }}</p>
+                            <p class="text-base font-mono text-gray-800 mb-2" dir="ltr">@{{ profile.instagram_handle || profile.handle }}</p>
                             <p class="text-xs text-gray-500">(Admin-managed session)</p>
                         </div>
                     </div>
@@ -457,43 +893,42 @@
                     <div class="mt-4 border-t pt-4">
                         <form @submit.prevent="handleInstaScrape">
                             <div class="mb-4">
-                                <label class="block mb-1 flex flex-col items-start gap-[5px] text-[#3274B5]">
+                                <label class="block mb-1 flex flex-col items-end gap-[5px] text-[#3274B5]">
                                     <span class="text-base font-bold leading-none">اسم حساب الانستغرام</span>
                                     <span class="text-xs font-normal leading-none">IG username</span>
                                 </label>
-                                <input v-model="form.insta_username" type="text" class="w-full border p-2 rounded text-sm" placeholder="e.g. @ahmed_gaza">
+                                <input v-model="form.insta_username" type="text" class="w-2/3 ml-auto block border p-2 rounded text-sm text-right" dir="ltr" placeholder="@instagram_username">
                             </div>
                             <div class="mb-4">
-                                <label class="block mb-1 flex flex-col items-start gap-[5px] text-[#3274B5]">
+                                <label class="block mb-1 flex flex-col items-end gap-[5px] text-[#3274B5]">
                                     <span class="text-base font-bold leading-none">كلمة السر (اختياري)</span>
                                     <span class="text-xs font-normal leading-none">Password (Optional)</span>
                                 </label>
-                                <input v-model="form.insta_password" type="password" class="w-full border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm" placeholder="••••••••">
-                                <p class="text-xs text-gray-400 mt-1">Password saved for admin-managed account recovery only</p>
+                                <input v-model="form.insta_password" type="password" :disabled="!profile.instagram_password_enabled" class="w-2/3 ml-auto block border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed text-right" dir="ltr" placeholder="••••••••">
+                                <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1 text-right">تواصل مع الإدارة لتفعيل كلمة السر</p>
+                                <p v-else class="text-xs text-gray-400 mt-1 text-right">Password saved for admin-managed account recovery only</p>
                             </div>
-                            <button :disabled="loading" type="submit" class="w-auto px-4 mx-auto block bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button :disabled="loading" type="submit" class="w-auto px-3 mx-auto block bg-[#3274B5] text-white font-bold py-1.5 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span v-if="!loading">{{ scrapedProfile ? 'Rescrape Profile | إعادة الجلب' : 'Scrape Profile | جلب الملف' }}</span>
                                 <div v-else class="loader"></div>
                             </button>
                         </form>
-                        <p v-if="scrapeMessage" class="text-center text-base mt-3" :class="scrapeMessage.type === 'success' ? 'text-green-600' : scrapeMessage.type === 'error' ? 'text-red-600' : 'text-blue-600'">
+                        <p v-if="scrapeMessage" class="text-center text-xs mt-3" :class="scrapeMessage.type === 'success' ? 'text-green-600' : scrapeMessage.type === 'error' ? 'text-red-600' : 'text-blue-600'">
                             {{ scrapeMessage.text }}
                         </p>
 
                         <!-- Backup Followers Button -->
-                        <div v-if="scrapedProfile" class="mt-4 pt-4 border-t border-gray-200">
-                            <div class="flex items-center justify-between mb-2">
+                        <div v-if="scrapedProfile" class="mt-4 pt-4 border-t border-gray-200" style="padding-bottom: 3px;">
+                            <div class="flex items-center justify-between mb-1 flex-row-reverse text-right">
                                 <div>
                                     <h4 class="text-sm font-bold text-[#3274B5]">نسخة احتياطية للمتابعين</h4>
-                                    <p class="text-xs text-gray-500">Backup Engaged Followers</p>
+                                    <p class="text-xs text-gray-500 mb-1">Backup Engaged Followers</p>
                                 </div>
                                 <span v-if="engagedFollowersCount" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
                                     {{ engagedFollowersCount }} backed up
                                 </span>
                             </div>
-                            <p class="text-xs text-gray-400 mb-1">Save usernames of people who like & comment on your posts (in case account is suspended)</p>
-                            <p class="text-sm text-gray-400 mb-2" dir="rtl">احفظ أسماء المستخدمين الذين يعجبون ويعلقون على منشوراتك (في حالة تعليق الحساب)</p>
-                            <button @click="backupFollowers" :disabled="backupLoading" class="w-auto px-4 mx-auto block bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700 transition flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button @click="backupFollowers" disabled class="w-auto px-3 mx-auto block bg-gray-400 text-white font-bold py-1.5 rounded-lg transition flex justify-center items-center text-sm opacity-50 cursor-not-allowed mt-3">
                                 <span v-if="!backupLoading">Backup Followers | نسخ المتابعين</span>
                                 <div v-else class="loader"></div>
                             </button>
@@ -504,17 +939,18 @@
                     </div>
 
                     <!-- Scraped Content Preview -->
-                    <div v-if="scrapedContent && scrapedContent.length > 0" class="mt-4 border-t pt-4">
-                        <h4 class="text-sm font-bold mb-2 flex items-baseline gap-1">
-                            <span class="text-base">محتوى مستورد</span>
+                    <div v-if="scrapedContent && scrapedContent.length > 0" class="mt-4 mb-4 border-t pt-4" style="padding-bottom: 10px;">
+                        <h4 class="text-sm font-bold flex items-baseline gap-1 justify-start" style="margin-bottom: 10px;" dir="rtl">
+                            <span class="text-base text-[#3274B5]">محتوى مستورد</span>
                             <span class="text-xs font-normal text-gray-500">| Imported Content ({{ scrapedContent.length }})</span>
                         </h4>
+                        <div style="height: 6px;"></div>
                         <div class="grid grid-cols-3 gap-1">
-                            <div v-for="item in scrapedContent.slice(0, 9)" :key="item.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
+                            <div v-for="item in scrapedContent.slice(0, contentDisplayLimit)" :key="item.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
                                 <!-- Clickable Area for Preview -->
                                 <div @click="openScrapedPreview(item)" class="w-full h-full cursor-pointer">
                                     <template v-if="item.is_video">
-                                        <img v-if="item.display_url" :src="item.display_url" class="w-full h-full object-cover">
+                                        <img v-if="item.display_url" :src="item.display_url" loading="lazy" class="w-full h-full object-cover">
                                         <div class="absolute top-1 right-1 bg-black/60 rounded-full p-1 pointer-events-none">
                                             <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
                                         </div>
@@ -525,7 +961,7 @@
                                         </div>
                                     </template>
                                     <template v-else>
-                                        <img v-if="item.display_url" :src="item.display_url" class="w-full h-full object-cover">
+                                        <img v-if="item.display_url" :src="item.display_url" loading="lazy" class="w-full h-full object-cover">
                                         <div v-else class="w-full h-full flex items-center justify-center text-gray-400 text-xs">No image</div>
                                     </template>
                                 </div>
@@ -535,6 +971,9 @@
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                 </button>
                             </div>
+                            <button v-if="scrapedContent.length > contentDisplayLimit" @click="contentDisplayLimit += 20" class="w-full mt-2 py-1.5 bg-gray-100 text-[#3274B5] font-bold rounded text-sm hover:bg-gray-200 transition">
+                                عرض المزيد ({{ Math.min(scrapedContent.length, contentDisplayLimit + 20) - contentDisplayLimit }})
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -547,7 +986,10 @@
                         </div>
                         <h3 class="text-lg font-bold text-gray-800 mb-2">محتوى ذكاء صنعي</h3>
                         <p class="text-sm text-gray-500 mb-1">AI Generated Content</p>
-                        <p class="text-xs text-gray-400 mt-4">قريباً | Coming Soon</p>
+                        <p class="mt-4 flex items-baseline justify-center gap-1" dir="rtl">
+                            <span class="text-lg font-bold text-gray-500">قريباً</span>
+                            <span class="text-xs text-gray-400">| Coming Soon</span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -561,6 +1003,48 @@
                     
                     <img v-if="previewFile.metadata.mimetype.startsWith('image')" :src="previewFile.url" class="max-w-full max-h-[80vh] rounded shadow-2xl">
                     <video v-else :src="previewFile.url" class="max-w-full max-h-[80vh] rounded shadow-2xl" controls autoplay playsinline></video>
+                </div>
+            </div>
+
+            <!-- Member Profile Pic Cropper -->
+            <div v-if="cropperOpen" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" @click="cropperOpen = false">
+                <div class="relative bg-gray-900 rounded-2xl overflow-hidden" style="width: 300px; height: 400px;" @click.stop>
+                    <div class="flex items-center justify-between px-3 pt-2 pb-1">
+                        <button v-if="profile.children_details[cropperMemberIndex]?.profile_pic" @click="deleteMemberPic" class="text-red-400 hover:text-red-300 transition" title="Delete photo">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                        <p class="text-white/60 text-xs text-center flex-1">Drag to position, scroll to zoom</p>
+                        <button @click="cropperOpen = false" class="text-white/60 hover:text-white text-xl leading-none">&times;</button>
+                    </div>
+                    <!-- Cropper area: single image + dark overlay with circle cutout -->
+                    <div class="relative mx-auto" style="width: 260px; height: 260px; overflow: hidden; cursor: grab; background: #111;"
+                         @mousedown="cropperStartDrag" @mousemove="cropperOnDrag" @mouseup="cropperStopDrag" @mouseleave="cropperStopDrag"
+                         @touchstart.prevent="cropperStartTouch" @touchmove.prevent="cropperOnTouch" @touchend="cropperStopDrag"
+                         @wheel.prevent="cropperZoom" ref="cropperArea">
+                        <!-- Single color image — user drags/zooms this -->
+                        <img v-if="cropperImage" :src="cropperImage" class="absolute select-none pointer-events-none max-w-none" draggable="false"
+                             :style="{ left: cropperX + 'px', top: cropperY + 'px', width: (cropperNatW * cropperScale) + 'px', height: (cropperNatH * cropperScale) + 'px' }">
+                        <!-- Dark overlay with circular hole (SVG) -->
+                        <svg class="absolute inset-0 pointer-events-none" width="260" height="260" viewBox="0 0 260 260">
+                            <defs>
+                                <mask id="cropCircleMask">
+                                    <rect width="260" height="260" fill="white"/>
+                                    <circle cx="130" cy="130" r="80" fill="black"/>
+                                </mask>
+                            </defs>
+                            <rect width="260" height="260" fill="rgba(0,0,0,0.6)" mask="url(#cropCircleMask)"/>
+                            <circle cx="130" cy="130" r="80" fill="none" stroke="rgba(50,116,181,0.7)" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <!-- Zoom slider -->
+                    <div class="flex items-center gap-2 px-6 mt-2">
+                        <span class="text-white/40 text-xs">−</span>
+                        <input type="range" min="0.05" max="8" step="0.05" :value="cropperScale" @input="handleSliderZoom" class="flex-1 accent-[#3274B5]">
+                        <span class="text-white/40 text-xs">+</span>
+                    </div>
+                    <div class="flex justify-center mt-3 pb-3">
+                        <button @click="confirmCrop" class="bg-[#3274B5] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-[#285e94] transition">Confirm | تأكيد</button>
+                    </div>
                 </div>
             </div>
 
@@ -703,9 +1187,9 @@
             </div>
 
             <div class="mt-6 text-center">
-                <p class="text-xs text-gray-400">
-                    <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                    End-to-End Encrypted
+                <p class="text-xs text-gray-400" dir="rtl">
+                    <span class="inline-block w-2 h-2 bg-green-500 rounded-full ml-1"></span>
+                    مشفّر من الطرف للطرف <span class="text-[10px]">| End-to-End Encrypted</span>
                 </p>
             </div>
         </div>
@@ -718,10 +1202,17 @@
             data() { 
                 return { 
                     step: 'portal_login', // portal_login, dashboard, 2fa, success
-                    authMode: 'login',
+                    authMode: 'register',
                     tab: sessionStorage.getItem('current_tab') || 'profile',
                     resetToken: null,
                     isImpersonating: false, // True when admin is viewing as this family
+                    adminEditFirstName: '',
+                    adminEditName: '',
+                    adminEditEmail: '',
+                    adminEditPassword: '',
+                    adminSaveStatus: '',
+                    newPassword: '',
+                    passwordSaveStatus: '',
                     loading: false,
                     isUploading: false,
                     error: null, 
@@ -730,44 +1221,83 @@
                     showInstaLogin: false,
                     uploadStatus: null,
                     mediaFiles: [],
+                    uploadCategories: [
+                        { value: 'inside_house', ar: 'جوا البيت', en: 'Inside the House', emoji: '🏠' },
+                        { value: 'outside_house', ar: 'برا البيت', en: 'Outside the House', emoji: '🏕️' },
+                        { value: 'cooking', ar: 'الطبخ', en: 'Cooking', emoji: '🍳' },
+                        { value: 'playing', ar: 'اللعب', en: 'Playing', emoji: '⚽' },
+                        { value: 'clinic', ar: 'بالعيادة', en: 'In the Clinic', emoji: '🏥' },
+                        { value: 'family', ar: 'مع العيلة', en: 'With Family', emoji: '👨‍👩‍👧‍👦' },
+                        { value: 'sickness', ar: 'المرض', en: 'Sickness', emoji: '🤒' },
+                        { value: 'dreams', ar: 'أحلام', en: 'Dreams', emoji: '✨' },
+                    ],
                     profile: {},
                     mediaStaging: [],
                     isMediaEditorOpen: false,
                     editingFile: null,
                     editingScraped: null,
+                    cropperOpen: false,
+                    cropperImage: null,
+                    cropperMemberIndex: null,
+                    cropperScale: 1,
+                    cropperX: 0,
+                    cropperY: 0,
+                    cropperNatW: 0,
+                    cropperNatH: 0,
+                    cropperDragging: false,
+                    cropperDragStart: { x: 0, y: 0 },
                     newUrgentNeed: '',
-                    newMember: { name: '', age: '', gender: 'Male', condition: '' },
+                    newMember: { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '', disability: '' },
                     scrapedProfile: null,
                     scrapedContent: [],
+                    contentDisplayLimit: 20,
                     scrapeStatus: { canScrape: true, minutesRemaining: 0 },
                     scrapeMessage: null,
                     backupLoading: false,
                     backupMessage: null,
                     engagedFollowersCount: 0,
+                    translationCache: {},
+                    memberSaved: false,
+                    urgentNeedSaved: false,
+                    showValidationError: false,
+                    showAgeArabicError: false,
+                    igUsernameInput: '',
+                    igUsernameMissing: false,
+                    igScrapeProgress: '',
+                    igScrapeTimer: null,
+                    igValidationWarning: false,
+                    showDisabilityWarning: false,
+                    profileSaved: false,
                     urgentNeedOptions: [
                         { value: "floods", label: "🌊 نواجه فيضانات | Facing severe floods" },
-                        { value: "displacement", label: "🚶 استلمنا أمر إخلاء | Displacement order received" },
-                        { value: "new_tent", label: "🛖 الخيمة تدمرت (بدنا جديدة) | Collapsed/ruined tent (need new)" },
-                        { value: "home_repair", label: "🧱 البيت بدو ترميم | Building needs critical repairs" },
-                        { value: "tent_repair", label: "🛠️ الخيمة بدها تصليح | Broken tent needs repair" },
-                        { value: "tent_tarp", label: "⛺ الخيمة بدها شادر | Tent has holes, needs tarp" },
-                        { value: "food", label: "🍲 بحاجة ماسة لأكل | In critical need of food" },
-                        { value: "medicines", label: "💊 بدنا دواء ضروري | Medicines urgently needed" },
+                        { value: "displacement", label: "🚶 استلمنا أمر إخلاء | Displacement order" },
+                        { value: "new_tent", label: "🛖 الخيمة تدمرت (بدنا جديدة) | Bad tent" },
+                        { value: "home_repair", label: "🧱 البيت بدو ترميم | Repairs" },
+                        { value: "tent_repair", label: "🛠️ الخيمة بدها تصليح | Broken tent" },
+                        { value: "tent_tarp", label: "⛺ الخيمة بدها شادر | Tarp" },
+                        { value: "food", label: "🍲 بحاجة ماسة لأكل | Food" },
+                        { value: "medicines", label: "💊 بدنا دواء ضروري | Medicines" },
                         { value: "blankets", label: "🧣 بدنا بطانيات | Blankets needed" },
-                        { value: "clothes", label: "🧥 بدنا واعي شتوي | Jackets or clothes needed" },
-                        { value: "medical_op", label: "🏥 تكاليف عملية | Finance mandatory medical operation" },
-                        { value: "medical_consult", label: "🩺 استشارة طبية عاجلة | Medical consultation urgently needed" },
+                        { value: "clothes", label: "🧥 بدنا واعي شتوي | Clothes" },
+                        { value: "medical_op", label: "🏥 تكاليف عملية | Operation" },
+                        { value: "medical_consult", label: "🩺 استشارة طبية عاجلة | Consultation" },
                         { value: "rent", label: "💵 علينا إيجار متأخر | Rent arrears overdue" },
-                        { value: "evacuation", label: "🚌 تكاليف السفر لمصر | Finance evacuation to Egypt" },
-                        { value: "business_setup", label: "💼 تكاليف تأسيس مشروع | Business setup overhead costs" },
-                        { value: "campaign", label: "💻 دعم الحملة | Finance fundraising campaign" },
-                        { value: "other", label: "❓ احتياجات تانية | Other necessities needed" }
+                        { value: "evacuation", label: "🚌 تكاليف السفر لمصر | Egypt" },
+                        { value: "business_setup", label: "💼 تكاليف تأسيس مشروع | Business" },
+                        { value: "campaign", label: "💻 دعم الحملة | Financing" },
+                        { value: "other", label: "❓ احتياجات تانية | Necessities" }
                     ],
-                    form: { email: '', family_name: '', password: '', insta_username: '', insta_password: '', code: '' } 
+                    form: { first_name: '', email: '', family_name: '', password: '', instagram_handle: '', insta_username: '', insta_password: '', code: '' } 
                 } 
             },
             watch: {
-                tab(newTab) {
+                tab(newTab, oldTab) {
+                    // Validate IG username before leaving profile tab (skip for admin impersonation)
+                    if (!this.isImpersonating && oldTab === 'profile' && !this.profile.instagram_handle && !this.igUsernameInput.trim()) {
+                        this.igUsernameMissing = true;
+                        this.tab = 'profile';
+                        return;
+                    }
                     sessionStorage.setItem('current_tab', newTab);
                     if (newTab === 'media') this.fetchMedia();
                     if (newTab === 'instagram') this.fetchScrapedProfile();
@@ -816,6 +1346,9 @@
                     window.history.replaceState({}, document.title, "/");
                 }
             },
+            computed: {
+                // Computed properties
+            },
             methods: {
                 getRunningTime() {
                     if (!this.profile.created_at) return '0';
@@ -833,17 +1366,78 @@
                     sessionStorage.removeItem('portal_token');
                     sessionStorage.removeItem('current_tab');
                 },
+                exitImpersonation() {
+                    sessionStorage.removeItem('portal_token');
+                    sessionStorage.removeItem('current_tab');
+                    window.location.href = '/admin';
+                },
+                async saveAdminAccountEdit() {
+                    this.adminSaveStatus = '';
+                    const body = {};
+                    if (this.adminEditFirstName !== (this.profile.first_name || '')) body.first_name = this.adminEditFirstName;
+                    if (this.adminEditName && this.adminEditName !== (this.profile.name || this.profile.family_name || '')) body.name = this.adminEditName;
+                    if (this.adminEditEmail && this.adminEditEmail !== this.profile.email) body.email = this.adminEditEmail;
+                    if (this.adminEditPassword.trim()) body.password = this.adminEditPassword.trim();
+                    if (Object.keys(body).length === 0) { this.adminSaveStatus = 'No changes'; setTimeout(() => this.adminSaveStatus = '', 2000); return; }
+                    try {
+                        const res = await fetch('/api/portal/admin-update', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify(body)
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            this.adminSaveStatus = 'Saved!';
+                            this.adminEditPassword = '';
+                            await this.fetchProfile();
+                        } else {
+                            this.adminSaveStatus = data.error || 'Failed';
+                        }
+                    } catch (e) {
+                        this.adminSaveStatus = 'Error: ' + e.message;
+                    }
+                    setTimeout(() => this.adminSaveStatus = '', 3000);
+                },
+                async saveNewPassword() {
+                    this.passwordSaveStatus = '';
+                    if (!this.newPassword.trim()) {
+                        this.passwordSaveStatus = 'Password required';
+                        setTimeout(() => this.passwordSaveStatus = '', 2000);
+                        return;
+                    }
+                    try {
+                        const res = await fetch('/api/portal/update', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ password: this.newPassword.trim() })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            this.passwordSaveStatus = 'Password saved | حفظت كلمة السر';
+                            this.newPassword = '';
+                        } else {
+                            this.passwordSaveStatus = data.error || 'Failed';
+                        }
+                    } catch (e) {
+                        this.passwordSaveStatus = 'Error: ' + e.message;
+                    }
+                    setTimeout(() => this.passwordSaveStatus = '', 3000);
+                },
                 async handlePortalLogin() {
                     this.loading = true; this.error = null;
                     try {
+                        const body = { 
+                            instagram_handle: this.form.instagram_handle || this.form.email, 
+                            password: this.form.password 
+                        };
                         const res = await fetch('/api/portal/login', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: this.form.email, password: this.form.password })
+                            body: JSON.stringify(body)
                         });
                         const data = await res.json();
                         if (data.error) throw new Error(data.error);
-                        
+
                         this.token = data.token;
                         sessionStorage.setItem('portal_token', data.token);
                         this.profile = data.user;
@@ -856,19 +1450,37 @@
                 async handlePortalRegister() {
                     this.loading = true; this.error = null;
                     try {
+                        const body = { 
+                            instagram_handle: this.form.instagram_handle || this.form.email, 
+                            password: this.form.password, 
+                            family_name: this.form.family_name,
+                            first_name: this.form.first_name
+                        };
                         const res = await fetch('/api/portal/register', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: this.form.email, password: this.form.password, family_name: this.form.family_name })
+                            body: JSON.stringify(body)
                         });
                         const data = await res.json();
                         if (data.error) throw new Error(data.error);
-                        
+
                         this.token = data.token;
                         sessionStorage.setItem('portal_token', data.token);
                         this.profile = data.user;
                         this.step = 'dashboard';
                         this.fetchProfile(); // Get full details
+
+                        // Auto-trigger IG scrape after profile loads
+                        if (this.form.instagram_handle) {
+                            const handle = this.form.instagram_handle.replace(/@/g, '').trim();
+                            this.igUsernameInput = handle;
+                            this.form.insta_username = handle;
+                            // Wait for profile to load, then trigger scrape silently
+                            this.$nextTick(async () => {
+                                await this.fetchProfile();
+                                this.triggerPostRegistrationScrape(handle);
+                            });
+                        }
                     } catch (e) { this.error = e.message; } finally { this.loading = false; }
                 },
                 async handleForgotPassword() {
@@ -909,49 +1521,536 @@
                         // Ensure urgent_needs array exists
                         if (!this.profile.urgent_needs) this.profile.urgent_needs = [];
                         // Pre-fill Instagram username if available
-                        if (this.profile.instagram_handle && !this.form.insta_username) {
-                            this.form.insta_username = this.profile.instagram_handle;
+                        if (this.profile.instagram_handle) {
+                            if (!this.form.insta_username) this.form.insta_username = this.profile.instagram_handle;
+                            if (!this.igUsernameInput) this.igUsernameInput = this.profile.instagram_handle;
+                        }
+
+                        // Initialize admin edit fields for impersonation
+                        if (this.isImpersonating) {
+                            this.adminEditFirstName = this.profile.first_name || '';
+                            this.adminEditName = this.profile.name || this.profile.family_name || '';
+                            this.adminEditEmail = this.profile.email || '';
+                        }
+
+                        // Reset detail panels and transliterate names for existing members
+                        for (const member of this.profile.children_details) {
+                            member.detailsOpen = false;
+                            if (member.name && !member.nameDisplay) {
+                                member.nameDisplay = await this.getTransliteratedName(member.name);
+                            }
+                            if (member.condition && !member.conditionDisplay) {
+                                member.conditionDisplay = await this.getBilingualText(member.condition);
+                            }
                         }
                     } catch (e) {
                         console.error('Fetch profile error', e);
                     }
                 },
-                async updateProfile() {
+                async triggerPostRegistrationScrape(handle) {
+                    // Silent scrape after @username registration — no red errors shown
+                    try {
+                        // 1. Check if public
+                        const checkRes = await fetch('/api/portal/instagram/check-public', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ username: handle })
+                        });
+                        const checkData = await checkRes.json();
+                        if (!checkRes.ok || !checkData.isPublic) {
+                            console.log('[Registration scrape] Account not public or check failed:', checkData.error);
+                            return;
+                        }
+                        // 2. Use profile pic immediately
+                        if (checkData.profilePicUrl) {
+                            this.profile.profile_pic_url = checkData.profilePicUrl;
+                        }
+                        // 3. Trigger full scrape in background
+                        await fetch('/api/portal/instagram/scrape', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ username: handle, skip_public_check: true })
+                        });
+                        // 4. Poll for content
+                        let polls = 0;
+                        const pollForContent = async () => {
+                            polls++;
+                            await this.fetchScrapedProfile();
+                            if (this.scrapedProfile?.profile_pic_url) {
+                                this.profile.profile_pic_url = this.scrapedProfile.profile_pic_url;
+                            }
+                            if (this.scrapedContent && this.scrapedContent.length > 0) return;
+                            if (polls < 36) setTimeout(pollForContent, 5000);
+                        };
+                        setTimeout(pollForContent, 5000);
+                    } catch (e) {
+                        console.error('[Registration scrape] Error:', e);
+                    }
+                },
+                async saveIgUsername() {
+                    if (!this.igUsernameInput.trim()) {
+                        this.igUsernameMissing = true;
+                        return;
+                    }
+                    // Reset state from any previous attempt
+                    if (this.igScrapeTimer) clearInterval(this.igScrapeTimer);
+                    this.igScrapeProgress = '';
+                    this.igUsernameMissing = false;
+
+                    const handle = this.igUsernameInput.replace(/@/g, '').trim();
+                    this.profile.instagram_handle = handle;
+                    this.form.insta_username = handle;
+                    await this.updateProfile(true);
+
+                    // Start animated dots
+                    let dotCount = 0;
+                    this.igScrapeTimer = setInterval(() => {
+                        dotCount = (dotCount % 40) + 1;
+                        this.igScrapeProgress = '.'.repeat(dotCount);
+                    }, 150);
+
+                    try {
+                        // 1. Check if public (also saves profile pic to DB)
+                        const checkRes = await fetch('/api/portal/instagram/check-public', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ username: handle })
+                        });
+                        const checkData = await checkRes.json();
+                        if (!checkRes.ok || !checkData.isPublic) {
+                            clearInterval(this.igScrapeTimer);
+                            this.igScrapeProgress = checkData.error || 'Account not public';
+                            setTimeout(() => { this.igScrapeProgress = ''; }, 4000);
+                            return;
+                        }
+
+                        // 2. Use profile pic from check-public response immediately
+                        if (checkData.profilePicUrl) {
+                            this.profile.profile_pic_url = checkData.profilePicUrl;
+                        }
+                        clearInterval(this.igScrapeTimer);
+                        this.igScrapeProgress = '';
+
+                        // 3. Trigger full scrape in background (skip redundant public check)
+                        await fetch('/api/portal/instagram/scrape', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ username: handle, skip_public_check: true })
+                        });
+
+                        // 4. Poll for scraped posts (content appears after full scrape completes)
+                        let polls = 0;
+                        const maxPolls = 36; // ~3 minutes
+                        const pollForContent = async () => {
+                            polls++;
+                            await this.fetchScrapedProfile();
+                            // Update profile pic with persistent B2 URL if available
+                            if (this.scrapedProfile?.profile_pic_url) {
+                                this.profile.profile_pic_url = this.scrapedProfile.profile_pic_url;
+                            }
+                            // Keep polling until we have content (posts) or hit max
+                            if (this.scrapedContent && this.scrapedContent.length > 0) {
+                                return; // Content loaded, done
+                            }
+                            if (polls < maxPolls) {
+                                setTimeout(pollForContent, 5000);
+                            }
+                        };
+                        setTimeout(pollForContent, 5000);
+                    } catch (e) {
+                        clearInterval(this.igScrapeTimer);
+                        this.igScrapeProgress = 'Error';
+                        console.error('IG scrape from profile:', e);
+                    }
+                },
+                async updateProfile(skipIgCheck) {
+                    // Validate IG username is linked (unless called internally)
+                    if (!skipIgCheck && !this.profile.instagram_handle) {
+                        this.igValidationWarning = true;
+                        this.igUsernameMissing = true;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        setTimeout(() => { this.igValidationWarning = false; this.igUsernameMissing = false; }, 8000);
+                        return;
+                    }
                     // Sync count
                     this.profile.children_count = this.profile.children_details.length;
-                    await fetch('/api/portal/profile', {
+                    const res = await fetch('/api/portal/profile', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
                         body: JSON.stringify(this.profile)
                     });
-                    alert('Profile saved!');
+                    if (res.ok) {
+                        this.profileSaved = true;
+                        setTimeout(() => { this.profileSaved = false; }, 2000);
+                    } else if (res.status === 401) {
+                        // Session expired (server redeployed) — force re-login
+                        alert('انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى\n\nSession expired. Please log in again.');
+                        this.signOut();
+                    } else {
+                        alert('خطأ بالحفظ | Save failed: ' + (await res.json().catch(() => ({}))).error);
+                    }
                 },
-                addMember() {
+                confirmDisability() {
+                    this.showDisabilityWarning = true;
+                    setTimeout(() => { this.showDisabilityWarning = false; }, 12000);
+                },
+                checkAgeArabic() {
+                    const arabicNumerals = /[\u0660-\u0669\u06F0-\u06F9]/;
+                    if (arabicNumerals.test(this.newMember.age)) {
+                        this.showAgeArabicError = true;
+                        this.newMember.age = this.newMember.age.replace(arabicNumerals, '');
+                    } else {
+                        this.showAgeArabicError = false;
+                        this.newMember.age = this.newMember.age.replace(/[^0-9]/g, '');
+                    }
+                },
+                async addMember() {
+                    // Validate IG username is linked
+                    if (!this.profile.instagram_handle) {
+                        this.igValidationWarning = true;
+                        this.igUsernameMissing = true;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        setTimeout(() => { this.igValidationWarning = false; this.igUsernameMissing = false; }, 8000);
+                        return;
+                    }
+                    // Validate required fields
+                    if (!this.newMember.name || !this.newMember.age || !this.newMember.relationship || !this.newMember.status) {
+                        // Show validation errors for 4 seconds
+                        this.showValidationError = true;
+                        setTimeout(() => {
+                            this.showValidationError = false;
+                        }, 4000);
+                        return;
+                    }
+
                     if (!this.profile.children_details) this.profile.children_details = [];
-                    this.profile.children_details.push({ ...this.newMember });
-                    this.newMember = { name: '', age: '', gender: 'Male', condition: '' }; // Reset
+
+                    // Transliterate name (phonetic) and translate condition (semantic)
+                    const memberWithTranslations = { ...this.newMember };
+                    // Auto-capitalize name (each word)
+                    if (memberWithTranslations.name) {
+                        memberWithTranslations.name = memberWithTranslations.name.replace(/\b[a-z]/g, c => c.toUpperCase());
+                        memberWithTranslations.nameDisplay = await this.getTransliteratedName(memberWithTranslations.name);
+                    }
+                    if (memberWithTranslations.condition) {
+                        memberWithTranslations.conditionDisplay = await this.getBilingualText(memberWithTranslations.condition);
+                    }
+
+                    this.profile.children_details.push(memberWithTranslations);
+                    this.newMember = { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '', disability: '' }; // Reset
+                    this.showDisabilityWarning = false;
+
+                    // Show green checkmark immediately
+                    this.memberSaved = true;
+                    setTimeout(() => {
+                        this.memberSaved = false;
+                    }, 5000);
+
+                    // Update profile in background
+                    await this.updateProfile(true);
                 },
-                removeChild(index) {
+                async removeChild(index) {
                     this.profile.children_details.splice(index, 1);
+                    await this.updateProfile(true);
                 },
-                addUrgentNeed() {
+                openCropperWithSrc(src, index) {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.cropperNatW = img.naturalWidth;
+                        this.cropperNatH = img.naturalHeight;
+                        this.cropperMemberIndex = index;
+                        this.cropperImage = src;
+                        // Fit image so shorter side fills the 160px circle
+                        const fitScale = Math.max(160 / img.naturalWidth, 160 / img.naturalHeight);
+                        this.cropperScale = fitScale;
+                        // Center image on the circle (circle center = 130, 130)
+                        this.cropperX = 130 - (img.naturalWidth * fitScale) / 2;
+                        this.cropperY = 130 - (img.naturalHeight * fitScale) / 2;
+                        this.cropperOpen = true;
+                    };
+                    img.src = src;
+                },
+                openMemberPicUpload(index) {
+                    this.cropperMemberIndex = index;
+                    const member = this.profile.children_details[index];
+                    if (member?.profile_pic) {
+                        this.openCropperWithSrc(member.profile_pic, index);
+                    } else {
+                        this.$refs.memberPicShared.click();
+                    }
+                },
+                handleMemberPicSelect(e, index) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    e.target.value = '';
+                    const reader = new FileReader();
+                    reader.onload = (ev) => this.openCropperWithSrc(ev.target.result, index);
+                    reader.readAsDataURL(file);
+                },
+                cropperStartDrag(e) {
+                    this.cropperDragging = true;
+                    this.cropperDragStart = { x: e.clientX - this.cropperX, y: e.clientY - this.cropperY };
+                },
+                cropperStartTouch(e) {
+                    if (e.touches.length === 1) {
+                        this.cropperDragging = true;
+                        this.cropperDragStart = { x: e.touches[0].clientX - this.cropperX, y: e.touches[0].clientY - this.cropperY };
+                    }
+                },
+                cropperOnDrag(e) {
+                    if (!this.cropperDragging) return;
+                    this.cropperX = e.clientX - this.cropperDragStart.x;
+                    this.cropperY = e.clientY - this.cropperDragStart.y;
+                },
+                cropperOnTouch(e) {
+                    if (!this.cropperDragging || e.touches.length !== 1) return;
+                    this.cropperX = e.touches[0].clientX - this.cropperDragStart.x;
+                    this.cropperY = e.touches[0].clientY - this.cropperDragStart.y;
+                },
+                cropperStopDrag() { this.cropperDragging = false; },
+                async deleteMemberPic() {
+                    const member = this.profile.children_details[this.cropperMemberIndex];
+                    if (!member?.profile_pic) return;
+                    member.profile_pic = null;
+                    this.cropperOpen = false;
+                    await this.updateProfile(true);
+                },
+                cropperZoom(e) {
+                    const oldScale = this.cropperScale;
+                    const factor = e.deltaY > 0 ? 0.9 : 1.1;
+                    const newScale = Math.max(0.05, Math.min(8, oldScale * factor));
+                    // Zoom toward circle center (130, 130)
+                    this.cropperX = 130 - (130 - this.cropperX) * (newScale / oldScale);
+                    this.cropperY = 130 - (130 - this.cropperY) * (newScale / oldScale);
+                    this.cropperScale = newScale;
+                },
+                handleSliderZoom(e) {
+                    const newScale = parseFloat(e.target.value);
+                    const oldScale = this.cropperScale;
+                    this.cropperX = 130 - (130 - this.cropperX) * (newScale / oldScale);
+                    this.cropperY = 130 - (130 - this.cropperY) * (newScale / oldScale);
+                    this.cropperScale = newScale;
+                },
+                async confirmCrop() {
+                    const canvas = document.createElement('canvas');
+                    const size = 320;
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    img.src = this.cropperImage;
+                    await new Promise(r => { img.onload = r; if (img.complete) r(); });
+
+                    // Circle covers container area (50,50)→(210,210) = 160px square
+                    // Image pixel (ix,iy) appears at container (ix*scale + cropperX, iy*scale + cropperY)
+                    // So the source rectangle in natural image pixels that fills the circle:
+                    const sx = (50 - this.cropperX) / this.cropperScale;
+                    const sy = (50 - this.cropperY) / this.cropperScale;
+                    const sw = 160 / this.cropperScale;
+                    const sh = 160 / this.cropperScale;
+
+                    ctx.beginPath();
+                    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+                    ctx.clip();
+
+                    // Draw source rect → full canvas (9-arg drawImage)
+                    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, size, size);
+
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+                    // Save to member data
+                    const member = this.profile.children_details[this.cropperMemberIndex];
+                    member.profile_pic = dataUrl;
+                    this.cropperOpen = false;
+                    await this.updateProfile(true);
+                },
+                toggleMemberDetails(index) {
+                    const member = this.profile.children_details[index];
+                    member.detailsOpen = !member.detailsOpen;
+                    // Lock/unlock body scroll when popup is open/closed
+                    document.body.style.overflow = member.detailsOpen ? 'hidden' : '';
+                },
+                async handleMemberFileUpload(e, memberIndex, fieldName) {
+                    const files = Array.from(e.target.files);
+                    if (!files.length) return;
+                    const member = this.profile.children_details[memberIndex];
+                    const arrayFields = ['clothing_photos', 'photo_refs', 'video_refs'];
+                    if (arrayFields.includes(fieldName) && !member[fieldName]) member[fieldName] = [];
+                    for (const file of files) {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('description', `member_${memberIndex}_${fieldName}`);
+                        try {
+                            const res = await fetch('/api/portal/upload', {
+                                method: 'POST',
+                                headers: { 'x-portal-token': this.token },
+                                body: formData
+                            });
+                            if (res.ok) {
+                                const data = await res.json();
+                                const url = data.url || data.publicUrl || '';
+                                if (arrayFields.includes(fieldName)) {
+                                    member[fieldName].push(url);
+                                } else {
+                                    member[fieldName] = url;
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Member file upload error:', err);
+                        }
+                    }
+                    await this.updateProfile(true);
+                    e.target.value = '';
+                },
+                async removeMemberFile(memberIndex, fieldName, fileIndex) {
+                    const member = this.profile.children_details[memberIndex];
+                    if (member[fieldName]) {
+                        member[fieldName].splice(fileIndex, 1);
+                        await this.updateProfile(true);
+                    }
+                },
+                async saveMemberDetails(index) {
+                    await this.updateProfile(true);
+                    this.toggleMemberDetails(index);
+                },
+                async addUrgentNeed() {
                     if (!this.profile.urgent_needs) this.profile.urgent_needs = [];
                     if (!this.profile.urgent_needs.includes(this.newUrgentNeed)) {
                         this.profile.urgent_needs.push(this.newUrgentNeed);
                     }
                     this.newUrgentNeed = '';
+
+                    // Show green checkmark immediately
+                    this.urgentNeedSaved = true;
+                    setTimeout(() => {
+                        this.urgentNeedSaved = false;
+                    }, 5000);
+
+                    // Update profile in background
+                    await this.updateProfile(true);
                 },
-                removeUrgentNeed(index) {
+                async removeUrgentNeed(index) {
                     this.profile.urgent_needs.splice(index, 1);
+                    await this.updateProfile(true);
                 },
                 getUrgentNeedLabel(value) {
                     const option = this.urgentNeedOptions.find(o => o.value === value);
                     return option ? option.label : value;
                 },
+                getRelationshipLabel(relationship, gender) {
+                    const isMale = gender === 'Male';
+                    const map = {
+                        'Son/Daughter': isMale ? { en: 'Son', ar: 'ابن' } : { en: 'Daughter', ar: 'ابنة' },
+                        'Adopted Son/Daughter': isMale ? { en: 'Adopted Son', ar: 'ابن بالتبني' } : { en: 'Adopted Daughter', ar: 'ابنة بالتبني' },
+                        'Orphan Boy/Girl': isMale ? { en: 'Orphan Boy', ar: 'يتيم' } : { en: 'Orphan Girl', ar: 'يتيمة' },
+                        'Husband/Wife': isMale ? { en: 'Husband', ar: 'زوج' } : { en: 'Wife', ar: 'زوجة' },
+                        'Brother/Sister': isMale ? { en: 'Brother', ar: 'أخ' } : { en: 'Sister', ar: 'أخت' },
+                        'Mother/Father': isMale ? { en: 'Father', ar: 'أب' } : { en: 'Mother', ar: 'أم' },
+                        'Nephew/Niece': isMale ? { en: 'Nephew', ar: 'ابن أخ' } : { en: 'Niece', ar: 'بنت أخت' },
+                        'Aunt/Uncle': isMale ? { en: 'Uncle', ar: 'عم، خال' } : { en: 'Aunt', ar: 'عمة، خالة' }
+                    };
+                    return map[relationship] || { en: relationship, ar: '' };
+                },
+                getStatusLabel(status) {
+                    const map = {
+                        'Alive': { en: 'Alive', ar: 'حي يرزق' },
+                        'Deceased': { en: 'Deceased', ar: 'متوفي' },
+                        'Unknown': { en: 'Unknown', ar: 'مجهول' }
+                    };
+                    return map[status] || { en: status, ar: '' };
+                },
+                async translateText(text, targetLang = 'en') {
+                    if (!text || !text.trim()) return text;
+
+                    // Check cache first
+                    const cacheKey = `${text}_${targetLang}`;
+                    if (this.translationCache[cacheKey]) {
+                        return this.translationCache[cacheKey];
+                    }
+
+                    try {
+                        const res = await fetch('/api/translate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-portal-token': this.token
+                            },
+                            body: JSON.stringify({ text, targetLang })
+                        });
+
+                        if (!res.ok) throw new Error('Translation failed');
+
+                        const data = await res.json();
+                        // Cache the result
+                        this.translationCache[cacheKey] = data.translation;
+                        return data.translation;
+                    } catch (error) {
+                        console.error('Translation error:', error);
+                        return text; // Return original text on error
+                    }
+                },
+                async getTransliteratedName(name) {
+                    if (!name || !name.trim()) return name;
+                    try {
+                        const res = await fetch('/api/transliterate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ text: name })
+                        });
+                        if (!res.ok) return name;
+                        const data = await res.json();
+                        const isArabic = /[\u0600-\u06FF]/.test(name);
+                        return isArabic ? `${data.transliteration} ${name}` : `${name} ${data.transliteration}`;
+                    } catch (e) {
+                        return name;
+                    }
+                },
+                async getBilingualText(text) {
+                    if (!text || !text.trim()) return text;
+
+                    // Detect if text is primarily Arabic (contains Arabic characters)
+                    const isArabic = /[\u0600-\u06FF]/.test(text);
+
+                    if (isArabic) {
+                        // Arabic → English
+                        const translation = await this.translateText(text, 'en');
+                        return `${translation} ${text}`;
+                    } else {
+                        // English → Arabic
+                        const translation = await this.translateText(text, 'ar');
+                        return `${text} ${translation}`;
+                    }
+                },
+                mediaByCat(cat) {
+                    return this.mediaFiles.filter(f => (f.metadata?.category || null) === cat);
+                },
+                async handleCategoryUpload(e, category) {
+                    const files = Array.from(e.target.files);
+                    if (!files.length) return;
+                    e.target.value = '';
+                    this.uploadStatus = { type: 'info', message: `Uploading ${files.length} file(s)...` };
+                    let successCount = 0;
+                    for (const file of files) {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('category', category);
+                        try {
+                            const res = await fetch('/api/portal/upload', {
+                                method: 'POST',
+                                headers: { 'x-portal-token': this.token },
+                                body: formData
+                            });
+                            if (res.ok) successCount++;
+                        } catch (e) { console.error('Upload failed', e); }
+                    }
+                    this.uploadStatus = { type: 'success', message: `Uploaded ${successCount} item(s).` };
+                    setTimeout(() => this.uploadStatus = null, 3000);
+                    this.fetchMedia();
+                },
                 async handleFileUpload(e) {
                     const files = Array.from(e.target.files);
                     if (!files.length) return;
-                    
+
                     for (const file of files) {
                         this.mediaStaging.push({
                             file,
@@ -1131,7 +2230,7 @@
                     this.error = null;
                     this.scrapeMessage = null;
 
-                    const cleanUsername = this.form.insta_username.replace(/^@/, '').trim();
+                    const cleanUsername = this.form.insta_username.replace(/@/g, '').trim();
 
                     if (!cleanUsername) {
                         this.error = 'Please enter an Instagram username';
@@ -1171,10 +2270,17 @@
                         // 3. Trigger scrape
                         this.scrapeMessage = { type: 'info', text: 'عم نجلب الملف... ممكن ياخد كم دقيقة | Scraping profile...' };
 
+                        // Update profile with new handle and pic from check-public
+                        this.profile.instagram_handle = cleanUsername;
+                        this.igUsernameInput = cleanUsername;
+                        if (checkData.profilePicUrl) {
+                            this.profile.profile_pic_url = checkData.profilePicUrl;
+                        }
+
                         const scrapeRes = await fetch('/api/portal/instagram/scrape', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
-                            body: JSON.stringify({ username: cleanUsername })
+                            body: JSON.stringify({ username: cleanUsername, skip_public_check: true })
                         });
 
                         const scrapeData = await scrapeRes.json();
@@ -1204,16 +2310,21 @@
                             pollCount++;
                             await this.fetchScrapedProfile();
 
-                            // Check if profile pic is now available
+                            // Update profile pic with persistent B2 URL if available
                             if (this.scrapedProfile?.profile_pic_url) {
-                                this.scrapeMessage = { type: 'success', text: 'تم جلب الملف بنجاح! | Profile scraped!' };
-                                setTimeout(() => { this.scrapeMessage = null; }, 3000);
+                                this.profile.profile_pic_url = this.scrapedProfile.profile_pic_url;
+                            }
+
+                            // Done when content (posts) have loaded
+                            if (this.scrapedContent && this.scrapedContent.length > 0) {
+                                this.scrapeMessage = { type: 'success', text: `تم جلب ${this.scrapedContent.length} منشور بنجاح! | ${this.scrapedContent.length} posts scraped!` };
+                                setTimeout(() => { this.scrapeMessage = null; }, 4000);
                                 return;
                             }
 
                             // Keep polling if not at max
                             if (pollCount < maxPolls) {
-                                this.scrapeMessage = { type: 'success', text: `جاري الجلب... (${pollCount * 5}s) | Scraping...` };
+                                this.scrapeMessage = { type: 'info', text: `جاري الجلب... (${pollCount * 5}s) | Scraping...` };
                                 setTimeout(pollForResults, pollInterval);
                             } else {
                                 // Timeout - show what we have
@@ -1298,7 +2409,7 @@
                 },
                 async fetchScrapedContent() {
                     try {
-                        const res = await fetch('/api/portal/instagram/content?limit=9', {
+                        const res = await fetch('/api/portal/instagram/content?limit=200', {
                             headers: { 'x-portal-token': this.token }
                         });
                         if (res.ok) {
@@ -1312,16 +2423,20 @@
                 formatScrapeDate(dateStr) {
                     if (!dateStr) return '';
                     const d = new Date(dateStr);
-                    const month = d.toLocaleString('en-US', { month: 'long' });
-                    const day = d.getDate();
+                    const month = (d.getMonth() + 1).toString().padStart(2, '0'); // 01-12
+                    const day = d.getDate().toString().padStart(2, '0');
                     const hours = d.getHours().toString().padStart(2, '0');
                     const mins = d.getMinutes().toString().padStart(2, '0');
-                    return `${month} ${day}, ${hours}:${mins}`;
+                    return `${day}/${month}، ${hours}:${mins}`;
                 },
                 async unlinkInstagram() {
-                    if (!confirm('Unlink this Instagram account? This will remove scraped profile and content data.\n\nإلغاء ربط هذا الحساب؟ سيتم حذف بيانات الملف الشخصي والمحتوى.')) {
-                        return;
+                    let confirmed = false;
+                    try {
+                        confirmed = confirm('Unlink this Instagram account? This will remove scraped profile and content data.\n\nإلغاء ربط هذا الحساب؟ سيتم حذف بيانات الملف الشخصي والمحتوى.');
+                    } catch (e) {
+                        confirmed = true; // If confirm() fails (embedded browser), proceed anyway
                     }
+                    if (!confirmed) return;
 
                     this.loading = true;
                     try {
@@ -1342,6 +2457,7 @@
                         this.scrapeStatus = { canScrape: true, hoursRemaining: 0 };
                         this.form.insta_username = '';
                         this.form.insta_password = '';
+                        this.igUsernameInput = '';
 
                         // Clear profile pic from profile
                         if (this.profile) {
