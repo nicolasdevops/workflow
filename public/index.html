@@ -152,7 +152,6 @@
                     <div v-if="authMode === 'login'" class="mb-6 flex justify-end">
                         <button type="button" @click="step = 'forgot_password'" class="hover:underline flex items-baseline gap-1.5" dir="rtl">
                             <span class="text-[14px] text-[#3274B5] font-bold">نسيت كلمة المرور؟</span>
-                            <span class="text-[10px] text-[#3274B5]/80">| Forgot Password?</span>
                         </button>
                     </div>
 
@@ -204,7 +203,7 @@
                     <button @click="exitImpersonation" class="text-xs bg-white/20 px-2 py-1 rounded hover:bg-white/30">Exit</button>
                 </div>
 
-                <div class="flex border-b mb-6 w-full max-w-[350px] mx-auto">
+                <div class="flex flex-row-reverse border-b mb-6 w-full max-w-[350px] mx-auto">
                     <button @click="tab = 'profile'" class="flex-1 px-1 md:px-4 py-2 font-medium text-gray-600 text-sm md:text-lg flex flex-col items-center transition-all">
                         <div class="flex flex-col items-center">
                             <div class="relative">
@@ -276,7 +275,7 @@
                         </div>
                         <!-- Set Password -->
                         <div class="mt-3 px-2">
-                            <label class="block text-sm font-bold mb-1">حط كلمة سر:</label>
+                            <label class="block text-sm font-bold mb-1">حط كلمة سر (اختياري):</label>
                             <div class="flex gap-1.5 items-center">
                                 <input v-model="newPassword" type="password" class="flex-1 border p-1 rounded text-xs h-4" placeholder="••••••••" dir="ltr">
                                 <button type="button" @click="saveNewPassword" class="text-[#3274B5] font-bold text-lg leading-none hover:text-[#285e94] px-1">&rsaquo;</button>
