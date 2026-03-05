@@ -108,7 +108,7 @@
 
             <!-- Portal Login -->
             <div v-if="step === 'portal_login'" class="w-full max-w-[350px] mx-auto">
-                <div class="flex flex-row-reverse border-b border-[#3274B5] mb-6">
+                <div class="flex flex-row-reverse mb-6">
                     <button @click="authMode = 'register'" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-right pr-2 transition-all">
                         <span :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register', 'font-normal': authMode !== 'register'}" class="inline-block pb-[11px]">تسجيل جديد | 1.</span>
                     </button>
@@ -463,9 +463,7 @@
                                         <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                     </div>
                                     <div v-if="showDisabilityWarning" class="col-span-3 bg-amber-50 border border-amber-300 rounded p-2 text-xs leading-relaxed mb-1" dir="rtl">
-                                        <p class="font-bold text-amber-800 mb-1">تأكد: هل هذا الشخص يعاني من إعاقة جسدية أو ذهنية دائمة وخطيرة تمنعه من الحركة أو العمل؟</p>
-                                        <p class="text-amber-700">مثال: شلل دماغي، بتر الساقين، عدم القدرة على الكلام. عين واحدة ضعيفة ليست إعاقة هنا ما دام الشخص يقدر يمشي ويشتغل ويحكي.</p>
-                                        <p class="text-amber-700 mt-1" dir="ltr" style="text-align: left;">This will impact AI content output. Only select for serious permanent incapacitation (e.g. cerebral palsy, double amputee, nonverbal).</p>
+                                        <p class="font-bold text-amber-800">هالشي رح يأثر على محتوى الذكاء الاصطناعي. اختار هاد الخيار بس بحالات الإعاقة الدايمة والخطيرة (مثل: شلل دماغي، بتر، أخرس، أعمى).</p>
                                     </div>
                                     <div></div>
                                     <div class="flex items-center gap-3 h-[30px] justify-start" dir="rtl">
@@ -914,14 +912,14 @@
                                     <span class="text-base font-bold leading-none">اسم حساب الانستغرام</span>
                                     <span class="text-xs font-normal leading-none">IG username</span>
                                 </label>
-                                <input v-model="form.insta_username" type="text" class="w-1/2 ml-auto block border p-2 rounded text-sm text-right" dir="ltr" placeholder="@instagram_username">
+                                <input v-model="form.insta_username" type="text" class="w-2/3 ml-auto block border p-2 rounded text-sm text-right" dir="ltr" placeholder="@instagram_username">
                             </div>
                             <div class="mb-4">
                                 <label class="block mb-1 flex flex-col items-end gap-[5px] text-[#3274B5]">
                                     <span class="text-base font-bold leading-none">كلمة السر (اختياري)</span>
                                     <span class="text-xs font-normal leading-none">Password (Optional)</span>
                                 </label>
-                                <input v-model="form.insta_password" type="password" :disabled="!profile.instagram_password_enabled" class="w-1/2 ml-auto block border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed text-right" dir="ltr" placeholder="••••••••">
+                                <input v-model="form.insta_password" type="password" :disabled="!profile.instagram_password_enabled" class="w-2/3 ml-auto block border border-[#3274B5]/30 bg-[#3274B5]/10 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed text-right" dir="ltr" placeholder="••••••••">
                                 <p v-if="!profile.instagram_password_enabled" class="text-xs text-gray-500 mt-1 text-right">تواصل مع الإدارة لتفعيل كلمة السر</p>
                                 <p v-else class="text-xs text-gray-400 mt-1 text-right">Password saved for admin-managed account recovery only</p>
                             </div>
