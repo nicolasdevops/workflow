@@ -160,3 +160,20 @@ CREATE INDEX IF NOT EXISTS idx_fgc_posted ON family_generated_comments(posted_at
 COMMENT ON TABLE family_generated_comments IS 'Pre-generated comments awaiting admin approval before posting';
 COMMENT ON COLUMN family_generated_comments.status IS 'Lifecycle: pending -> approved -> posted (or rejected)';
 COMMENT ON COLUMN family_generated_comments.likes_count IS 'Number of likes on the posted comment, checked periodically';
+
+-- ============================================================================
+-- MIGRATION 14: Password Reset Tickets
+-- Purpose: Track user password reset requests for admin resolution
+-- Date: 2026-03-06
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS password_reset_tickets (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  instagram_handle TEXT NOT NULL,
+  family_id UUID REFERENCES families(id),
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'resolved')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_prt_status ON password_reset_tickets(status);
+CREATE INDEX IF NOT EXISTS idx_prt_created ON password_reset_tickets(created_at DESC);

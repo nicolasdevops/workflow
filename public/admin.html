@@ -96,6 +96,10 @@
                         <button @click="tab = 'families'" :class="tab === 'families' ? 'border-b-2 border-[#3274B5] text-[#3274B5]' : 'text-gray-500'" class="px-4 py-3 font-medium">Families</button>
                         <button @click="tab = 'media'" :class="tab === 'media' ? 'border-b-2 border-[#3274B5] text-[#3274B5]' : 'text-gray-500'" class="px-4 py-3 font-medium">Media</button>
                         <button @click="tab = 'scrapes'" :class="tab === 'scrapes' ? 'border-b-2 border-[#3274B5] text-[#3274B5]' : 'text-gray-500'" class="px-4 py-3 font-medium">Scrapes</button>
+                        <button @click="tab = 'tickets'; fetchTickets()" :class="tab === 'tickets' ? 'border-b-2 border-[#3274B5] text-[#3274B5]' : 'text-gray-500'" class="px-4 py-3 font-medium relative">
+                            Tickets
+                            <span v-if="pendingTicketCount > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">{{ pendingTicketCount }}</span>
+                        </button>
                     </div>
                 </div>
 
@@ -480,6 +484,46 @@
                     </div>
                 </div>
 
+                <!-- Tickets Tab -->
+                <div v-if="tab === 'tickets'" class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h2 class="font-bold text-gray-800">Password Reset Tickets</h2>
+                        <button @click="fetchTickets" class="text-sm text-[#3274B5] hover:underline">Refresh</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="text-left p-3 font-medium text-gray-600">Instagram</th>
+                                    <th class="text-left p-3 font-medium text-gray-600">Matched Family</th>
+                                    <th class="text-left p-3 font-medium text-gray-600">Status</th>
+                                    <th class="text-left p-3 font-medium text-gray-600">Date</th>
+                                    <th class="text-left p-3 font-medium text-gray-600">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="ticket in tickets" :key="ticket.id" class="border-t hover:bg-gray-50" :class="ticket.status === 'resolved' ? 'opacity-50' : ''">
+                                    <td class="p-3">
+                                        <a :href="'https://instagram.com/' + ticket.instagram_handle" target="_blank" class="text-blue-600 hover:underline">@{{ ticket.instagram_handle }}</a>
+                                    </td>
+                                    <td class="p-3">{{ ticket.family_name || '—' }}</td>
+                                    <td class="p-3">
+                                        <span :class="ticket.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'" class="px-2 py-1 rounded text-xs font-medium">{{ ticket.status }}</span>
+                                    </td>
+                                    <td class="p-3 text-gray-500 text-xs">{{ formatDate(ticket.created_at) }}</td>
+                                    <td class="p-3 flex gap-2">
+                                        <button v-if="ticket.family_id" @click="viewAsFamily({ id: ticket.family_id })" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]">View as User</button>
+                                        <button v-if="ticket.status === 'pending'" @click="resolveTicket(ticket.id)" class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">Resolve</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div v-if="tickets.length === 0" class="p-8 text-center text-gray-400">
+                        No tickets yet.
+                    </div>
+                </div>
+
                 <!-- Loading Overlay -->
                 <div v-if="loading" class="fixed inset-0 bg-black/20 flex items-center justify-center">
                     <div class="bg-white p-6 rounded-lg shadow-lg">
@@ -506,6 +550,7 @@
                     families: [],
                     mediaFiles: [],
                     scrapes: [],
+                    tickets: [],
                     stats: {
                         totalFamilies: 0,
                         igConnected: 0,
@@ -532,6 +577,11 @@
                     aggregateOverrides: {},
                     memberOverrides: {},
                     contextualOverrides: {}
+                }
+            },
+            computed: {
+                pendingTicketCount() {
+                    return this.tickets.filter(t => t.status === 'pending').length;
                 }
             },
             mounted() {
@@ -662,7 +712,8 @@
                         this.fetchFamilies(),
                         this.fetchMedia(),
                         this.fetchScrapes(),
-                        this.fetchStats()
+                        this.fetchStats(),
+                        this.fetchTickets()
                     ]);
                 },
                 async fetchFamilies() {
@@ -710,6 +761,32 @@
                         }
                     } catch (e) {
                         console.error('Fetch scrapes error:', e);
+                    }
+                },
+                async fetchTickets() {
+                    try {
+                        const res = await fetch('/api/admin/tickets', {
+                            headers: { 'x-admin-token': this.authToken }
+                        });
+                        if (!this.checkAuth(res)) return;
+                        if (res.ok) {
+                            this.tickets = await res.json();
+                        }
+                    } catch (e) {
+                        console.error('Fetch tickets error:', e);
+                    }
+                },
+                async resolveTicket(id) {
+                    try {
+                        const res = await fetch(`/api/admin/tickets/${id}/resolve`, {
+                            method: 'POST',
+                            headers: { 'x-admin-token': this.authToken }
+                        });
+                        if (res.ok) {
+                            this.fetchTickets();
+                        }
+                    } catch (e) {
+                        console.error('Resolve ticket error:', e);
                     }
                 },
                 async fetchStats() {

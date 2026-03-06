@@ -1522,72 +1522,34 @@ app.post('/api/portal/media/delete', portalAuth, async (req, res) => {
   }
 });
 
-// Forgot Password - Request Token
+// Forgot Password - Create ticket for admin resolution
 app.post('/api/portal/forgot-password', async (req, res) => {
-  const email = req.body.email.toLowerCase();
+  const handle = (req.body.instagram_handle || '').replace(/@/g, '').trim().toLowerCase();
+  if (!handle) return res.status(400).json({ error: 'Instagram handle required' });
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
 
   try {
-    // Check if user exists (silently fail if not to prevent enumeration)
-    const { data: user, error: userError } = await supabase.from('families').select('email').eq('email', email).single();
-    
-    if (userError && userError.code !== 'PGRST116') { // PGRST116 is "No rows found"
-        throw userError;
-    }
+    // Try to match family by instagram_handle
+    let familyId = null;
+    const { data: family } = await supabase
+      .from('families')
+      .select('id')
+      .eq('instagram_handle', handle)
+      .single();
+    if (family) familyId = family.id;
 
-    if (user) {
-        // Generate Token
-        const token = crypto.randomBytes(32).toString('hex');
-        const expires = new Date(Date.now() + 3600000); // 1 hour from now
+    // Create ticket
+    const { error: insertError } = await supabase
+      .from('password_reset_tickets')
+      .insert({ instagram_handle: handle, family_id: familyId });
 
-        // Save to DB
-        const { error: updateError } = await supabase
-        .from('families')
-        .update({ reset_token: token, reset_expires: expires.toISOString() })
-        .eq('email', email);
+    if (insertError) throw insertError;
 
-        if (updateError) throw updateError;
-
-        // Generate Reset Link
-        const resetLink = `${req.protocol}://${req.get('host')}/?token=${token}`;
-        
-        // EMAIL SENDING LOGIC
-        // Check if email service is configured
-        const isEmailConfigured = (process.env.SMTP_HOST && process.env.SMTP_USER) || process.env.RESEND_API_KEY;
-
-        if (isEmailConfigured) {
-            // Run email sending asynchronously so we don't block the UI response
-            // This prevents the "stuck" processing icon if email service is slow/down
-            (async () => {
-                try {
-                    const isResend = !!process.env.RESEND_API_KEY;
-                    const fromAddress = process.env.SMTP_FROM || (isResend ? 'onboarding@resend.dev' : '"Gaza Protocol" <noreply@example.com>');
-
-                    console.log(`📧 Attempting to send password reset email to ${email}...`);
-                    await transporter.sendMail({
-                        from: fromAddress,
-                        to: email,
-                        subject: 'Password Reset Request',
-                        html: `<p>You requested a password reset.</p><p>Click here to reset: <a href="${resetLink}">${resetLink}</a></p>`,
-                    });
-                    console.log(`✅ Email sent successfully to ${email}`);
-                } catch (emailError) {
-                    console.error('❌ Failed to send email (check SMTP/Resend config):', emailError.message);
-                }
-            })();
-        } else {
-            // Fallback: Log to console for development/testing
-            console.log(`\n📧 [EMAIL MOCK] Password Reset Request for ${email}`);
-            console.log(`🔗 Link: ${resetLink}\n`);
-        }
-    }
-
-    // Always return success for security
-    res.json({ status: 'SUCCESS', message: 'If an account exists, a reset link has been sent.' });
-
+    console.log(`[Ticket] Password reset ticket created for @${handle} (family: ${familyId || 'unmatched'})`);
+    res.json({ status: 'SUCCESS' });
   } catch (e) {
-      console.error('Forgot password error:', e);
-      res.status(500).json({ error: 'Internal server error processing request' });
+    console.error('Forgot password ticket error:', e);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2381,6 +2343,59 @@ app.get('/api/admin/scrapes', adminAuth, async (req, res) => {
     res.json(data || []);
   } catch (e) {
     console.error('[Admin] Scrapes error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Admin: Get password reset tickets
+app.get('/api/admin/tickets', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const { data, error } = await supabase
+      .from('password_reset_tickets')
+      .select('id, instagram_handle, family_id, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    if (error) throw error;
+
+    // Enrich with family names
+    const familyIds = data.filter(t => t.family_id).map(t => t.family_id);
+    let familyMap = {};
+    if (familyIds.length > 0) {
+      const { data: families } = await supabase
+        .from('families')
+        .select('id, name, first_name, email')
+        .in('id', familyIds);
+      if (families) families.forEach(f => { familyMap[f.id] = f; });
+    }
+
+    const enriched = data.map(t => ({
+      ...t,
+      family_name: t.family_id && familyMap[t.family_id]
+        ? (familyMap[t.family_id].first_name || '') + ' ' + (familyMap[t.family_id].name || '')
+        : null,
+      family_email: t.family_id && familyMap[t.family_id] ? familyMap[t.family_id].email : null
+    }));
+
+    res.json(enriched);
+  } catch (e) {
+    console.error('[Admin] Tickets error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Admin: Resolve a password reset ticket
+app.post('/api/admin/tickets/:id/resolve', adminAuth, async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+  try {
+    const { error } = await supabase
+      .from('password_reset_tickets')
+      .update({ status: 'resolved' })
+      .eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (e) {
+    console.error('[Admin] Resolve ticket error:', e);
     res.status(500).json({ error: e.message });
   }
 });
