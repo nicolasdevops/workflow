@@ -170,7 +170,7 @@ COMMENT ON COLUMN family_generated_comments.likes_count IS 'Number of likes on t
 CREATE TABLE IF NOT EXISTS password_reset_tickets (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   instagram_handle TEXT NOT NULL,
-  family_id UUID REFERENCES families(id),
+  family_id INTEGER REFERENCES families(id),
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'resolved')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
