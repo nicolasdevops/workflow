@@ -219,10 +219,10 @@
                     <button @click="tab = 'media'" class="flex-1 px-1 md:px-4 py-2 font-medium text-gray-600 text-sm md:text-lg flex flex-col items-center transition-all">
                         <div class="flex flex-col items-center">
                             <div class="relative">
-                                <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center" :class="tab === 'media' ? 'border-[#3274B5]' : 'border-black'">
-                                    <svg class="w-4 h-4" :class="tab === 'media' ? 'text-[#3274B5]' : 'text-black'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center" :class="tab === 'media' ? 'border-[#3274B5]' : 'border-[#3274B5]/30'">
+                                    <svg class="w-4 h-4" :class="tab === 'media' ? 'text-[#3274B5]' : 'text-[#3274B5]/30'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                                 </div>
-                                <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold" :class="tab === 'media' ? 'bg-[#3274B5]' : 'bg-black'">2</span>
+                                <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold" :class="tab === 'media' ? 'bg-[#3274B5]' : 'bg-[#3274B5]/30'">2</span>
                             </div>
                             <span class="whitespace-nowrap" :class="{'text-[#3274B5]': tab === 'media'}">رفع ميديا</span>
                         </div>
@@ -231,10 +231,10 @@
                     <button @click="tab = 'ai'" class="flex-1 px-1 md:px-4 py-2 font-medium text-gray-600 text-sm md:text-lg flex flex-col items-center transition-all">
                         <div class="flex flex-col items-center">
                             <div class="relative">
-                                <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center" :class="tab === 'ai' ? 'border-[#3274B5]' : 'border-black'">
-                                    <svg class="w-4 h-4" :class="tab === 'ai' ? 'text-[#3274B5]' : 'text-black'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                                <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center" :class="tab === 'ai' ? 'border-[#3274B5]' : 'border-[#3274B5]/30'">
+                                    <svg class="w-4 h-4" :class="tab === 'ai' ? 'text-[#3274B5]' : 'text-[#3274B5]/30'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
                                 </div>
-                                <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold" :class="tab === 'ai' ? 'bg-[#3274B5]' : 'bg-black'">3</span>
+                                <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold" :class="tab === 'ai' ? 'bg-[#3274B5]' : 'bg-[#3274B5]/30'">3</span>
                             </div>
                             <span class="whitespace-nowrap" :class="{'text-[#3274B5]': tab === 'ai'}">ذكاء صنعي</span>
                         </div>
