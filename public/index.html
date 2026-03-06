@@ -123,11 +123,11 @@
                     <div v-if="authMode === 'register'" class="mb-4 flex gap-3">
                         <div class="flex-1">
                             <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">الاسم الأول</span> <span class="text-[11px]">| First Name</span></label>
-                            <input v-model="form.first_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" required placeholder="مثال: أحمد">
+                            <input v-model="form.first_name" type="text" class="w-full px-2 py-0 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right text-sm h-[30px]" required placeholder="مثال: أحمد">
                         </div>
                         <div class="flex-1">
                             <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">اسم العائلة</span> <span class="text-[11px]">| Family Name</span></label>
-                            <input v-model="form.family_name" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" required placeholder="مثال: المصري">
+                            <input v-model="form.family_name" type="text" class="w-full px-2 py-0 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right text-sm h-[30px]" required placeholder="مثال: المصري">
                         </div>
                     </div>
 
@@ -141,12 +141,12 @@
 
                     <div class="mb-4">
                         <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">اسم حساب الانستغرام</span> <span class="text-[11px]">| Instagram</span></label>
-                        <input v-model="form.instagram_handle" type="text" class="w-2/3 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right ml-auto" dir="ltr" required placeholder="@username">
+                        <input v-model="form.instagram_handle" type="text" class="w-2/3 px-2 py-0 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right ml-auto text-sm h-[30px]" dir="ltr" required placeholder="@username">
                     </div>
 
                     <div class="mb-6">
                         <label class="block text-gray-700 font-bold mb-2"><span class="text-[15px]">كلمة المرور (اختياري)</span> <span class="text-[11px]">| Password</span></label>
-                        <input v-model="form.password" type="password" class="w-2/3 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right ml-auto" dir="ltr" placeholder="••••••••">
+                        <input v-model="form.password" type="password" class="w-2/3 px-2 py-0 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right ml-auto text-sm h-[30px]" dir="ltr" placeholder="••••••••">
                     </div>
 
                     <div v-if="authMode === 'login'" class="mb-6 text-right">
@@ -336,7 +336,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                                     <span class="text-xs text-black">نوع السكن</span>
                                 </label>
-                                <select v-model="profile.housing_type" class="w-full border py-0 px-1 rounded text-base h-[32px] text-right" dir="rtl">
+                                <select v-model="profile.housing_type" class="w-full border py-0 px-1 rounded text-sm h-[30px] text-right" dir="rtl">
                                     <option class="text-base" value="tent">⛺ خيمة</option>
                                     <option class="text-base" value="school">🏫 مدرسة</option>
                                     <option class="text-base" value="damaged_home">🏚️ بيت متضرر</option>
@@ -348,7 +348,7 @@
                                     <span class="text-sm">📍</span>
                                     <span class="text-xs text-black">المنطقة</span>
                                 </label>
-                                <select v-model="profile.gaza_zone" class="w-full border py-0 px-1 rounded text-base h-[32px] text-right" dir="rtl">
+                                <select v-model="profile.gaza_zone" class="w-full border py-0 px-1 rounded text-sm h-[30px] text-right" dir="rtl">
                                     <option class="text-base" value="" disabled>اختر...</option>
                                     <option class="text-base" value="rafah">رفح</option>
                                     <option class="text-base" value="khan_younis">خان يونس</option>
@@ -365,7 +365,7 @@
                                     <span class="text-sm">🤲</span>
                                     <span class="text-xs text-black">الديانة</span>
                                 </label>
-                                <select v-model="profile.religion" class="w-full border py-0 px-1 rounded text-base h-[32px] text-right" dir="rtl">
+                                <select v-model="profile.religion" class="w-full border py-0 px-1 rounded text-sm h-[30px] text-right" dir="rtl">
                                     <option class="text-base" value="" disabled>اختر...</option>
                                     <option class="text-base" value="muslim">مسلم</option>
                                     <option class="text-base" value="christian">مسيحي</option>
@@ -730,7 +730,7 @@
                             </div>
 
                             <!-- List of added needs -->
-                            <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="mb-4 space-y-2 ml-auto" style="width: calc(100% - 80px);">
+                            <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="mb-4 space-y-2 ml-auto" style="width: calc(100% - 110px);">
                                 <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-gray-50 px-2 py-1 rounded border h-[30px] w-full" dir="rtl">
                                     <span class="text-base flex items-center gap-1 justify-start">
                                         <span>{{ getUrgentNeedLabel(need).split('|')[0].trim() }}</span>
