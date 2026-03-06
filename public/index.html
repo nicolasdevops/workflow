@@ -261,7 +261,7 @@
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                         
-                        <div class="flex items-start gap-2 flex-row-reverse">
+                        <div class="flex items-center gap-2 flex-row-reverse">
                             <img v-if="scrapedProfile?.profile_pic_url || profile.profile_pic_url" :src="scrapedProfile?.profile_pic_url || profile.profile_pic_url" @click="igPopupOpen = true" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition flex-shrink-0">
                             <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold flex-shrink-0">?</div>
                             
@@ -299,7 +299,7 @@
                             </div>
                             
                             <!-- Left section (Name & Password) -->
-                            <div class="w-[38%] flex flex-col justify-center items-end text-right border-r border-[#3274B5]/20 pr-2 gap-1">
+                            <div class="w-[44%] flex flex-col justify-center items-end text-right border-r border-[#3274B5]/20 pr-[28px] gap-1">
                                 <p class="font-bold text-xs leading-tight text-[#3274B5] truncate w-full text-right" dir="rtl">{{ profile.first_name || profile.name || profile.family_name || '' }}</p>
                                 <div class="w-full flex flex-col items-end">
                                     <label class="block text-[9px] font-bold mb-0.5 text-gray-400 text-right w-full" dir="rtl">حط كلمة سر (اختياري):</label>
@@ -802,7 +802,7 @@
 
                     <div class="mb-8 text-center">
                         <p class="text-[13px] font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">هالصور رح نستخدمها لنحكي قصتكم للناس،<br>يا ريت تكون حقيقية وبتعطي أمل.</p>
-                        <p class="text-[8px] text-gray-500 mt-1" style="font-family: 'Alexandria', sans-serif;">These images will be used for visual storytelling.</p>
+                        <p class="text-[8px] text-gray-500 mt-1" style="font-family: 'Alexandria', sans-serif;">General images of everyday life</p>
                     </div>
 
                     <!-- Categorized Upload Sections -->
