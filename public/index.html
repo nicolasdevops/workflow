@@ -812,13 +812,19 @@
                                 <span class="text-[13px] font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">{{ cat.emoji }} {{ cat.ar }}</span>
                                 <span v-if="mediaByCat(cat.value).length" class="text-xs text-[#3274B5]">({{ mediaByCat(cat.value).length }})</span>
                             </div>
-                            <label :for="'catUpload_' + cat.value" class="cursor-pointer bg-[#3274B5]/10 text-[#3274B5] text-[13px] font-bold px-3 py-1.5 rounded hover:bg-[#3274B5]/20 transition" style="font-family: 'Alexandria', sans-serif;">
-                                رفع
-                            </label>
+                            <div class="flex items-center gap-3">
+                                <div v-if="categoryUploads[cat.value]?.active" class="flex items-center gap-1.5 text-[11px] text-[#3274B5] font-bold">
+                                    <span>جاري رفع {{ categoryUploads[cat.value].count }} ملف...</span>
+                                    <svg class="animate-spin h-3.5 w-3.5 text-[#3274B5]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                </div>
+                                <label :for="'catUpload_' + cat.value" class="cursor-pointer bg-[#3274B5]/10 text-[#3274B5] text-[13px] font-bold px-3 py-1.5 rounded hover:bg-[#3274B5]/20 transition" style="font-family: 'Alexandria', sans-serif;">
+                                    رفع
+                                </label>
+                            </div>
                             <input :id="'catUpload_' + cat.value" type="file" multiple @change="handleCategoryUpload($event, cat.value)" class="hidden" accept="image/*,video/*">
                         </div>
                         <!-- Thumbnails for this category -->
-                        <div v-if="mediaByCat(cat.value).length" class="grid grid-cols-4 gap-1.5 mt-1.5 mb-1">
+                        <div v-if="mediaByCat(cat.value).length" class="grid grid-cols-5 gap-1.5 mt-1.5 mb-1 pr-[15px]" dir="rtl">
                             <div v-for="file in mediaByCat(cat.value)" :key="file.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
                                 <div @click="previewFile = file" class="w-full h-full cursor-pointer">
                                     <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
@@ -841,8 +847,8 @@
 
                     <!-- Uncategorized media (from before categories existed) -->
                     <div v-if="mediaByCat(null).length" class="mt-4" dir="rtl">
-                        <p class="text-xs text-gray-500 mb-2 font-bold text-right">رفعات سابقة | Other Uploads</p>
-                        <div class="grid grid-cols-4 gap-1.5">
+                        <p class="text-xs text-gray-500 mb-2 font-bold text-right pr-[15px]">رفعات سابقة | Other Uploads</p>
+                        <div class="grid grid-cols-5 gap-1.5 pr-[15px]">
                             <div v-for="file in mediaByCat(null)" :key="file.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
                                 <div @click="previewFile = file" class="w-full h-full cursor-pointer">
                                     <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
@@ -1219,6 +1225,7 @@
                     previewFile: null,
                     showInstaLogin: false,
                     uploadStatus: null,
+                    categoryUploads: {},
                     mediaFiles: [],
                     uploadCategories: [
                         { value: 'inside_house', ar: 'جوا البيت', en: 'Inside the House', emoji: '🏠' },
@@ -2026,7 +2033,10 @@
                     const files = Array.from(e.target.files);
                     if (!files.length) return;
                     e.target.value = '';
-                    this.uploadStatus = { type: 'info', message: `Uploading ${files.length} file(s)...` };
+                    
+                    const toArabicNum = (num) => String(num).replace(/[0-9]/g, c => '٠١٢٣٤٥٦٧٨٩'[c]);
+                    this.categoryUploads[category] = { active: true, count: toArabicNum(files.length) };
+                    
                     let successCount = 0;
                     for (const file of files) {
                         const formData = new FormData();
@@ -2041,8 +2051,8 @@
                             if (res.ok) successCount++;
                         } catch (e) { console.error('Upload failed', e); }
                     }
-                    this.uploadStatus = { type: 'success', message: `Uploaded ${successCount} item(s).` };
-                    setTimeout(() => this.uploadStatus = null, 3000);
+                    
+                    delete this.categoryUploads[category];
                     this.fetchMedia();
                 },
                 async handleFileUpload(e) {
