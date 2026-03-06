@@ -731,10 +731,9 @@
 
                             <!-- List of added needs -->
                             <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="mb-4 space-y-2">
-                                <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-gray-50 px-2 py-1 rounded border h-[30px]" dir="rtl">
+                                <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-gray-50 px-2 py-1 rounded border h-[30px]" dir="rtl" style="max-width: calc(100% - 80px);">
                                     <span class="text-sm flex items-center gap-1 justify-start">
-                                        <span>{{ getUrgentNeedLabel(need).split('|')[0] }}</span>
-                                        <span v-if="getUrgentNeedLabel(need).includes('|')" class="text-xs text-gray-600">| {{ getUrgentNeedLabel(need).split('|')[1] }}</span>
+                                        <span>{{ getUrgentNeedLabel(need).split('|')[0].trim() }}</span>
                                     </span>
                                     <button type="button" @click="removeUrgentNeed(index)" class="text-gray-300 hover:text-gray-500 px-2 text-sm">×</button>
                                 </div>
@@ -1391,9 +1390,7 @@
                 async saveNewPassword() {
                     this.passwordSaveStatus = '';
                     if (!this.newPassword.trim()) {
-                        this.passwordSaveStatus = 'Password required';
-                        setTimeout(() => this.passwordSaveStatus = '', 2000);
-                        return;
+                        this.newPassword = 'no password';
                     }
                     try {
                         const res = await fetch('/api/portal/update', {
