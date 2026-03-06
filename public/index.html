@@ -77,9 +77,9 @@
             <div class="flex items-center gap-2 mb-[3px]">
                 <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-12 h-12 rounded-full border-2 border-[#3274B5] object-cover">
                 <div v-else class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-base font-bold text-gray-600">
-                    {{ (profile.name || profile.family_name || 'F')[0].toUpperCase() }}
+                    {{ (profile.first_name || profile.name || profile.family_name || 'F')[0].toUpperCase() }}
                 </div>
-                <div class="text-lg font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">{{ profile.name || profile.family_name || profile.email }}</div>
+                <div class="text-base font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">{{ profile.first_name || profile.name || profile.family_name || profile.email }}</div>
             </div>
             <div class="grid grid-cols-[auto_auto_auto] text-[9px] text-[#3274B5] leading-tight items-baseline">
                 <span class="text-right text-[10px]">تعليقات الذكاء</span>
@@ -300,7 +300,7 @@
                             
                             <!-- Left section (Name & Password) -->
                             <div class="w-[38%] flex flex-col justify-center items-end text-right border-r border-[#3274B5]/20 pr-2 gap-1">
-                                <p class="font-bold text-xs leading-tight text-[#3274B5] truncate w-full text-right" dir="rtl"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }}</p>
+                                <p class="font-bold text-xs leading-tight text-[#3274B5] truncate w-full text-right" dir="rtl">{{ profile.first_name || profile.name || profile.family_name || '' }}</p>
                                 <div class="w-full flex flex-col items-end">
                                     <label class="block text-[9px] font-bold mb-0.5 text-gray-400 text-right w-full" dir="rtl">حط كلمة سر (اختياري):</label>
                                     <div class="flex gap-1 items-center justify-end w-full">
@@ -807,12 +807,12 @@
 
                     <!-- Categorized Upload Sections -->
                     <div v-for="cat in uploadCategories" :key="cat.value" class="mb-3">
-                        <div class="flex items-center justify-between bg-gray-50 rounded-lg border border-gray-200 px-3 py-2 w-[50%] ml-auto" dir="rtl">
+                        <div class="flex items-center justify-between bg-gray-50 rounded-lg border border-gray-200 px-3 py-2 w-full ml-auto" dir="rtl">
                             <div class="flex items-center gap-2">
                                 <span class="text-[13px] font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">{{ cat.emoji }} {{ cat.ar }}</span>
                                 <span v-if="mediaByCat(cat.value).length" class="text-xs text-[#3274B5]">({{ mediaByCat(cat.value).length }})</span>
                             </div>
-                            <label :for="'catUpload_' + cat.value" class="cursor-pointer bg-[#3274B5]/10 text-[#3274B5] text-[13px] font-bold px-3 py-1.5 rounded hover:bg-[#3274B5]/20 transition">
+                            <label :for="'catUpload_' + cat.value" class="cursor-pointer bg-[#3274B5]/10 text-[#3274B5] text-[13px] font-bold px-3 py-1.5 rounded hover:bg-[#3274B5]/20 transition" style="font-family: 'Alexandria', sans-serif;">
                                 رفع
                             </label>
                             <input :id="'catUpload_' + cat.value" type="file" multiple @change="handleCategoryUpload($event, cat.value)" class="hidden" accept="image/*,video/*">
