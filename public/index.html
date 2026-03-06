@@ -149,8 +149,8 @@
                         <input v-model="form.password" type="password" class="w-2/3 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right ml-auto" dir="ltr" placeholder="••••••••">
                     </div>
 
-                    <div v-if="authMode === 'login'" class="mb-6 flex justify-end">
-                        <button type="button" @click="step = 'forgot_password'" class="hover:underline flex items-baseline gap-1.5" dir="rtl">
+                    <div v-if="authMode === 'login'" class="mb-6 text-right">
+                        <button type="button" @click="step = 'forgot_password'" class="hover:underline inline-flex items-baseline gap-1.5" dir="rtl">
                             <span class="text-[14px] text-[#3274B5] font-bold">نسيت كلمة المرور؟</span>
                         </button>
                     </div>
@@ -385,7 +385,7 @@
                                                         </label>
 
                                                         <!-- Add new child form -->
-                                                        <div class="bg-blue-50 p-3 rounded border border-blue-100">
+                                                        <div class="bg-[#3274B5]/10 border border-[#3274B5]/30 p-3 rounded-lg">
                                                             <div class="mb-2 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                                                 <span class="text-xl text-[#3274B5]">إضافة فرد</span>
                                                             </div>
@@ -730,8 +730,8 @@
                             </div>
 
                             <!-- List of added needs -->
-                            <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="mb-4 space-y-2 flex flex-col items-end">
-                                <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-gray-50 px-2 py-1 rounded border h-[30px]" dir="rtl" style="max-width: calc(100% - 80px);">
+                            <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="mb-4 space-y-2 ml-auto" style="width: calc(100% - 80px);">
+                                <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-gray-50 px-2 py-1 rounded border h-[30px] w-full" dir="rtl">
                                     <span class="text-base flex items-center gap-1 justify-start">
                                         <span>{{ getUrgentNeedLabel(need).split('|')[0].trim() }}</span>
                                     </span>
