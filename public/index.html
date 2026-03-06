@@ -498,15 +498,16 @@
                                                                 <!-- × delete: top-left corner -->
                                                                 <button type="button" @click.stop="removeChild(index)" class="absolute top-1 left-1 text-gray-300 hover:text-gray-500 text-sm leading-none px-1 z-10">×</button>
                                                                 <!-- Profile pic circle: top-left -->
-                                                                <div class="absolute top-2 left-6 w-10 h-10 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors"
-                                                                     :class="member.profile_pic ? 'border-[#3274B5]/40' : 'border-gray-300 hover:border-[#3274B5]/40'"
-                                                                     @click.stop="openMemberPicUpload(index)">
-                                                                    <img v-if="member.profile_pic" :src="member.profile_pic" class="w-full h-full object-cover rounded-full">
-                                                                    <svg v-else class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                                                </div>
-                                                                <!-- Disability Icon Exponent -->
-                                                                <div v-if="member.disability === 'yes'" class="absolute -top-0.5 -left-0.5 w-[12px] h-[12px] z-10 flex items-center justify-center pointer-events-none">
-                                                                    <img src="icons/wheelchair.png" class="w-full h-full object-contain drop-shadow-sm" style="filter: drop-shadow(0 0 0 transparent);" title="Disabled">
+                                                                <div class="absolute top-2 left-6 w-10 h-10 relative" @click.stop="openMemberPicUpload(index)">
+                                                                    <div class="w-full h-full rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors"
+                                                                         :class="member.profile_pic ? 'border-[#3274B5]/40' : 'border-gray-300 hover:border-[#3274B5]/40'">
+                                                                        <img v-if="member.profile_pic" :src="member.profile_pic" class="w-full h-full object-cover rounded-full">
+                                                                        <svg v-else class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                                                    </div>
+                                                                    <!-- Disability Icon Exponent: top-right of profile pic -->
+                                                                    <div v-if="member.disability === 'yes'" class="absolute -top-1 -right-1 w-[12px] h-[12px] z-10 flex items-center justify-center pointer-events-none">
+                                                                        <img src="icons/wheelchair.png" class="w-full h-full object-contain" title="Disabled">
+                                                                    </div>
                                                                 </div>
                                                                 <!-- Summary content -->
                                                                 <div class="p-2 pl-[70px]" dir="rtl" style="text-align: right;">
