@@ -70,11 +70,11 @@
         <!-- Mobile User Bar (Aligned with Card) -->
         <div class="max-w-2xl w-full flex justify-between items-end mb-3 px-1" v-if="profile.email">
             <div class="flex items-center gap-2 mb-[3px]">
-                <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-8 h-8 rounded-full border-2 border-[#3274B5] object-cover">
-                <div v-else class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
+                <img v-if="profile.profile_pic_url" :src="profile.profile_pic_url" class="w-12 h-12 rounded-full border-2 border-[#3274B5] object-cover">
+                <div v-else class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-base font-bold text-gray-600">
                     {{ (profile.name || profile.family_name || 'F')[0].toUpperCase() }}
                 </div>
-                <div class="text-xs font-bold text-gray-700">{{ profile.name || profile.family_name || profile.email }}</div>
+                <div class="text-lg font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">{{ profile.name || profile.family_name || profile.email }}</div>
             </div>
             <div class="grid grid-cols-[auto_auto_auto] text-[9px] text-[#3274B5] leading-tight items-baseline">
                 <span class="text-right text-[10px]">تعليقات الذكاء</span>
@@ -218,7 +218,7 @@
                                 </div>
                                 <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold bg-[#3274B5]">1</span>
                             </div>
-                            <span class="whitespace-nowrap" :class="{'text-[#3274B5]': tab === 'profile'}">حسابي</span>
+                            <span class="whitespace-nowrap transition-colors" :class="tab === 'profile' ? 'text-[#3274B5]' : 'text-[#3274B5]/60'">حسابي</span>
                         </div>
                     </button>
                     <div class="w-px h-[0.7cm] bg-[#3274B5] self-center"></div>
@@ -230,7 +230,7 @@
                                 </div>
                                 <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold bg-[#3274B5]">2</span>
                             </div>
-                            <span class="whitespace-nowrap" :class="{'text-[#3274B5]': tab === 'media'}">رفع ميديا</span>
+                            <span class="whitespace-nowrap transition-colors" :class="tab === 'media' ? 'text-[#3274B5]' : 'text-[#3274B5]/60'">رفع ميديا</span>
                         </div>
                     </button>
                     <div class="w-px h-[0.7cm] bg-[#3274B5] self-center"></div>
@@ -242,7 +242,7 @@
                                 </div>
                                 <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold bg-[#3274B5]">3</span>
                             </div>
-                            <span class="whitespace-nowrap" :class="{'text-[#3274B5]': tab === 'ai'}">ذكاء صنعي</span>
+                            <span class="whitespace-nowrap transition-colors" :class="tab === 'ai' ? 'text-[#3274B5]' : 'text-[#3274B5]/60'">ذكاء صنعي</span>
                         </div>
                     </button>
                 </div>
@@ -294,7 +294,7 @@
                             </div>
                             
                             <!-- Left section (Name & Password) -->
-                            <div class="w-[38%] flex flex-col justify-end items-end text-right border-r border-[#3274B5]/20 pr-2 gap-1 pb-0.5">
+                            <div class="w-[38%] flex flex-col justify-center items-end text-right border-r border-[#3274B5]/20 pr-2 gap-1">
                                 <p class="font-bold text-xs leading-tight text-[#3274B5] truncate w-full text-right" dir="rtl"><span v-if="profile.first_name">{{ profile.first_name }} </span>{{ profile.name || profile.family_name || 'Family Profile' }}</p>
                                 <div class="w-full flex flex-col items-end">
                                     <label class="block text-[9px] font-bold mb-0.5 text-gray-400 text-right w-full" dir="rtl">حط كلمة سر (اختياري):</label>
@@ -736,7 +736,7 @@
                             </div>
 
                             <!-- List of added needs -->
-                            <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="mb-4 space-y-2 ml-auto" style="width: calc(100% - 110px);">
+                            <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="mb-4 space-y-2 ml-auto" style="width: calc(100% - 95px);">
                                 <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-gray-50 px-2 py-1 rounded-lg border h-[30px] w-full" dir="rtl">
                                     <span class="text-base flex items-center gap-1 justify-start">
                                         <span>{{ getUrgentNeedLabel(need).split('|')[0].trim() }}</span>
@@ -795,16 +795,16 @@
                     </div>
 
                     <div class="mb-4 text-center">
-                        <p class="text-[13px] font-bold text-[#3274B5]">هالصور رح نستخدمها لنحكي قصتكم للناس،<br>يا ريت تكون حقيقية وبتعطي أمل.</p>
-                        <p class="text-[8px] text-gray-500 mt-1">These images will be used for visual storytelling.</p>
+                        <p class="text-[13px] font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">هالصور رح نستخدمها لنحكي قصتكم للناس،<br>يا ريت تكون حقيقية وبتعطي أمل.</p>
+                        <p class="text-[8px] text-gray-500 mt-1" style="font-family: 'Alexandria', sans-serif;">These images will be used for visual storytelling.</p>
                     </div>
 
                     <!-- Categorized Upload Sections -->
                     <div v-for="cat in uploadCategories" :key="cat.value" class="mb-3">
                         <div class="flex items-center justify-between bg-gray-50 rounded-lg border border-gray-200 px-3 py-2" dir="rtl">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm font-bold text-gray-800">{{ cat.emoji }} {{ cat.ar }}</span>
-                                <span class="text-xs text-gray-500">| {{ cat.en }}</span>
+                                <span class="text-sm font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">{{ cat.emoji }} {{ cat.ar }}</span>
+                                <span class="text-[10px] text-gray-400">| {{ cat.en }}</span>
                                 <span v-if="mediaByCat(cat.value).length" class="text-xs text-[#3274B5]">({{ mediaByCat(cat.value).length }})</span>
                             </div>
                             <label :for="'catUpload_' + cat.value" class="cursor-pointer bg-[#3274B5]/10 text-[#3274B5] text-xs font-bold px-3 py-1.5 rounded hover:bg-[#3274B5]/20 transition">
