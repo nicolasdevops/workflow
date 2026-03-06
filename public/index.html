@@ -800,20 +800,19 @@
                         {{ uploadStatus.message }}
                     </div>
 
-                    <div class="mb-4 text-center">
+                    <div class="mb-8 text-center">
                         <p class="text-[13px] font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">هالصور رح نستخدمها لنحكي قصتكم للناس،<br>يا ريت تكون حقيقية وبتعطي أمل.</p>
                         <p class="text-[8px] text-gray-500 mt-1" style="font-family: 'Alexandria', sans-serif;">These images will be used for visual storytelling.</p>
                     </div>
 
                     <!-- Categorized Upload Sections -->
                     <div v-for="cat in uploadCategories" :key="cat.value" class="mb-3">
-                        <div class="flex items-center justify-between bg-gray-50 rounded-lg border border-gray-200 px-3 py-2" dir="rtl">
+                        <div class="flex items-center justify-between bg-gray-50 rounded-lg border border-gray-200 px-3 py-2 w-[50%] ml-auto" dir="rtl">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">{{ cat.emoji }} {{ cat.ar }}</span>
-                                <span class="text-[10px] text-gray-400">| {{ cat.en }}</span>
+                                <span class="text-[13px] font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">{{ cat.emoji }} {{ cat.ar }}</span>
                                 <span v-if="mediaByCat(cat.value).length" class="text-xs text-[#3274B5]">({{ mediaByCat(cat.value).length }})</span>
                             </div>
-                            <label :for="'catUpload_' + cat.value" class="cursor-pointer bg-[#3274B5]/10 text-[#3274B5] text-xs font-bold px-3 py-1.5 rounded hover:bg-[#3274B5]/20 transition">
+                            <label :for="'catUpload_' + cat.value" class="cursor-pointer bg-[#3274B5]/10 text-[#3274B5] text-[13px] font-bold px-3 py-1.5 rounded hover:bg-[#3274B5]/20 transition">
                                 رفع
                             </label>
                             <input :id="'catUpload_' + cat.value" type="file" multiple @change="handleCategoryUpload($event, cat.value)" class="hidden" accept="image/*,video/*">
