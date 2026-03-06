@@ -7,7 +7,7 @@
     <meta property="og:title" content="Gaza Protocol - Family Connect">
     <meta property="og:description" content="Secure family registration portal">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="/logo9.png">
+    <meta property="og:image" content="/logo11_2.png">
     <meta name="twitter:card" content="summary_large_image">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -52,7 +52,7 @@
                 <div class="font-bold text-[8px] leading-none">System Active | v2.7.3</div>
             </div>
             <div class="ml-3 md:ml-6 flex items-center justify-center">
-                <img src="/logo9.png" alt="Logo" class="h-14 md:h-[68px] object-contain">
+                <img src="/logo11_2.png" alt="Logo" class="h-11 md:h-[54px] object-contain">
             </div>
             <button v-if="profile.email" @click="signOut" class="absolute bottom-[9px] right-[20.5px] md:right-[40px] text-white hover:text-gray-200 text-[8px] border border-white px-2 py-0 rounded transition flex items-center justify-center gap-1 h-[18px]">
                 <span class="text-[10px] leading-none pb-[2px]">تسجيل خروج</span>
@@ -164,32 +164,32 @@
             </div>
 
             <!-- Forgot Password -->
-            <div v-if="step === 'forgot_password'" class="w-full max-w-[350px] mx-auto">
-                <h3 class="text-lg font-bold text-center mb-4">Reset Password</h3>
-                <p class="text-sm text-gray-600 mb-6 text-center">Enter your email address and we'll send you a link to reset your password.</p>
+            <div v-if="step === 'forgot_password'" class="w-full max-w-[350px] mx-auto" dir="rtl">
+                <h3 class="text-lg font-bold text-center mb-4" style="font-family: 'Alexandria', sans-serif;">نسيت كلمة المرور؟</h3>
+                <p class="text-sm text-gray-600 mb-6 text-center" style="font-family: 'Alexandria', sans-serif;">اكتب اسم حسابك على انستغرام وراح نتواصل معك لنعمل كلمة سر جديدة.</p>
                 <form @submit.prevent="handleForgotPassword">
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
-                        <input v-model="form.email" type="email" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label class="block text-gray-700 text-sm font-bold mb-2 text-right" style="font-family: 'Alexandria', sans-serif;">اسم حساب الانستغرام</label>
+                        <input v-model="form.instagram_handle" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" dir="ltr" required placeholder="@username">
                     </div>
                     <button :disabled="loading" type="submit" class="w-full bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm mb-4">
-                        <span v-if="!loading">Send Reset Link</span>
+                        <span v-if="!loading" style="font-family: 'Alexandria', sans-serif;">إرسال الطلب</span>
                         <div v-else class="loader"></div>
                     </button>
-                    <button type="button" @click="step = 'portal_login'" class="w-full text-gray-500 text-sm">Back to Login</button>
+                    <button type="button" @click="step = 'portal_login'" class="w-full text-gray-500 text-sm" style="font-family: 'Alexandria', sans-serif;">رجوع لتسجيل الدخول</button>
                 </form>
             </div>
 
             <!-- Reset Password (New Password Input) -->
-            <div v-if="step === 'reset_password'" class="w-full max-w-[350px] mx-auto">
-                <h3 class="text-lg font-bold text-center mb-4">Create New Password</h3>
+            <div v-if="step === 'reset_password'" class="w-full max-w-[350px] mx-auto" dir="rtl">
+                <h3 class="text-lg font-bold text-center mb-4" style="font-family: 'Alexandria', sans-serif;">كلمة سر جديدة</h3>
                 <form @submit.prevent="handleResetPassword">
                     <div class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">New Password</label>
-                        <input v-model="form.password" type="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="••••••••">
+                        <label class="block text-gray-700 text-sm font-bold mb-2 text-right" style="font-family: 'Alexandria', sans-serif;">كلمة المرور الجديدة</label>
+                        <input v-model="form.password" type="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" dir="ltr" required placeholder="••••••••">
                     </div>
                     <button :disabled="loading" type="submit" class="w-full bg-[#3274B5] text-white font-bold py-2 rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-sm">
-                        <span v-if="!loading">Update Password</span>
+                        <span v-if="!loading" style="font-family: 'Alexandria', sans-serif;">تحديث كلمة المرور</span>
                         <div v-else class="loader"></div>
                     </button>
                 </form>
