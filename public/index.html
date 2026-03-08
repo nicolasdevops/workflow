@@ -515,7 +515,7 @@
 
                                                         <!-- Connecting Device -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="flex justify-center -mt-2 mb-1 relative z-10">
-                                                            <div class="bg-white rounded-full p-0.5 border border-[#3274B5]/20 text-[#3274B5] shadow-sm">
+                                                            <div class="bg-white rounded-full p-0.5 border border-[#3274B5]/20 text-[#3274B5] shadow-sm relative -top-[3px]">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                                                             </div>
                                                         </div>
@@ -1752,6 +1752,16 @@
                     }
 
                     if (!this.profile.children_details) this.profile.children_details = [];
+
+                    // Prevent duplicate entries (same name + age + relationship)
+                    const isDuplicate = this.profile.children_details.some(m =>
+                        m.name === this.newMember.name && m.age === this.newMember.age && m.relationship === this.newMember.relationship
+                    );
+                    if (isDuplicate) {
+                        this.showValidationError = true;
+                        setTimeout(() => { this.showValidationError = false; }, 4000);
+                        return;
+                    }
 
                     // Transliterate name (phonetic) and translate condition (semantic)
                     const memberWithTranslations = { ...this.newMember };
