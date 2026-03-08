@@ -32,6 +32,21 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Member list slide animation */
+        .member-enter-active {
+            animation: member-slide-in 0.4s ease-out;
+        }
+        .member-leave-active {
+            animation: member-slide-in 0.3s ease-in reverse;
+        }
+        .member-move {
+            transition: transform 0.4s ease;
+        }
+        @keyframes member-slide-in {
+            0% { opacity: 0; transform: translateY(-20px) scale(0.95); max-height: 0; }
+            50% { opacity: 0.5; max-height: 100px; }
+            100% { opacity: 1; transform: translateY(0) scale(1); max-height: 200px; }
+        }
         /* Hide spin buttons for number inputs */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
@@ -493,6 +508,7 @@
                                             <span class="text-base">إضافة</span>
                                         </button>
                                         <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                        <span v-if="duplicateMemberWarning" class="text-red-500 text-xs font-bold" dir="rtl">هالفرد مضاف من قبل</span>
                                     </div>
                                     <div v-if="showDisabilityWarning" class="col-span-3 bg-amber-50 border border-amber-300 rounded p-2 text-xs leading-relaxed mb-1" dir="rtl">
                                         <p class="font-bold text-amber-800">هالشي رح يأثر على محتوى الذكاء الاصطناعي. اختار هاد الخيار بس بحالات الإعاقة الدايمة والخطيرة (مثل: شلل دماغي، بتر، أخرس، أعمى).</p>
@@ -523,8 +539,8 @@
                                                         <!-- Shared file input for member profile pics (outside v-for to avoid click propagation) -->
                                                         <input type="file" ref="memberPicShared" @change="handleMemberPicSelect($event, cropperMemberIndex)" class="hidden" accept="image/*">
                                                         <!-- List of added children -->
-                                                        <div v-if="profile.children_details && profile.children_details.length > 0" class="mb-4 space-y-2">
-                                                            <div v-for="(member, index) in profile.children_details" :key="index" class="bg-[#3274B5]/5 rounded-lg border border-[#3274B5]/20 text-sm relative cursor-pointer hover:bg-[#3274B5]/10 transition-colors" @click="toggleMemberDetails(index)">
+                                                        <transition-group v-if="profile.children_details && profile.children_details.length > 0" name="member" tag="div" class="mb-4 space-y-2">
+                                                            <div v-for="(member, index) in profile.children_details" :key="member.name + '-' + member.age + '-' + index" class="bg-[#3274B5]/5 rounded-lg border border-[#3274B5]/20 text-sm relative cursor-pointer hover:bg-[#3274B5]/10 transition-colors" @click="toggleMemberDetails(index)">
                                                                 <!-- × delete: top-left corner -->
                                                                 <button type="button" @click.stop="removeChild(index)" class="absolute top-1 left-1 text-gray-300 hover:text-gray-500 text-sm leading-none px-1 z-10">×</button>
                                                                 <!-- Profile pic circle: top-left -->
@@ -736,7 +752,7 @@
                                                                 </div><!-- /popup wrapper (close btn) -->
                                                                 </div><!-- /popup overlay -->
                                                             </div><!-- /member card -->
-                                                        </div><!-- /member list -->
+                                                        </transition-group><!-- /member list -->
 
                         <!-- Bottom Two-Column Section -->
                         <div class="mb-6 border-t pt-4 text-right flex flex-row-reverse items-start gap-4">
@@ -1286,6 +1302,7 @@
                     memberSaved: false,
                     urgentNeedSaved: false,
                     showValidationError: false,
+                    duplicateMemberWarning: false,
                     showAgeArabicError: false,
                     igUsernameInput: '',
                     igUsernameMissing: false,
@@ -1758,8 +1775,8 @@
                         m.name === this.newMember.name && m.age === this.newMember.age && m.relationship === this.newMember.relationship
                     );
                     if (isDuplicate) {
-                        this.showValidationError = true;
-                        setTimeout(() => { this.showValidationError = false; }, 4000);
+                        this.duplicateMemberWarning = true;
+                        setTimeout(() => { this.duplicateMemberWarning = false; }, 4000);
                         return;
                     }
 
