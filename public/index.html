@@ -32,20 +32,24 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Member list slide animation */
+        /* Member list slide animation — new entry unfolds from top edge */
         .member-enter-active {
-            animation: member-emerge 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: member-unfold 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transform-origin: top center;
+            overflow: hidden;
         }
         .member-leave-active {
-            animation: member-emerge 0.25s ease-in reverse forwards;
+            animation: member-unfold 0.25s ease-in reverse forwards;
+            transform-origin: top center;
+            overflow: hidden;
         }
         .member-move {
-            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        @keyframes member-emerge {
-            0% { opacity: 0; transform: translateY(-16px); clip-path: inset(0 0 100% 0); }
-            60% { clip-path: inset(0 0 0% 0); }
-            100% { opacity: 1; transform: translateY(0); clip-path: inset(0 0 0% 0); }
+        @keyframes member-unfold {
+            0% { opacity: 0; max-height: 0; margin-bottom: 0; transform: scaleY(0.3); }
+            40% { opacity: 0.7; transform: scaleY(1); }
+            100% { opacity: 1; max-height: 120px; margin-bottom: 0.5rem; transform: scaleY(1); }
         }
         /* Hide spin buttons for number inputs */
         input[type=number]::-webkit-inner-spin-button, 
@@ -1805,7 +1809,7 @@
                         memberWithTranslations.conditionDisplay = await this.getBilingualText(memberWithTranslations.condition);
                     }
 
-                    this.profile.children_details.push(memberWithTranslations);
+                    this.profile.children_details.unshift(memberWithTranslations);
                     this.newMember = { name: '', age: '', gender: 'Male', relationship: '', status: '', days_deceased: '', days_missing: '', condition: '', disability: '' }; // Reset
                     this.showDisabilityWarning = false;
 
