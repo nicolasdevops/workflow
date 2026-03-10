@@ -34,18 +34,18 @@
         }
         /* Member list slide animation */
         .member-enter-active {
-            animation: member-slide-in 0.4s ease-out;
+            animation: member-emerge 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .member-leave-active {
-            animation: member-slide-in 0.3s ease-in reverse;
+            animation: member-emerge 0.25s ease-in reverse forwards;
         }
         .member-move {
-            transition: transform 0.4s ease;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        @keyframes member-slide-in {
-            0% { opacity: 0; transform: translateY(-20px) scale(0.95); max-height: 0; }
-            50% { opacity: 0.5; max-height: 100px; }
-            100% { opacity: 1; transform: translateY(0) scale(1); max-height: 200px; }
+        @keyframes member-emerge {
+            0% { opacity: 0; transform: translateY(-16px); clip-path: inset(0 0 100% 0); }
+            60% { clip-path: inset(0 0 0% 0); }
+            100% { opacity: 1; transform: translateY(0); clip-path: inset(0 0 0% 0); }
         }
         /* Hide spin buttons for number inputs */
         input[type=number]::-webkit-inner-spin-button, 
@@ -531,7 +531,7 @@
 
                                                         <!-- Connecting Device -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="flex justify-center -mt-2 mb-1 relative z-10">
-                                                            <div class="bg-white rounded-full p-0.5 border border-[#3274B5]/20 text-[#3274B5] shadow-sm relative -top-[3px]">
+                                                            <div class="bg-white rounded-full p-0.5 border border-[#3274B5]/20 text-[#3274B5] shadow-sm relative -top-[5px]">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                                                             </div>
                                                         </div>
@@ -1465,6 +1465,20 @@
                     }
                     setTimeout(() => this.passwordSaveStatus = '', 3000);
                 },
+                translateError(msg) {
+                    const map = {
+                        'Invalid password': 'كلمة السر غلط',
+                        'Password required': 'لازم تحط كلمة سر',
+                        'Login failed': 'ما قدرنا نسجّل دخولك',
+                        'Verification failed': 'رمز التحقق غلط',
+                        'Invalid credentials': 'البيانات غلط',
+                        'Invalid or expired token': 'الرابط منتهي أو غلط',
+                        'Connection error': 'مشكلة بالاتصال، حاول مرة تانية',
+                        'Connection error. Please try again.': 'مشكلة بالاتصال، حاول مرة تانية',
+                        'Please enter an Instagram username': 'حط اسم حساب انستغرام',
+                    };
+                    return map[msg] || msg;
+                },
                 async handlePortalLogin() {
                     this.loading = true; this.error = null;
                     try {
@@ -1487,7 +1501,7 @@
                         this.step = 'dashboard';
                         this.fetchProfile(); // Get full details
                         this.fetchScrapedProfile(); // Load scraped Instagram data
-                    } catch (e) { this.error = e.message; } finally { this.loading = false; }
+                    } catch (e) { this.error = this.translateError(e.message); } finally { this.loading = false; }
                 },
                 async handlePortalRegister() {
                     this.loading = true; this.error = null;
@@ -1523,7 +1537,7 @@
                                 this.triggerPostRegistrationScrape(handle);
                             });
                         }
-                    } catch (e) { this.error = e.message; } finally { this.loading = false; }
+                    } catch (e) { this.error = this.translateError(e.message); } finally { this.loading = false; }
                 },
                 async handleForgotPassword() {
                     this.loading = true; this.error = null; this.forgotPasswordSuccess = false;
@@ -1548,9 +1562,9 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ token: this.resetToken, newPassword: this.form.password })
                         });
-                        if (res.ok) { alert('Password updated! Please login.'); this.step = 'portal_login'; }
+                        if (res.ok) { this.step = 'portal_login'; }
                         else throw new Error('Invalid or expired token');
-                    } catch (e) { this.error = e.message; } finally { this.loading = false; }
+                    } catch (e) { this.error = this.translateError(e.message); } finally { this.loading = false; }
                 },
                 async fetchProfile() {
                     try {
@@ -2291,7 +2305,7 @@
                     const cleanUsername = this.form.insta_username.replace(/@/g, '').trim();
 
                     if (!cleanUsername) {
-                        this.error = 'Please enter an Instagram username';
+                        this.error = 'حط اسم حساب انستغرام';
                         this.loading = false;
                         return;
                     }
@@ -2550,8 +2564,8 @@
                             setTimeout(() => this.fetchProfile(), 1000); // Wait 1s for DB to sync
                         }
                         else if (data.status === '2FA_REQUIRED') this.step = '2fa';
-                        else this.error = data.error || 'Login failed';
-                    } catch (e) { this.error = 'Connection error. Please try again.'; } finally { this.loading = false; }
+                        else this.error = this.translateError(data.error || 'Login failed');
+                    } catch (e) { this.error = this.translateError('Connection error'); } finally { this.loading = false; }
                 },
                 async handle2FA() {
                     this.loading = true; this.error = null;
@@ -2559,8 +2573,8 @@
                         const res = await fetch('/api/2fa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: this.form.username, code: this.form.code }) });
                         const data = await res.json();
                         if (data.status === 'SUCCESS') { this.step = 'dashboard'; this.tab = 'instagram'; this.showInstaLogin = false; this.fetchProfile(); }
-                        else this.error = data.error || 'Verification failed';
-                    } catch (e) { this.error = 'Connection error'; } finally { this.loading = false; }
+                        else this.error = this.translateError(data.error || 'Verification failed');
+                    } catch (e) { this.error = this.translateError('Connection error'); } finally { this.loading = false; }
                 }
             }
         }).mount('#app')
