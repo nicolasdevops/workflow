@@ -32,6 +32,7 @@ public/index.old.*.html
 screenshots/
 table.png
 login_error.png
+public/unused/
 
 # Other
 Related documents/
