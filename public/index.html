@@ -383,7 +383,7 @@
                             </div>
                             <div class="text-center">
                                 <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-1 text-[#3274B5]">
-                                    <img src="icons/location.png" alt="Location" class="w-3.5 h-3.5 object-contain">
+                                    <img src="icons/location.png" alt="Location" class="w-[18px] h-[18px] object-contain">
                                     <span class="text-xs text-black">المنطقة</span>
                                 </label>
                                 <select v-model="profile.gaza_zone" class="w-full border py-0 px-1 rounded-lg text-sm h-[30px] text-right" dir="rtl">
@@ -770,14 +770,14 @@
                                 </div>
 
                                 <!-- Arrow connector -->
-                                <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="flex justify-center -my-2 relative z-10">
+                                <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="flex justify-center -my-2 relative z-10 w-[90%] ml-auto">
                                     <div class="bg-white rounded-full p-0.5 border border-[#3274B5]/20 text-[#3274B5] shadow-sm">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                                     </div>
                                 </div>
 
                                 <!-- List of added needs -->
-                                <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="space-y-1.5 w-[90%] ml-auto text-right" dir="rtl">
+                                <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="space-y-1.5 w-[90%] ml-auto text-right -mt-[2px]" dir="rtl">
                                     <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-[#3274B5]/5 px-2 py-1 rounded-lg border border-[#3274B5]/20 h-[28px] w-full transition-colors hover:bg-[#3274B5]/10" dir="rtl">
                                         <span class="text-[11px] font-bold text-[#3274B5] flex items-center gap-1 justify-start truncate">
                                             <span>{{ getUrgentNeedLabel(need).split('|')[0].trim() }}</span>
