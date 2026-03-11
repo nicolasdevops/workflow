@@ -246,7 +246,7 @@
                         <div class="flex flex-col items-center">
                             <div class="relative">
                                 <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center" :class="tab === 'profile' ? 'border-[#3274B5]' : 'border-[#3274B5]/30'">
-                                    <svg class="w-4 h-4" :class="tab === 'profile' ? 'text-[#3274B5]' : 'text-[#3274B5]/30'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    <img src="icons/profile.png" class="w-4 h-4 object-contain" :class="tab === 'profile' ? 'opacity-100' : 'opacity-30'">
                                 </div>
                                 <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold bg-[#3274B5]">1</span>
                             </div>
@@ -435,7 +435,7 @@
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/cake3.png" class="w-[14px] h-[14px] object-contain">
+                                            <img src="icons/birthday-cake4.png" class="w-[14px] h-[14px] object-contain">
                                         </div>
                                         <input v-model="newMember.age" type="text" inputmode="numeric" placeholder="العمر *" @input="checkAgeArabic" :class="['border py-0 pr-8 pl-2 rounded-lg text-sm placeholder:text-base w-full h-[30px] text-right', showValidationError && !newMember.age ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black', showAgeArabicError ? 'border-red-500' : '']" dir="rtl">
                                         <p v-if="showAgeArabicError" class="text-red-500 text-[10px] mt-0.5 leading-tight text-right">الرجاء كتابة العمر بالأرقام الغربية | Please write age using Western numerals (0-9)</p>
@@ -816,7 +816,7 @@
                                 <div>
                                     <label class="block text-sm text-black mb-1 flex items-center gap-1 font-bold justify-start" dir="rtl">
                                         <span class="text-sm text-[#3274B5]">رقم الواتساب</span>
-                                        <img src="icons/social.png" class="h-[14px] w-auto object-contain translate-y-[1px]">
+                                        <img src="icons/social.png" class="h-[16px] w-auto object-contain translate-y-[1px]">
                                     </label>
                                     <input v-model="profile.whatsapp_phone" type="tel" class="w-full border p-2 rounded-lg text-sm h-[30px] text-right" placeholder="+972..." dir="rtl">
                                 </div>
