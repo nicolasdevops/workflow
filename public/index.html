@@ -383,7 +383,7 @@
                             </div>
                             <div class="text-center">
                                 <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-1 text-[#3274B5]">
-                                    <img src="icons/location.png" alt="Location" class="w-[23px] h-[23px] object-contain">
+                                    <img src="icons/location.png" alt="Location" class="w-[23px] h-[23px] object-contain translate-y-[3px]">
                                     <span class="text-xs text-black">المنطقة</span>
                                 </label>
                                 <select v-model="profile.gaza_zone" class="w-full border py-0 px-1 rounded-lg text-sm h-[30px] text-right" dir="rtl">
@@ -426,7 +426,7 @@
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/close.png" class="w-[15px] h-[15px] object-contain">
+                                            <img src="icons/close.png" class="w-[19px] h-[19px] object-contain">
                                         </div>
                                         <select v-model="newMember.gender" class="border py-0 pr-8 pl-1 rounded-lg text-sm w-full h-[30px] text-right" dir="rtl">
                                             <option value="Male">ذكر ♂</option>
@@ -435,7 +435,7 @@
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/birthday-cake4.png" class="w-[18px] h-[18px] object-contain">
+                                            <img src="icons/birthday-cake4.png" class="w-[16px] h-[16px] object-contain">
                                         </div>
                                         <input v-model="newMember.age" type="text" inputmode="numeric" placeholder="العمر *" @input="checkAgeArabic" :class="['border py-0 pr-8 pl-2 rounded-lg text-sm placeholder:text-base w-full h-[30px] text-right', showValidationError && !newMember.age ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black', showAgeArabicError ? 'border-red-500' : '']" dir="rtl">
                                         <p v-if="showAgeArabicError" class="text-red-500 text-[10px] mt-0.5 leading-tight text-right">الرجاء كتابة العمر بالأرقام الغربية | Please write age using Western numerals (0-9)</p>
