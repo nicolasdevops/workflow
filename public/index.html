@@ -759,13 +759,20 @@
                                     <span class="text-sm text-[#3274B5]">احتياجات عاجلة</span>
                                 </label>
 
-                                <div class="mb-3 flex flex-col items-start w-full" dir="rtl">
+                                <div class="mb-[13px] flex flex-col items-start w-full" dir="rtl">
                                     <select v-model="newUrgentNeed" @change="addUrgentNeed" class="w-[90%] border py-0 px-2 rounded-lg text-xs h-[30px] text-right bg-white focus:outline-none focus:border-[#3274B5]" dir="rtl">
                                         <option value="" disabled>اختر احتياج...</option>
                                         <option v-for="opt in urgentNeedOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                                     </select>
                                     <div class="h-5 flex items-center mt-0.5">
                                         <svg v-if="urgentNeedSaved" class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    </div>
+                                </div>
+
+                                <!-- Arrow connector -->
+                                <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="flex justify-center -my-1 mb-1 relative z-10">
+                                    <div class="bg-white rounded-full p-0.5 border border-[#3274B5]/20 text-[#3274B5] shadow-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                                     </div>
                                 </div>
 
