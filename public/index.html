@@ -777,7 +777,7 @@
                                 </div>
 
                                 <!-- List of added needs -->
-                                <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="space-y-1.5 w-[90%] ml-auto text-right -mt-[2px]" dir="rtl">
+                                <div v-if="profile.urgent_needs && profile.urgent_needs.length > 0" class="space-y-1.5 w-[90%] ml-auto text-right -mt-[5px]" dir="rtl">
                                     <div v-for="(need, index) in profile.urgent_needs" :key="index" class="flex justify-between items-center bg-[#3274B5]/5 px-2 py-1 rounded-lg border border-[#3274B5]/20 h-[28px] w-full transition-colors hover:bg-[#3274B5]/10" dir="rtl">
                                         <span class="text-[11px] font-bold text-[#3274B5] flex items-center gap-1 justify-start truncate">
                                             <span>{{ getUrgentNeedLabel(need).split('|')[0].trim() }}</span>
