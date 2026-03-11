@@ -383,7 +383,7 @@
                             </div>
                             <div class="text-center">
                                 <label class="block text-sm font-bold mb-[6px] flex flex-row items-center justify-center gap-1 text-[#3274B5]">
-                                    <img src="icons/location2.png" alt="Location" class="w-3.5 h-3.5 object-contain">
+                                    <img src="icons/location1.png" alt="Location" class="w-3.5 h-3.5 object-contain">
                                     <span class="text-xs text-black">المنطقة</span>
                                 </label>
                                 <select v-model="profile.gaza_zone" class="w-full border py-0 px-1 rounded-lg text-sm h-[30px] text-right" dir="rtl">
@@ -417,15 +417,12 @@
 
                                                     <!-- Children Details Section -->
                                                     <div class="mb-6 border-t pt-4 text-right">
-                                                        <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1 justify-start">
-                                                            <span class="text-xl text-[#3274B5]">Add Family Members</span>
+                                                        <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1 justify-start" dir="rtl">
+                                                            <span class="text-xl text-[#3274B5]">أضف أفراد العائلة</span>
                                                         </label>
 
                                                         <!-- Add new child form -->
                                                         <div class="bg-[#3274B5]/10 border border-[#3274B5]/30 p-3 rounded-lg">
-                                                            <div class="mb-2 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
-                                                                <span class="text-xl text-[#3274B5]">إضافة فرد</span>
-                                                            </div>
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
@@ -504,7 +501,7 @@
                                 <div class="grid grid-cols-[2fr_1fr_3fr] gap-2 mb-0">
                                     <div class="flex items-center gap-2 justify-start">
                                         <button type="button" @click="addMember" class="px-2 py-0.5 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[26px] flex-shrink-0">
-                                            <img src="icons/add-user2.png" class="w-3 h-3 object-contain">
+                                            <img src="icons/add-friend.png" class="w-3 h-3 object-contain">
                                             <span class="text-base">إضافة</span>
                                         </button>
                                         <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
@@ -531,7 +528,7 @@
 
                                                         <!-- Connecting Device -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="flex justify-center -mt-2 mb-1 relative z-10">
-                                                            <div class="bg-white rounded-full p-0.5 border border-[#3274B5]/20 text-[#3274B5] shadow-sm relative -top-[5px]">
+                                                            <div class="bg-white rounded-full p-0.5 border border-[#3274B5]/20 text-[#3274B5] shadow-sm relative -top-[7px]">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                                                             </div>
                                                         </div>
