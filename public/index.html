@@ -426,7 +426,7 @@
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/siblings.png" class="w-[15px] h-[15px] object-contain">
+                                            <img src="icons/close.png" class="w-[15px] h-[15px] object-contain">
                                         </div>
                                         <select v-model="newMember.gender" class="border py-0 pr-8 pl-1 rounded-lg text-sm w-full h-[30px] text-right" dir="rtl">
                                             <option value="Male">ذكر ♂</option>
@@ -435,7 +435,7 @@
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/birthday-cake4.png" class="w-[14px] h-[14px] object-contain">
+                                            <img src="icons/birthday-cake4.png" class="w-[18px] h-[18px] object-contain">
                                         </div>
                                         <input v-model="newMember.age" type="text" inputmode="numeric" placeholder="العمر *" @input="checkAgeArabic" :class="['border py-0 pr-8 pl-2 rounded-lg text-sm placeholder:text-base w-full h-[30px] text-right', showValidationError && !newMember.age ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black', showAgeArabicError ? 'border-red-500' : '']" dir="rtl">
                                         <p v-if="showAgeArabicError" class="text-red-500 text-[10px] mt-0.5 leading-tight text-right">الرجاء كتابة العمر بالأرقام الغربية | Please write age using Western numerals (0-9)</p>
