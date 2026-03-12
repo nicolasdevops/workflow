@@ -321,7 +321,7 @@
                                 </svg>
                             </div>
                             <span :class="loadingProgress >= 30 ? 'text-gray-700 font-medium' : 'text-gray-400'" style="font-family: 'Alexandria', sans-serif;">
-                                جاري تحميل صورة الحساب
+                                تحميل البيانات
                             </span>
                         </div>
                         <div class="flex items-center gap-2 text-sm">
@@ -332,7 +332,7 @@
                                 </svg>
                             </div>
                             <span :class="loadingProgress >= 70 ? 'text-gray-700 font-medium' : 'text-gray-400'" style="font-family: 'Alexandria', sans-serif;">
-                                جاري تحميل بيانات الحساب
+                                جاهز تقريباً
                             </span>
                         </div>
                         <div class="flex items-center gap-2 text-sm">
@@ -343,7 +343,7 @@
                                 </svg>
                             </div>
                             <span :class="loadingProgress >= 100 ? 'text-gray-700 font-medium' : 'text-gray-400'" style="font-family: 'Alexandria', sans-serif;">
-                                تجهيز المنصة
+                                جاهز
                             </span>
                         </div>
                     </div>
@@ -1518,33 +1518,43 @@
                 // Computed properties
             },
             methods: {
-                simulateLoading(callback) {
+                async simulateLoading(callback) {
                     this.step = 'loading';
-                    this.loadingStatus = 'جاري الاتصال بالخادم...';
+                    this.loadingStatus = 'الاتصال...';
                     this.loadingProgress = 0;
 
+                    // Start actual data loading in background
+                    const loadingPromise = callback ? callback() : Promise.resolve();
+
+                    // Animate progress bar
                     let progress = 0;
                     const progressInterval = setInterval(() => {
-                        progress += 2;
-                        this.loadingProgress = progress;
+                        progress += 4; // Faster: 4% per 100ms = 2.5 seconds total
+                        this.loadingProgress = Math.min(progress, 95); // Cap at 95% until done
 
-                        if (progress === 30) {
-                            this.loadingStatus = 'جاري تحميل صورة الحساب...';
-                        } else if (progress === 70) {
-                            this.loadingStatus = 'جاري تحميل بيانات الحساب...';
-                        } else if (progress === 90) {
-                            this.loadingStatus = 'تجهيز المنصة...';
+                        if (progress === 32) {
+                            this.loadingStatus = 'تحميل البيانات...';
+                        } else if (progress === 64) {
+                            this.loadingStatus = 'جاهز تقريباً...';
                         }
 
                         if (progress >= 100) {
                             clearInterval(progressInterval);
-                            setTimeout(() => {
-                                this.loadingProgress = 0;
-                                this.loadingStatus = '';
-                                if (callback) callback();
-                            }, 500);
                         }
-                    }, 200); // 200ms * 50 steps = 10 seconds
+                    }, 100); // 100ms intervals
+
+                    // Wait for actual loading to complete
+                    await loadingPromise;
+
+                    // Complete progress bar
+                    clearInterval(progressInterval);
+                    this.loadingProgress = 100;
+                    this.loadingStatus = 'جاهز...';
+
+                    setTimeout(() => {
+                        this.loadingProgress = 0;
+                        this.loadingStatus = '';
+                    }, 300);
                 },
                 getRunningTime() {
                     if (!this.profile.created_at) return '0';
@@ -1651,12 +1661,14 @@
                         this.profile = data.user;
                         this.form.insta_username = data.user.handle || ''; // Pre-fill if exists
 
-                        // Show loading screen, then go to dashboard
-                        this.simulateLoading(() => {
-                            this.step = 'dashboard';
-                            this.fetchProfile(); // Get full details
-                            this.fetchScrapedProfile(); // Load scraped Instagram data
+                        // Show loading screen while fetching data
+                        await this.simulateLoading(async () => {
+                            await Promise.all([
+                                this.fetchProfile(),
+                                this.fetchScrapedProfile()
+                            ]);
                         });
+                        this.step = 'dashboard';
                     } catch (e) { this.error = this.translateError(e.message); } finally { this.loading = false; }
                 },
                 async handlePortalRegister() {
@@ -1680,11 +1692,11 @@
                         sessionStorage.setItem('portal_token', data.token);
                         this.profile = data.user;
 
-                        // Show loading screen, then go to dashboard
-                        this.simulateLoading(() => {
-                            this.step = 'dashboard';
-                            this.fetchProfile(); // Get full details
+                        // Show loading screen while fetching data
+                        await this.simulateLoading(async () => {
+                            await this.fetchProfile();
                         });
+                        this.step = 'dashboard';
 
                         // Auto-trigger IG scrape after profile loads
                         if (this.form.instagram_handle) {
