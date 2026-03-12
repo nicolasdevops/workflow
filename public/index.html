@@ -167,7 +167,11 @@
                     -->
 
                     <div class="mb-4">
-                        <label class="flex items-center gap-1.5 text-gray-700 font-bold mb-2"><span class="text-[15px]">اسم حساب الانستغرام</span> <img src="icons/instagram2.png" class="h-[15px] w-auto object-contain translate-y-[1px]"></label>
+                        <label class="flex items-center gap-1.5 text-gray-700 font-bold mb-2">
+                            <span class="text-[15px]">اسم حساب الانستغرام</span>
+                            <img src="icons/instagram2.png" class="h-[15px] w-auto object-contain translate-y-[1px]">
+                            <button type="button" @click="showUsernameHelp = true" class="ml-1 w-4 h-4 rounded-full bg-[#3274B5]/20 text-[#3274B5] flex items-center justify-center text-[10px] font-bold hover:bg-[#3274B5]/30 transition">?</button>
+                        </label>
                         <input v-model="form.instagram_handle" type="text" class="w-2/3 px-2 py-0 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3274B5] text-right ml-auto text-sm h-[30px]" dir="ltr" required placeholder="@username">
                     </div>
 
@@ -231,6 +235,41 @@
                         <div v-else class="loader"></div>
                     </button>
                 </form>
+            </div>
+
+            <!-- Username Help Modal -->
+            <div v-if="showUsernameHelp" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click="showUsernameHelp = false">
+                <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full" @click.stop dir="rtl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-[#3274B5]" style="font-family: 'Alexandria', sans-serif;">كيف أجيب اسم حسابي على الانستغرام؟</h3>
+                        <button @click="showUsernameHelp = false" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                    </div>
+                    <div class="space-y-4 text-right" style="font-family: 'Alexandria', sans-serif;">
+                        <div class="bg-[#3274B5]/5 p-4 rounded-lg border border-[#3274B5]/20">
+                            <p class="text-sm text-gray-800 leading-relaxed mb-3">
+                                <span class="font-bold text-[#3274B5]">الطريقة السهلة:</span>
+                            </p>
+                            <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                                <li>افتح تطبيق الانستغرام على موبايلك</li>
+                                <li>اضغط على صورة حسابك (أسفل يمين الشاشة)</li>
+                                <li>اسم حسابك موجود فوق - بيبدأ بـ <span class="font-mono bg-white px-1 rounded">@</span></li>
+                                <li>اضغط على الاسم لتنسخه</li>
+                            </ol>
+                        </div>
+                        <div class="border-t border-gray-200 pt-3">
+                            <p class="text-xs text-gray-600 leading-relaxed">
+                                <span class="font-bold">ملاحظة:</span> اسم الحساب غير عن الاسم الظاهر. اسم الحساب بيبدأ دايماً بـ <span class="font-mono bg-gray-100 px-1 rounded text-[#3274B5]">@</span> وما فيه مسافات.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                            <span class="text-xl">💡</span>
+                            <p class="text-xs text-amber-900">مثال: <span class="font-mono bg-white px-1.5 py-0.5 rounded text-[#3274B5]">@ahmad_gaza</span></p>
+                        </div>
+                    </div>
+                    <button @click="showUsernameHelp = false" class="w-full mt-5 bg-[#3274B5] text-white font-bold py-2.5 rounded-lg hover:bg-[#285e94] transition text-sm" style="font-family: 'Alexandria', sans-serif;">
+                        فهمت، شكراً
+                    </button>
+                </div>
             </div>
 
             <!-- Dashboard -->
@@ -1255,6 +1294,7 @@
                     token: null,
                     previewFile: null,
                     showInstaLogin: false,
+                    showUsernameHelp: false,
                     uploadStatus: null,
                     categoryUploads: {},
                     mediaFiles: [],
