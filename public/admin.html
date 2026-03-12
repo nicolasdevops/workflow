@@ -327,6 +327,7 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="text-left p-3 font-medium text-gray-600">ID</th>
+                                    <th class="text-left p-3 font-medium text-gray-600">First Name</th>
                                     <th class="text-left p-3 font-medium text-gray-600">Family Name</th>
                                     <th class="text-left p-3 font-medium text-gray-600">Email</th>
                                     <th class="text-left p-3 font-medium text-gray-600">IG Handle</th>
@@ -347,6 +348,15 @@
                                             @keyup.enter="$event.target.blur()"
                                             class="border rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#3274B5]"
                                             placeholder="First name"
+                                        >
+                                    </td>
+                                    <td class="p-3 font-medium" @click.stop>
+                                        <input
+                                            v-model="f.name"
+                                            @blur="updateField(f, 'name', f.name)"
+                                            @keyup.enter="$event.target.blur()"
+                                            class="border rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#3274B5]"
+                                            placeholder="Family name"
                                         >
                                     </td>
                                     <td class="p-3 text-gray-600" @click.stop>
