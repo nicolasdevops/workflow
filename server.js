@@ -2229,7 +2229,7 @@ app.get('/api/admin/families', adminAuth, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('families')
-      .select('id, name, email, instagram_handle, proxy_city, ig_account_status, cookies, instagram_password_enabled, bestbehavior_enabled, commenting_enabled, contentposting_enabled, dm_enabled, created_at')
+      .select('id, first_name, name, email, instagram_handle, proxy_city, ig_account_status, cookies, instagram_password_enabled, bestbehavior_enabled, commenting_enabled, contentposting_enabled, dm_enabled, created_at, last_login')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
