@@ -120,8 +120,8 @@
             
             <!-- Header -->
             <div class="text-center mt-6 mb-8">
-                <h1 class="text-xl text-[#3274B5] leading-none font-bold" style="font-family: 'Alexandria', sans-serif;">أهلاً وسهلاً فيكم</h1>
-                <p class="text-gray-500 text-sm mt-[6px]" style="font-family: 'Alexandria', sans-serif;">مساحة آمنة لعيلتكم</p>
+                <h1 class="text-lg md:text-xl text-[#3274B5] leading-none font-bold" style="font-family: 'Alexandria', sans-serif;">أهلاً وسهلاً فيكم</h1>
+                <p class="text-gray-500 text-xs md:text-sm mt-[6px]" style="font-family: 'Alexandria', sans-serif;">مساحة آمنة لعيلتكم</p>
             </div>
 
             <!-- Success State -->
@@ -362,7 +362,7 @@
                                 </div>
                                 <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold bg-[#3274B5]">1</span>
                             </div>
-                            <span class="whitespace-nowrap transition-colors" :class="tab === 'profile' ? 'text-[#3274B5]' : 'text-[#3274B5]/60'">حسابي</span>
+                            <span class="whitespace-nowrap transition-colors text-xs md:text-sm" style="font-family: 'Tajawal', sans-serif;" :class="tab === 'profile' ? 'text-[#3274B5]' : 'text-[#3274B5]/60'">حسابي</span>
                         </div>
                     </button>
                     <div class="w-px h-[0.7cm] bg-[#3274B5] self-center"></div>
@@ -374,7 +374,7 @@
                                 </div>
                                 <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold bg-[#3274B5]">2</span>
                             </div>
-                            <span class="whitespace-nowrap transition-colors" :class="tab === 'media' ? 'text-[#3274B5]' : 'text-[#3274B5]/60'">رفع ميديا</span>
+                            <span class="whitespace-nowrap transition-colors text-xs md:text-sm" style="font-family: 'Tajawal', sans-serif;" :class="tab === 'media' ? 'text-[#3274B5]' : 'text-[#3274B5]/60'">رفع ميديا</span>
                         </div>
                     </button>
                     <div class="w-px h-[0.7cm] bg-[#3274B5] self-center"></div>
@@ -386,7 +386,7 @@
                                 </div>
                                 <span class="absolute -top-1 -left-1 w-4 h-4 text-white rounded-full flex items-center justify-center text-[10px] font-bold bg-[#3274B5]">3</span>
                             </div>
-                            <span class="whitespace-nowrap transition-colors" :class="tab === 'ai' ? 'text-[#3274B5]' : 'text-[#3274B5]/60'">ذكاء صنعي</span>
+                            <span class="whitespace-nowrap transition-colors text-xs md:text-sm" style="font-family: 'Tajawal', sans-serif;" :class="tab === 'ai' ? 'text-[#3274B5]' : 'text-[#3274B5]/60'">ذكاء صنعي</span>
                         </div>
                     </button>
                 </div>
@@ -438,7 +438,7 @@
                             </div>
                             
                             <!-- Left section (Name & Password) -->
-                            <div class="w-[44%] flex flex-col justify-center items-end text-right border-r border-[#3274B5]/20 pr-[28px] gap-1">
+                            <div class="hidden md:flex w-[44%] flex-col justify-center items-end text-right border-r border-[#3274B5]/20 pr-[28px] gap-1">
                                 <p class="font-bold text-xs leading-tight text-[#3274B5] truncate w-full text-right" dir="rtl">{{ profile.first_name || profile.name || profile.family_name || '' }}</p>
                                 <div class="w-full flex flex-col items-end">
                                     <label class="block text-[9px] font-bold mb-0.5 text-gray-400 text-right w-full" dir="rtl">حط كلمة سر (اختياري):</label>
@@ -530,7 +530,7 @@
                                                     <!-- Children Details Section -->
                                                     <div class="mb-6 border-t pt-4 text-right">
                                                         <label class="block text-sm font-bold mb-[10px] flex items-baseline gap-1 justify-start" dir="rtl">
-                                                            <span class="text-xl text-[#3274B5]">أضف أفراد العائلة</span>
+                                                            <span class="text-base md:text-xl text-[#3274B5]">أضف أفراد العائلة</span>
                                                         </label>
 
                                                         <!-- Add new child form -->
