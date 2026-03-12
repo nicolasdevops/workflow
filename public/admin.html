@@ -342,34 +342,34 @@
                                 <tr v-for="f in families" :key="f.id" class="border-t hover:bg-gray-50">
                                     <td class="p-3 text-gray-500 cursor-pointer" @click="openFamilyDetail(f)">{{ f.id }}</td>
                                     <td class="p-3 font-medium" @click.stop>
-                                        <div v-if="!f.editingFirstName" @click="f.editingFirstName = true" class="cursor-pointer hover:bg-gray-50 px-2 py-1 rounded min-h-[32px] flex items-center">
+                                        <div v-if="!f.editingFirstName" @click="f.editingFirstName = true; f.editingFirstNameValue = f.firstNameDisplay || f.first_name || ''" class="cursor-pointer hover:bg-gray-50 px-2 py-1 rounded min-h-[32px] flex items-center">
                                             <span v-if="f.first_name" class="text-sm">{{ f.firstNameDisplay || f.first_name }}</span>
                                             <span v-else class="text-gray-400 text-sm italic">Click to add</span>
                                         </div>
                                         <input
                                             v-else
-                                            v-model="f.first_name"
-                                            @blur="updateField(f, 'first_name', f.first_name); f.editingFirstName = false"
+                                            v-model="f.editingFirstNameValue"
+                                            @blur="updateField(f, 'first_name', f.editingFirstNameValue); f.editingFirstName = false"
                                             @keyup.enter="$event.target.blur()"
                                             @keyup.esc="f.editingFirstName = false"
                                             class="border rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#3274B5]"
-                                            placeholder="First name"
+                                            placeholder="First name (English)"
                                             ref="firstNameInput"
                                         >
                                     </td>
                                     <td class="p-3 font-medium" @click.stop>
-                                        <div v-if="!f.editingName" @click="f.editingName = true" class="cursor-pointer hover:bg-gray-50 px-2 py-1 rounded min-h-[32px] flex items-center">
+                                        <div v-if="!f.editingName" @click="f.editingName = true; f.editingNameValue = f.nameDisplay || f.name || ''" class="cursor-pointer hover:bg-gray-50 px-2 py-1 rounded min-h-[32px] flex items-center">
                                             <span v-if="f.name" class="text-sm">{{ f.nameDisplay || f.name }}</span>
                                             <span v-else class="text-gray-400 text-sm italic">Click to add</span>
                                         </div>
                                         <input
                                             v-else
-                                            v-model="f.name"
-                                            @blur="updateField(f, 'name', f.name); f.editingName = false"
+                                            v-model="f.editingNameValue"
+                                            @blur="updateField(f, 'name', f.editingNameValue); f.editingName = false"
                                             @keyup.enter="$event.target.blur()"
                                             @keyup.esc="f.editingName = false"
                                             class="border rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#3274B5]"
-                                            placeholder="Family name"
+                                            placeholder="Family name (English)"
                                             ref="nameInput"
                                         >
                                     </td>
