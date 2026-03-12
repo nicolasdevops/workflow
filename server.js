@@ -1081,10 +1081,25 @@ app.post('/api/portal/register', async (req, res) => {
     const validation = validateInstagramUsername(instagramHandle);
     if (!validation.valid) return res.status(400).json({ error: validation.error });
 
+    // Verify account exists and is public on Instagram
+    try {
+      console.log(`[Registration] Verifying Instagram account @${instagramHandle}...`);
+      const publicCheck = await checkAccountPublic(instagramHandle);
+      if (!publicCheck.isPublic) {
+        return res.status(400).json({
+          error: publicCheck.error || 'Instagram account not found or is private. Please use a public account.'
+        });
+      }
+      console.log(`[Registration] Instagram account @${instagramHandle} verified as public ✓`);
+    } catch (e) {
+      console.error('[Registration] Instagram verification failed:', e);
+      return res.status(500).json({ error: 'Could not verify Instagram account. Please try again.' });
+    }
+
     email = `${instagramHandle}@ig.local`;
     passwordHash = crypto.randomBytes(32).toString('hex'); // random, unused
 
-    // Check if IG handle already exists
+    // Check if IG handle already exists in database
     const { data: existingIg } = await supabase.from('families').select('id').eq('instagram_handle', instagramHandle).single();
     if (existingIg) return res.status(400).json({ error: 'Instagram username already registered' });
   } else {
@@ -1097,6 +1112,21 @@ app.post('/api/portal/register', async (req, res) => {
       // Validate Instagram username format
       const validation = validateInstagramUsername(instagramHandle);
       if (!validation.valid) return res.status(400).json({ error: validation.error });
+
+      // Verify account exists and is public on Instagram
+      try {
+        console.log(`[Registration] Verifying Instagram account @${instagramHandle}...`);
+        const publicCheck = await checkAccountPublic(instagramHandle);
+        if (!publicCheck.isPublic) {
+          return res.status(400).json({
+            error: publicCheck.error || 'Instagram account not found or is private. Please use a public account.'
+          });
+        }
+        console.log(`[Registration] Instagram account @${instagramHandle} verified as public ✓`);
+      } catch (e) {
+        console.error('[Registration] Instagram verification failed:', e);
+        return res.status(500).json({ error: 'Could not verify Instagram account. Please try again.' });
+      }
 
       email = req.body.email ? req.body.email.toLowerCase() : `${instagramHandle}@ig.local`;
 
