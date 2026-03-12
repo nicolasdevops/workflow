@@ -538,7 +538,7 @@
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/close.png" class="w-[21px] h-[21px] object-contain">
+                                            <img src="icons/close.png" class="w-[23px] h-[23px] object-contain">
                                         </div>
                                         <select v-model="newMember.gender" class="border py-0 pr-8 pl-1 rounded-lg text-sm w-full h-[30px] text-right" dir="rtl">
                                             <option value="Male">ذكر ♂</option>
@@ -547,7 +547,7 @@
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/cake6.png" class="w-[16px] h-[16px] object-contain">
+                                            <img src="icons/cake6.png" class="w-[18px] h-[18px] object-contain">
                                         </div>
                                         <input v-model="newMember.age" type="text" inputmode="numeric" placeholder="العمر *" @input="checkAgeArabic" :class="['border py-0 pr-8 pl-2 rounded-lg text-sm placeholder:text-base w-full h-[30px] text-right', showValidationError && !newMember.age ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black', showAgeArabicError ? 'border-red-500' : '']" dir="rtl">
                                         <p v-if="showAgeArabicError" class="text-red-500 text-[10px] mt-0.5 leading-tight text-right">الرجاء كتابة العمر بالأرقام الغربية | Please write age using Western numerals (0-9)</p>
@@ -605,7 +605,7 @@
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/circle.png" class="w-[17px] h-[17px] object-contain">
+                                            <img src="icons/circle.png" class="w-[15px] h-[15px] object-contain">
                                         </div>
                                         <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pr-8 pl-2 rounded-lg text-sm placeholder:text-sm placeholder:text-black w-full h-[30px] text-right" dir="rtl">
                                     </div>
@@ -640,7 +640,7 @@
 
                                                         <!-- Connecting Device -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="flex justify-center -mt-2 mb-1 relative z-10">
-                                                            <div class="bg-white rounded-full p-0.5 border-2 border-[#3274B5]/50 text-[#3274B5] shadow-md relative -top-[7px]">
+                                                            <div class="bg-white rounded-full p-0.5 border-2 border-[#3274B5]/50 text-[#3274B5] relative -top-[7px]">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                                                             </div>
                                                         </div>
