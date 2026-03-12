@@ -679,11 +679,12 @@
                         if (!res.ok) {
                             const data = await res.json();
                             alert(`Update failed: ${data.error || 'Unknown error'}`);
-                            await this.loadDashboard(); // Reload to revert changes
                         }
+                        // Always reload to get updated transliterated values
+                        await this.loadFamilies();
                     } catch (e) {
                         alert(`Update failed: ${e.message}`);
-                        await this.loadDashboard(); // Reload to revert changes
+                        await this.loadFamilies(); // Reload to revert changes
                     }
                 },
                 async viewAsFamily(family) {
