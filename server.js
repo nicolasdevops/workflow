@@ -1061,11 +1061,26 @@ app.post('/api/portal/register', async (req, res) => {
 
   if (!supabase) return res.status(500).json({ error: 'Database not connected' });
 
+  // Instagram username validation function
+  const validateInstagramUsername = (username) => {
+    if (!username || username.length === 0) return { valid: false, error: 'Username cannot be empty' };
+    if (username.length > 30) return { valid: false, error: 'Username too long (max 30 characters)' };
+    if (!/^[a-zA-Z0-9._]+$/.test(username)) return { valid: false, error: 'Username can only contain letters, numbers, periods, and underscores' };
+    if (username.startsWith('.') || username.endsWith('.')) return { valid: false, error: 'Username cannot start or end with a period' };
+    if (/\.\./.test(username)) return { valid: false, error: 'Username cannot have consecutive periods' };
+    return { valid: true };
+  };
+
   let email, passwordHash, instagramHandle;
 
   if (ig_username) {
     // @username registration (admin quick-create, no password)
     instagramHandle = ig_username.replace(/@/g, '').trim().toLowerCase();
+
+    // Validate Instagram username format
+    const validation = validateInstagramUsername(instagramHandle);
+    if (!validation.valid) return res.status(400).json({ error: validation.error });
+
     email = `${instagramHandle}@ig.local`;
     passwordHash = crypto.randomBytes(32).toString('hex'); // random, unused
 
@@ -1078,6 +1093,11 @@ app.post('/api/portal/register', async (req, res) => {
 
     if (bodyHandle) {
       instagramHandle = bodyHandle.replace(/@/g, '').trim().toLowerCase();
+
+      // Validate Instagram username format
+      const validation = validateInstagramUsername(instagramHandle);
+      if (!validation.valid) return res.status(400).json({ error: validation.error });
+
       email = req.body.email ? req.body.email.toLowerCase() : `${instagramHandle}@ig.local`;
 
       const { data: existingIg } = await supabase.from('families').select('id').eq('instagram_handle', instagramHandle).single();
