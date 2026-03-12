@@ -538,7 +538,7 @@
                                 <div class="grid grid-cols-3 gap-2 mb-2">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/close.png" class="w-[23px] h-[23px] object-contain">
+                                            <img src="icons/close.png" class="w-[18px] h-[18px] md:w-[23px] md:h-[23px] object-contain">
                                         </div>
                                         <select v-model="newMember.gender" class="border py-0 pr-8 pl-1 rounded-lg text-sm w-full h-[30px] text-right" dir="rtl">
                                             <option value="Male">ذكر ♂</option>
@@ -547,22 +547,22 @@
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/cake6.png" class="w-[18px] h-[18px] object-contain">
+                                            <img src="icons/cake6.png" class="w-[14px] h-[14px] md:w-[18px] md:h-[18px] object-contain">
                                         </div>
-                                        <input v-model="newMember.age" type="text" inputmode="numeric" placeholder="العمر *" @input="checkAgeArabic" :class="['border py-0 pr-8 pl-2 rounded-lg text-sm placeholder:text-base w-full h-[30px] text-right', showValidationError && !newMember.age ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black', showAgeArabicError ? 'border-red-500' : '']" dir="rtl">
+                                        <input v-model="newMember.age" type="text" inputmode="numeric" placeholder="العمر *" @input="checkAgeArabic" :class="['border py-0 pr-8 pl-2 rounded-lg text-sm placeholder:text-xs md:placeholder:text-base w-full h-[30px] text-right', showValidationError && !newMember.age ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black', showAgeArabicError ? 'border-red-500' : '']" dir="rtl">
                                         <p v-if="showAgeArabicError" class="text-red-500 text-[10px] mt-0.5 leading-tight text-right">الرجاء كتابة العمر بالأرقام الغربية | Please write age using Western numerals (0-9)</p>
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/id-card7.png" class="w-[16px] h-[16px] object-contain">
+                                            <img src="icons/id-card7.png" class="w-[12px] h-[12px] md:w-[16px] md:h-[16px] object-contain">
                                         </div>
-                                        <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="الاسم *" autocomplete="off" :class="['border py-0 pr-8 pl-2 rounded-lg text-sm placeholder:text-base w-full h-[30px] text-right', showValidationError && !newMember.name ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black']" dir="rtl">
+                                        <input v-model="newMember.name" @input="newMember.name = newMember.name.replace(/[0-9]/g, '')" id="memberNameInput" type="text" placeholder="الاسم *" autocomplete="off" :class="['border py-0 pr-8 pl-2 rounded-lg text-sm placeholder:text-xs md:placeholder:text-base w-full h-[30px] text-right', showValidationError && !newMember.name ? 'border-red-500 placeholder:text-red-500' : 'placeholder:text-black']" dir="rtl">
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 mb-2">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/Relationship.png" class="w-[14px] h-[14px] object-contain">
+                                            <img src="icons/Relationship.png" class="w-[11px] h-[11px] md:w-[14px] md:h-[14px] object-contain">
                                         </div>
                                         <select v-model="newMember.relationship" :class="['border py-0 pr-8 pl-1 rounded-lg text-sm w-full h-[30px] appearance-none bg-white text-right', showValidationError && !newMember.relationship ? 'border-red-500 text-red-500' : '']" dir="rtl">
                                             <option value="" disabled selected>صلة القرابة *</option>
@@ -578,7 +578,7 @@
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/cardiogram.png" class="w-[16px] h-[16px] object-contain">
+                                            <img src="icons/cardiogram.png" class="w-[12px] h-[12px] md:w-[16px] md:h-[16px] object-contain">
                                         </div>
                                         <select v-model="newMember.status" :class="['border py-0 pr-8 pl-1 rounded-lg text-sm w-full h-[30px] appearance-none bg-white text-right', showValidationError && !newMember.status ? 'border-red-500 text-red-500' : '']" dir="rtl">
                                             <option value="" disabled selected>على قيد الحياة؟ *</option>
@@ -591,7 +591,7 @@
                                 <div class="grid grid-cols-2 gap-2 mb-2">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/hourglass3.png" class="w-[13px] h-[13px] object-contain">
+                                            <img src="icons/hourglass3.png" class="w-[10px] h-[10px] md:w-[13px] md:h-[13px] object-contain">
                                         </div>
                                         <input
                                             :value="newMember.status === 'Deceased' ? newMember.days_deceased : newMember.days_missing"
@@ -605,26 +605,16 @@
                                     </div>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                            <img src="icons/circle.png" class="w-[15px] h-[15px] object-contain">
+                                            <img src="icons/circle.png" class="w-[12px] h-[12px] md:w-[15px] md:h-[15px] object-contain">
                                         </div>
                                         <input v-model="newMember.condition" type="text" placeholder="حالة صحية (اختياري)" class="border py-0 pr-8 pl-2 rounded-lg text-sm placeholder:text-sm placeholder:text-black w-full h-[30px] text-right" dir="rtl">
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-[2fr_1fr_3fr] gap-2 mb-0">
-                                    <div class="flex items-center gap-2 justify-start">
-                                        <button type="button" @click="addMember" class="px-2 py-0.5 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[26px] flex-shrink-0">
-                                            <img src="icons/add-friend.png" class="w-3 h-3 object-contain">
-                                            <span class="text-base">إضافة</span>
-                                        </button>
-                                        <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                        <span v-if="duplicateMemberWarning" class="text-red-500 text-xs font-bold" dir="rtl">هالفرد مضاف من قبل</span>
-                                    </div>
-                                    <div v-if="showDisabilityWarning" class="col-span-3 bg-amber-50 border border-amber-300 rounded p-2 text-xs leading-relaxed mb-1" dir="rtl">
-                                        <p class="font-bold text-amber-800">هالشي رح يأثر على محتوى الذكاء الاصطناعي. اختار هاد الخيار بس بحالات الإعاقة الدايمة والخطيرة (مثل: شلل دماغي، بتر، أخرس، أعمى).</p>
-                                    </div>
-                                    <div></div>
-                                    <div class="flex items-center gap-3 h-[30px] justify-start" dir="rtl">
-                                        <span class="text-lg text-black whitespace-nowrap">إعاقة شديدة؟</span>
+                                <!-- Mobile: Stack vertically, Desktop: 3-column grid -->
+                                <div class="flex flex-col md:grid md:grid-cols-[2fr_1fr_3fr] gap-2 mb-0">
+                                    <!-- Disability question first on mobile -->
+                                    <div class="flex items-center gap-3 h-[30px] justify-start md:order-3 md:col-start-3" dir="rtl">
+                                        <span class="text-sm md:text-lg text-black whitespace-nowrap">إعاقة شديدة؟</span>
                                         <label class="flex items-center gap-1 cursor-pointer">
                                             <span class="text-xs">آه</span>
                                             <input type="radio" v-model="newMember.disability" value="yes" @change="confirmDisability" class="accent-[#3274B5]">
@@ -634,6 +624,19 @@
                                             <input type="radio" v-model="newMember.disability" value="no" @change="showDisabilityWarning = false" class="accent-[#3274B5]">
                                         </label>
                                     </div>
+                                    <!-- Button centered on mobile, left on desktop -->
+                                    <div class="flex items-center gap-2 justify-center md:justify-start md:order-1">
+                                        <button type="button" @click="addMember" class="px-2 py-0.5 bg-[#3274B5] text-white font-bold rounded-lg hover:bg-[#285e94] transition flex justify-center items-center text-xs gap-1 h-[26px] flex-shrink-0">
+                                            <img src="icons/add-friend.png" class="w-3 h-3 object-contain">
+                                            <span class="text-base">إضافة</span>
+                                        </button>
+                                        <svg v-if="memberSaved" class="w-6 h-6 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                        <span v-if="duplicateMemberWarning" class="text-red-500 text-xs font-bold" dir="rtl">هالفرد مضاف من قبل</span>
+                                    </div>
+                                    <div v-if="showDisabilityWarning" class="col-span-3 bg-amber-50 border border-amber-300 rounded p-2 text-xs leading-relaxed mb-1 md:order-4" dir="rtl">
+                                        <p class="font-bold text-amber-800">هالشي رح يأثر على محتوى الذكاء الاصطناعي. اختار هاد الخيار بس بحالات الإعاقة الدايمة والخطيرة (مثل: شلل دماغي، بتر، أخرس، أعمى).</p>
+                                    </div>
+                                    <div class="hidden md:block md:order-2"></div>
                                 </div>
                             </div>
                         </div>
@@ -679,11 +682,12 @@
                                                                     <div class="text-xs text-gray-500 mt-1" style="display: flex; gap: 0.25rem; align-items: center; justify-content: flex-start; flex-wrap: wrap;">
                                                                         <template v-if="member.status">
                                                                             <span dir="rtl" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).ar }}</span>
-                                                                            <span class="text-xs" dir="ltr" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).en }}</span>
-                                                                            <span v-if="member.status === 'Deceased' && member.days_deceased" class="text-xs" dir="ltr">| {{ member.days_deceased }} days</span>
-                                                                            <span v-if="member.status === 'Unknown' && member.days_missing" class="text-xs" dir="ltr">| {{ member.days_missing }} days</span>
+                                                                            <span class="hidden md:inline text-xs" dir="ltr" :class="{'text-[#3274B5]': member.status === 'Alive'}">{{ getStatusLabel(member.status).en }}</span>
+                                                                            <span v-if="member.status === 'Deceased' && member.days_deceased" class="hidden md:inline text-xs" dir="ltr">| {{ member.days_deceased }} days</span>
+                                                                            <span v-if="member.status === 'Unknown' && member.days_missing" class="hidden md:inline text-xs" dir="ltr">| {{ member.days_missing }} days</span>
                                                                         </template>
-                                                                        <span v-if="member.condition" dir="auto">| {{ member.conditionDisplay || member.condition }}</span>
+                                                                        <span v-if="member.condition" dir="auto" class="hidden md:inline">| {{ member.conditionDisplay || member.condition }}</span>
+                                                                        <span v-if="member.condition" dir="rtl" class="md:hidden">| {{ member.condition }}</span>
                                                                     </div>
                                                                 </div>
                                                                 <!-- Detail popup overlay -->
@@ -864,9 +868,9 @@
                                                         </transition-group><!-- /member list -->
 
                         <!-- Bottom Two-Column Section -->
-                        <div class="mb-6 border-t pt-4 text-right flex flex-row-reverse items-start gap-4">
+                        <div class="mb-6 border-t pt-4 text-right flex flex-col md:flex-row-reverse items-start gap-4">
                             <!-- Right Column: Urgent Needs -->
-                            <div class="flex-1 w-[48%] mt-1">
+                            <div class="flex-1 w-full md:w-[48%] mt-1">
                                 <label class="block mb-2 flex items-baseline gap-1 font-bold justify-start" dir="rtl">
                                     <span class="text-sm text-[#3274B5]">احتياجات عاجلة</span>
                                 </label>
@@ -900,10 +904,10 @@
                             </div>
 
                             <!-- Divider -->
-                            <div class="w-px bg-[#3274B5]/20 self-stretch mt-1 mb-2"></div>
+                            <div class="hidden md:block w-px bg-[#3274B5]/20 self-stretch mt-1 mb-2"></div>
 
                             <!-- Left Column: Financials & Contact -->
-                            <div class="flex-1 w-[48%] flex flex-col gap-3 mt-1">
+                            <div class="flex-1 w-full md:w-[48%] flex flex-col gap-3 mt-1">
                                 <div>
                                     <label class="block mb-2 flex items-center gap-1 font-bold justify-start" dir="rtl">
                                         <span class="text-sm text-[#3274B5]">المبلغ المطلوب</span>
