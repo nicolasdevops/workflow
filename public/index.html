@@ -1459,6 +1459,36 @@
                 }
             },
             mounted() {
+                // TEMPORARY: Test loading screen for 10 seconds
+                this.step = 'loading';
+                this.loadingStatus = 'جاري الاتصال بالخادم...';
+
+                // Simulate progress over 10 seconds
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 2;
+                    this.loadingProgress = progress;
+
+                    if (progress === 30) {
+                        this.loadingStatus = 'جاري تحميل صورة الحساب...';
+                    } else if (progress === 70) {
+                        this.loadingStatus = 'جاري تحميل بيانات الحساب...';
+                    } else if (progress === 90) {
+                        this.loadingStatus = 'تجهيز المنصة...';
+                    }
+
+                    if (progress >= 100) {
+                        clearInterval(progressInterval);
+                        setTimeout(() => {
+                            this.step = 'portal_login'; // Go to login after loading
+                            this.loadingProgress = 0;
+                            this.loadingStatus = '';
+                        }, 500);
+                    }
+                }, 200); // 200ms * 50 steps = 10 seconds
+
+                return; // TEMPORARY: Remove this return when done testing
+
                 // Check for admin impersonation token in URL first
                 const urlParams = new URLSearchParams(window.location.search);
                 const impersonateToken = urlParams.get('impersonate');
