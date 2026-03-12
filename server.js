@@ -1230,6 +1230,12 @@ app.post('/api/portal/login', async (req, res) => {
     return res.status(401).json({ error: 'Invalid portal credentials' });
   }
 
+  // Update last_login timestamp
+  await supabase
+    .from('families')
+    .update({ last_login: new Date().toISOString() })
+    .eq('id', data.id);
+
   // Generate simple session token
   const token = crypto.randomBytes(16).toString('hex');
   portalSessions.set(token, data);
