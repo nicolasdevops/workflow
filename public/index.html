@@ -1459,36 +1459,6 @@
                 }
             },
             mounted() {
-                // TEMPORARY: Test loading screen for 10 seconds
-                this.step = 'loading';
-                this.loadingStatus = 'جاري الاتصال بالخادم...';
-
-                // Simulate progress over 10 seconds
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += 2;
-                    this.loadingProgress = progress;
-
-                    if (progress === 30) {
-                        this.loadingStatus = 'جاري تحميل صورة الحساب...';
-                    } else if (progress === 70) {
-                        this.loadingStatus = 'جاري تحميل بيانات الحساب...';
-                    } else if (progress === 90) {
-                        this.loadingStatus = 'تجهيز المنصة...';
-                    }
-
-                    if (progress >= 100) {
-                        clearInterval(progressInterval);
-                        setTimeout(() => {
-                            this.step = 'portal_login'; // Go to login after loading
-                            this.loadingProgress = 0;
-                            this.loadingStatus = '';
-                        }, 500);
-                    }
-                }, 200); // 200ms * 50 steps = 10 seconds
-
-                return; // TEMPORARY: Remove this return when done testing
-
                 // Check for admin impersonation token in URL first
                 const urlParams = new URLSearchParams(window.location.search);
                 const impersonateToken = urlParams.get('impersonate');
@@ -1535,6 +1505,34 @@
                 // Computed properties
             },
             methods: {
+                simulateLoading(callback) {
+                    this.step = 'loading';
+                    this.loadingStatus = 'جاري الاتصال بالخادم...';
+                    this.loadingProgress = 0;
+
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += 2;
+                        this.loadingProgress = progress;
+
+                        if (progress === 30) {
+                            this.loadingStatus = 'جاري تحميل صورة الحساب...';
+                        } else if (progress === 70) {
+                            this.loadingStatus = 'جاري تحميل بيانات الحساب...';
+                        } else if (progress === 90) {
+                            this.loadingStatus = 'تجهيز المنصة...';
+                        }
+
+                        if (progress >= 100) {
+                            clearInterval(progressInterval);
+                            setTimeout(() => {
+                                this.loadingProgress = 0;
+                                this.loadingStatus = '';
+                                if (callback) callback();
+                            }, 500);
+                        }
+                    }, 200); // 200ms * 50 steps = 10 seconds
+                },
                 getRunningTime() {
                     if (!this.profile.created_at) return '0';
                     const start = new Date(this.profile.created_at);
@@ -1639,9 +1637,13 @@
                         sessionStorage.setItem('portal_token', data.token);
                         this.profile = data.user;
                         this.form.insta_username = data.user.handle || ''; // Pre-fill if exists
-                        this.step = 'dashboard';
-                        this.fetchProfile(); // Get full details
-                        this.fetchScrapedProfile(); // Load scraped Instagram data
+
+                        // Show loading screen, then go to dashboard
+                        this.simulateLoading(() => {
+                            this.step = 'dashboard';
+                            this.fetchProfile(); // Get full details
+                            this.fetchScrapedProfile(); // Load scraped Instagram data
+                        });
                     } catch (e) { this.error = this.translateError(e.message); } finally { this.loading = false; }
                 },
                 async handlePortalRegister() {
@@ -1664,8 +1666,12 @@
                         this.token = data.token;
                         sessionStorage.setItem('portal_token', data.token);
                         this.profile = data.user;
-                        this.step = 'dashboard';
-                        this.fetchProfile(); // Get full details
+
+                        // Show loading screen, then go to dashboard
+                        this.simulateLoading(() => {
+                            this.step = 'dashboard';
+                            this.fetchProfile(); // Get full details
+                        });
 
                         // Auto-trigger IG scrape after profile loads
                         if (this.form.instagram_handle) {
