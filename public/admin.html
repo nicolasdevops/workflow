@@ -333,18 +333,40 @@
                                     <th class="text-left p-3 font-medium text-gray-600">Proxy City</th>
                                     <th class="text-left p-3 font-medium text-gray-600">Status</th>
                                     <th class="text-left p-3 font-medium text-gray-600">Automation</th>
-                                    <th class="text-left p-3 font-medium text-gray-600">Registered</th>
+                                    <th class="text-left p-3 font-medium text-gray-600">Last login</th>
                                     <th class="text-left p-3 font-medium text-gray-600">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="f in families" :key="f.id" class="border-t hover:bg-gray-50 cursor-pointer" @click="openFamilyDetail(f)">
-                                    <td class="p-3 text-gray-500">{{ f.id }}</td>
-                                    <td class="p-3 font-medium"><span v-if="f.first_name" class="text-[#3274B5]">{{ f.first_name }}</span> {{ f.nameDisplay || f.name || '-' }}</td>
-                                    <td class="p-3 text-gray-600">{{ f.email }}</td>
-                                    <td class="p-3">
-                                        <span v-if="f.instagram_handle" class="text-blue-600">@{{ f.instagram_handle }}</span>
-                                        <span v-else class="text-gray-400">-</span>
+                                <tr v-for="f in families" :key="f.id" class="border-t hover:bg-gray-50">
+                                    <td class="p-3 text-gray-500 cursor-pointer" @click="openFamilyDetail(f)">{{ f.id }}</td>
+                                    <td class="p-3 font-medium" @click.stop>
+                                        <input
+                                            v-model="f.first_name"
+                                            @blur="updateField(f, 'first_name', f.first_name)"
+                                            @keyup.enter="$event.target.blur()"
+                                            class="border rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#3274B5]"
+                                            placeholder="First name"
+                                        >
+                                    </td>
+                                    <td class="p-3 text-gray-600" @click.stop>
+                                        <input
+                                            v-model="f.email"
+                                            @blur="updateField(f, 'email', f.email)"
+                                            @keyup.enter="$event.target.blur()"
+                                            type="email"
+                                            class="border rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#3274B5]"
+                                            placeholder="Email"
+                                        >
+                                    </td>
+                                    <td class="p-3" @click.stop>
+                                        <input
+                                            v-model="f.instagram_handle"
+                                            @blur="updateField(f, 'instagram_handle', f.instagram_handle)"
+                                            @keyup.enter="$event.target.blur()"
+                                            class="border rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="@username"
+                                        >
                                     </td>
                                     <td class="p-3">{{ f.proxy_city || '-' }}</td>
                                     <td class="p-3">
@@ -360,7 +382,7 @@
                                             <span :class="f.dm_enabled ? 'status-active' : 'status-disabled'" class="status-dot" title="DM"></span>
                                         </div>
                                     </td>
-                                    <td class="p-3 text-gray-500 text-xs">{{ formatDate(f.created_at) }}</td>
+                                    <td class="p-3 text-gray-500 text-xs">{{ formatDate(f.last_login) }}</td>
                                     <td class="p-3">
                                         <div class="flex gap-2">
                                             <button @click.stop="viewAsFamily(f)" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]" title="View their dashboard as they see it">
@@ -619,6 +641,26 @@
                     sessionStorage.removeItem('admin_token');
                     this.authenticated = false;
                     this.authToken = null;
+                },
+                async updateField(family, field, value) {
+                    try {
+                        const res = await fetch(`/api/admin/family/${family.id}/update`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-admin-token': this.authToken
+                            },
+                            body: JSON.stringify({ [field]: value })
+                        });
+                        if (!res.ok) {
+                            const data = await res.json();
+                            alert(`Update failed: ${data.error || 'Unknown error'}`);
+                            await this.loadDashboard(); // Reload to revert changes
+                        }
+                    } catch (e) {
+                        alert(`Update failed: ${e.message}`);
+                        await this.loadDashboard(); // Reload to revert changes
+                    }
                 },
                 async viewAsFamily(family) {
                     try {
