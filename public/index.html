@@ -170,9 +170,11 @@
                         <label class="flex items-center gap-1.5 text-gray-700 font-bold mb-2">
                             <span class="text-[15px]">اسم حساب الانستغرام</span>
                             <img src="icons/instagram2.png" class="h-[15px] w-auto object-contain translate-y-[1px]">
-                            <button type="button" @click="showUsernameHelp = true" class="text-[#3274B5] font-bold hover:underline text-[11px] -translate-y-[4px]">?</button>
                         </label>
-                        <input v-model="form.instagram_handle" type="text" class="w-2/3 px-2 py-0 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3274B5] text-right ml-auto text-sm h-[30px]" dir="ltr" required placeholder="@username">
+                        <div class="flex items-center gap-2">
+                            <button type="button" @click="showUsernameHelp = true" class="text-[#3274B5] font-bold hover:underline text-[9px] opacity-60 hover:opacity-100 transition">?</button>
+                            <input v-model="form.instagram_handle" type="text" class="w-2/3 px-2 py-0 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3274B5] text-right ml-auto text-sm h-[30px]" dir="ltr" required placeholder="@username">
+                        </div>
                     </div>
 
                     <div class="mb-6">
@@ -638,7 +640,7 @@
 
                                                         <!-- Connecting Device -->
                                                         <div v-if="profile.children_details && profile.children_details.length > 0" class="flex justify-center -mt-2 mb-1 relative z-10">
-                                                            <div class="bg-white rounded-full p-0.5 border border-[#3274B5]/20 text-[#3274B5] shadow-sm relative -top-[7px]">
+                                                            <div class="bg-white rounded-full p-0.5 border-2 border-[#3274B5]/50 text-[#3274B5] shadow-md relative -top-[7px]">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                                                             </div>
                                                         </div>
