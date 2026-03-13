@@ -2372,6 +2372,7 @@
                     };
                 },
                 openEditScraped(item) {
+                    this.previewFile = null; // Close lightbox if it opened
                     this.editingScraped = {
                         id: item.id,
                         short_code: item.short_code,
