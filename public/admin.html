@@ -374,7 +374,7 @@
                                     </td>
                                     <td class="p-3" @click.stop>
                                         <div v-if="!f.editingIg" @click="f.editingIg = true; f.editingIgValue = f.instagram_handle || ''" class="cursor-pointer hover:bg-gray-50 px-2 py-1 rounded min-h-[32px] flex items-center">
-                                            <span v-if="f.instagram_handle" class="text-sm">@{{ f.instagram_handle }}</span>
+                                            <span v-if="f.instagram_handle" class="text-sm">{{ f.instagram_handle }}</span>
                                             <span v-else class="text-gray-400 text-sm italic">Click to add</span>
                                         </div>
                                         <input
