@@ -2680,30 +2680,45 @@ app.get('/api/admin/family/:id/config', adminAuth, async (req, res) => {
       displacement_count: family.displacement_count || 0,
     };
 
+    // Translate medical conditions from Arabic to English
+    const translatedMembers = await Promise.all(members.map(async (m, i) => {
+      let nameDisplay = m.name || '';
+      if (nameDisplay && /[\u0600-\u06FF]/.test(nameDisplay)) {
+        nameDisplay = arabicToLatin(nameDisplay) + '  |  ' + nameDisplay;
+      }
+
+      // Translate medical condition if in Arabic
+      let conditionEn = m.condition || '';
+      if (conditionEn && /[\u0600-\u06FF]/.test(conditionEn) && translator) {
+        try {
+          const result = await translator.translateText(conditionEn, null, 'en-US');
+          conditionEn = result.text;
+        } catch (e) {
+          console.log(`[Admin] Translation failed for condition "${conditionEn}":`, e.message);
+        }
+      }
+
+      return {
+        index: i,
+        name: m.name || '',
+        nameDisplay,
+        age: m.age || '',
+        gender: m.gender || '',
+        relationship: m.relationship || '',
+        status: m.status || 'Alive',
+        condition: conditionEn,
+        medical_condition: m.medical_condition || '',
+        mobility: m.mobility || '',
+        physical_state: m.physical_state || '',
+        medication_name: m.medication_name || '',
+        disability: m.disability || 'no',
+        cognitive: m.cognitive || '',
+      };
+    }));
+
     res.json({
       family: { id: family.id, name: family.name, email: family.email, profile_pic_url: family.profile_pic_url, instagram_handle: family.instagram_handle },
-      members: members.map((m, i) => {
-        let nameDisplay = m.name || '';
-        if (nameDisplay && /[\u0600-\u06FF]/.test(nameDisplay)) {
-          nameDisplay = arabicToLatin(nameDisplay) + '  |  ' + nameDisplay;
-        }
-        return {
-          index: i,
-          name: m.name || '',
-          nameDisplay,
-          age: m.age || '',
-          gender: m.gender || '',
-          relationship: m.relationship || '',
-          status: m.status || 'Alive',
-          condition: m.condition || '',
-          medical_condition: m.medical_condition || '',
-          mobility: m.mobility || '',
-          physical_state: m.physical_state || '',
-          medication_name: m.medication_name || '',
-          disability: m.disability || 'no',
-          cognitive: m.cognitive || '',
-        };
-      }),
+      members: translatedMembers,
       computed,
       config: config || { template_overrides: {}, variable_locks: {}, child_assignments: {}, notes: '' },
     });
