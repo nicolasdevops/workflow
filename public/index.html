@@ -41,6 +41,7 @@
             font-display: swap;
         }
 
+        [v-cloak] { display: none !important; }
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         .loader {
             border: 3px solid #f3f3f3;
@@ -94,7 +95,7 @@
     </style>
 </head>
 <body>
-    <div id="app" class="min-h-screen bg-gray-100">
+    <div id="app" v-cloak class="min-h-screen bg-gray-100">
         <!-- Navy Header Bar -->
         <div class="w-full bg-[#3274B5] text-white h-20 flex items-center pl-4 pr-2 xs:pl-[37px] xs:pr-[11px] shadow-md relative">
             <div class="text-sm opacity-90 font-light border-r border-white/30 pr-3 xs:pr-6 h-16 flex flex-col justify-center">
