@@ -1210,9 +1210,8 @@
             <div v-if="editingScraped" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
                 <div class="bg-white rounded-lg shadow-xl p-4 max-w-lg w-full" @click.stop>
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
-                        <h3 class="font-bold text-lg flex items-center gap-2">
-                            <span class="text-[#3274B5]">وصف للذكاء الصنعي</span>
-                            <span>| AI Description</span>
+                        <h3 class="font-bold text-lg">
+                            <span class="text-[#3274B5]">وصف مفصّل للذكاء الصنعي</span>
                         </h3>
                         <button @click="editingScraped = null" class="text-gray-500 hover:text-red-500">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -1230,11 +1229,10 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-xs font-bold mb-1 flex items-baseline gap-1 text-[#3274B5]">
-                            <span class="text-sm">اكتب وصفًا إضافيًا</span>
-                            <span class="text-xs font-normal text-gray-500">| Add context for AI</span>
+                        <label class="block text-sm font-bold mb-1 text-[#3274B5]">
+                            اكتب وصف مفصّل وكامل عن الصورة
                         </label>
-                        <textarea v-model="editingScraped.description" class="w-full border rounded p-2 text-sm h-32 resize-none focus:ring-2 focus:ring-[#3274B5] focus:outline-none" placeholder="أي تفاصيل إضافية عن الصورة/الفيديو... | Any additional context..."></textarea>
+                        <textarea v-model="editingScraped.description" class="w-full border rounded p-2 text-sm h-32 resize-none focus:ring-2 focus:ring-[#3274B5] focus:outline-none" dir="rtl" placeholder="وصّف الصورة بالتفصيل..."></textarea>
                     </div>
 
                     <div class="flex justify-end gap-2">
