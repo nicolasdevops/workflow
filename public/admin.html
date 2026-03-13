@@ -329,7 +329,6 @@
                                     <th class="text-left p-3 font-medium text-gray-600">ID</th>
                                     <th class="text-left p-3 font-medium text-gray-600">First Name</th>
                                     <th class="text-left p-3 font-medium text-gray-600">Family Name</th>
-                                    <th class="text-left p-3 font-medium text-gray-600">Email</th>
                                     <th class="text-left p-3 font-medium text-gray-600">IG Handle</th>
                                     <th class="text-left p-3 font-medium text-gray-600">Proxy City</th>
                                     <th class="text-left p-3 font-medium text-gray-600">Status</th>
@@ -373,16 +372,6 @@
                                             ref="nameInput"
                                         >
                                     </td>
-                                    <td class="p-3 text-gray-600" @click.stop>
-                                        <input
-                                            v-model="f.email"
-                                            @blur="updateField(f, 'email', f.email)"
-                                            @keyup.enter="$event.target.blur()"
-                                            type="email"
-                                            class="border rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#3274B5]"
-                                            placeholder="Email"
-                                        >
-                                    </td>
                                     <td class="p-3" @click.stop>
                                         <input
                                             v-model="f.instagram_handle"
@@ -392,13 +381,13 @@
                                             placeholder="@username"
                                         >
                                     </td>
-                                    <td class="p-3">{{ f.proxy_city || '-' }}</td>
-                                    <td class="p-3">
+                                    <td class="p-3 cursor-pointer" @click="openFamilyDetail(f)">{{ f.proxy_city || '-' }}</td>
+                                    <td class="p-3 cursor-pointer" @click="openFamilyDetail(f)">
                                         <span :class="getStatusClass(f)" class="px-2 py-1 rounded text-xs font-medium">
                                             {{ getStatusText(f) }}
                                         </span>
                                     </td>
-                                    <td class="p-3">
+                                    <td class="p-3 cursor-pointer" @click="openFamilyDetail(f)">
                                         <div class="flex gap-1">
                                             <span :class="f.bestbehavior_enabled ? 'status-active' : 'status-disabled'" class="status-dot" title="Best Behavior"></span>
                                             <span :class="f.commenting_enabled ? 'status-active' : 'status-disabled'" class="status-dot" title="Commenting"></span>
@@ -406,7 +395,7 @@
                                             <span :class="f.dm_enabled ? 'status-active' : 'status-disabled'" class="status-dot" title="DM"></span>
                                         </div>
                                     </td>
-                                    <td class="p-3 text-gray-500 text-xs">{{ formatDate(f.last_login) }}</td>
+                                    <td class="p-3 text-gray-500 text-xs cursor-pointer" @click="openFamilyDetail(f)">{{ formatDate(f.last_login) }}</td>
                                     <td class="p-3">
                                         <div class="flex gap-2">
                                             <button @click.stop="viewAsFamily(f)" class="text-xs bg-[#3274B5] text-white px-2 py-1 rounded hover:bg-[#285e94]" title="View their dashboard as they see it">
