@@ -2242,26 +2242,17 @@ app.get('/api/admin/families', adminAuth, async (req, res) => {
 
     // Mask cookies and add transliterated names
     const sanitized = data.map(f => {
-      // Transliterate family name to English only
       let nameDisplay = f.name;
-      if (f.name) {
-        const isArabic = /[\u0600-\u06FF]/.test(f.name);
-        if (isArabic) {
-          nameDisplay = arabicToLatin(f.name);
-        } else {
-          nameDisplay = f.name;
-        }
-      }
-
-      // Transliterate first name to English only
       let firstNameDisplay = f.first_name;
-      if (f.first_name) {
-        const isArabic = /[\u0600-\u06FF]/.test(f.first_name);
-        if (isArabic) {
-          firstNameDisplay = arabicToLatin(f.first_name);
-        } else {
-          firstNameDisplay = f.first_name;
+      try {
+        if (f.name && /[\u0600-\u06FF]/.test(f.name)) {
+          nameDisplay = arabicToLatin(f.name);
         }
+        if (f.first_name && /[\u0600-\u06FF]/.test(f.first_name)) {
+          firstNameDisplay = arabicToLatin(f.first_name);
+        }
+      } catch (e) {
+        console.error(`[Admin] Transliteration error for family ${f.id}:`, e.message);
       }
 
       return {
