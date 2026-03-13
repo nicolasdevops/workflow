@@ -490,7 +490,9 @@ async function saveScrapedData(supabase, familyId, scrapeResult) {
                 video_url: item.videoUrl,
                 likes_count: item.likesCount,
                 comments_count: item.commentsCount,
-                posted_at: item.timestamp,
+                posted_at: item.timestamp && typeof item.timestamp === 'number'
+                    ? new Date(item.timestamp * 1000).toISOString()
+                    : item.timestamp,
                 location_name: item.locationName,
                 hashtags: item.hashtags,
                 mentions: item.mentions,
