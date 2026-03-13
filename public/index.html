@@ -34,8 +34,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@400;700&display=swap');
 
         @font-face {
-            font-family: 'SF Arabic';
-            src: url('/fonts/SFArabic-Regular.woff2') format('woff2');
+            font-family: 'Geeza Pro';
+            src: url('/fonts/Geeza-Pro-Regular.ttf') format('truetype');
             font-weight: 400;
             font-style: normal;
             font-display: swap;
@@ -1355,7 +1355,7 @@
                 {{ error }}
             </div>
 
-            <div class="mt-6 flex items-center justify-center gap-3">
+            <div class="mt-6 flex items-center justify-center gap-24">
                 <p class="text-xs text-gray-400" dir="rtl">
                     <span class="inline-block w-2 h-2 bg-green-500 rounded-full ml-1"></span>
                     مشفّر من الطرف للطرف
@@ -1822,7 +1822,7 @@
                                 this.profile.profile_pic_url = this.scrapedProfile.profile_pic_url;
                             }
                             if (this.scrapedContent && this.scrapedContent.length > 0) return;
-                            if (polls < 36) setTimeout(pollForContent, 5000);
+                            if (polls < 72) setTimeout(pollForContent, 5000);
                         };
                         setTimeout(pollForContent, 5000);
                     } catch (e) {
@@ -1882,7 +1882,7 @@
 
                         // 4. Poll for scraped posts (content appears after full scrape completes)
                         let polls = 0;
-                        const maxPolls = 36; // ~3 minutes
+                        const maxPolls = 72; // ~6 minutes (Apify can take up to 5 min for large profiles)
                         const pollForContent = async () => {
                             polls++;
                             await this.fetchScrapedProfile();
