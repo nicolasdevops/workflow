@@ -423,7 +423,7 @@
                         
                         <div class="flex items-center gap-2 flex-row-reverse">
                             <img v-if="scrapedProfile?.profile_pic_url || profile.profile_pic_url" :src="scrapedProfile?.profile_pic_url || profile.profile_pic_url" @click="igPopupOpen = true" class="w-16 h-16 rounded-full border-2 border-[#3274B5] object-cover cursor-pointer hover:opacity-80 transition flex-shrink-0">
-                            <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold flex-shrink-0">?</div>
+                            <div v-else @click="igPopupOpen = true" class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold flex-shrink-0 cursor-pointer hover:opacity-80 transition">?</div>
                             
                             <!-- Middle section (Instagram / Profile) -->
                             <div class="flex-1 text-right" dir="rtl">
@@ -484,10 +484,6 @@
                             <div>
                                 <label class="block text-xs text-purple-600 mb-0.5">Family Name</label>
                                 <input v-model="adminEditName" type="text" class="w-full border border-purple-300 p-1.5 rounded-lg text-sm" placeholder="Family name">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-purple-600 mb-0.5">Email</label>
-                                <input v-model="adminEditEmail" type="text" class="w-full border border-purple-300 p-1.5 rounded-lg text-sm" placeholder="email@example.com">
                             </div>
                             <div>
                                 <label class="block text-xs text-purple-600 mb-0.5">New Password (leave blank to keep current)</label>
