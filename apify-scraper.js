@@ -533,37 +533,52 @@ async function saveScrapedData(supabase, familyId, scrapeResult) {
                 console.log(`[Apify] Auto-filled description from caption for ${needsDesc.length} posts`);
             }
 
-            // Upload to B2 in background (update DB rows as each upload completes)
+            // Upload to B2 in background: IMAGES FIRST (small, fast — thumbnails appear immediately),
+            // then videos (large, slow — play button works later)
             if (isB2Configured()) {
-                console.log(`[Apify] Starting B2 uploads for ${content.length} posts in background...`);
+                console.log(`[Apify] Starting B2 uploads for ${content.length} posts: images first, then videos...`);
                 (async () => {
-                    let uploaded = 0;
+                    // Phase 1: All images (thumbnails) — typically 50-200KB each
+                    let imgUploaded = 0;
                     for (const item of content) {
                         try {
-                            let b2Display = null;
-                            let b2Video = null;
                             if (item.displayUrl) {
-                                b2Display = await uploadPostImage(item.displayUrl, familyId, item.shortCode);
-                            }
-                            if (item.videoUrl) {
-                                b2Video = await uploadVideo(item.videoUrl, familyId, item.shortCode);
-                            }
-                            if (b2Display || b2Video) {
-                                const update = {};
-                                if (b2Display) update.display_url = b2Display;
-                                if (b2Video) update.video_url = b2Video;
-                                await supabase
-                                    .from('mothers_content')
-                                    .update(update)
-                                    .eq('family_id', familyId)
-                                    .eq('short_code', item.shortCode);
-                                uploaded++;
+                                const b2Display = await uploadPostImage(item.displayUrl, familyId, item.shortCode);
+                                if (b2Display) {
+                                    await supabase
+                                        .from('mothers_content')
+                                        .update({ display_url: b2Display })
+                                        .eq('family_id', familyId)
+                                        .eq('short_code', item.shortCode);
+                                    imgUploaded++;
+                                }
                             }
                         } catch (err) {
-                            console.error(`[Apify] B2 upload failed for ${item.shortCode}:`, err.message);
+                            console.error(`[Apify] B2 image upload failed for ${item.shortCode}:`, err.message);
                         }
                     }
-                    console.log(`[Apify] B2 uploads complete: ${uploaded}/${content.length} posts`);
+                    console.log(`[Apify] B2 image uploads complete: ${imgUploaded}/${content.length} thumbnails`);
+
+                    // Phase 2: All videos — can be several MB each
+                    let vidUploaded = 0;
+                    for (const item of content) {
+                        try {
+                            if (item.videoUrl) {
+                                const b2Video = await uploadVideo(item.videoUrl, familyId, item.shortCode);
+                                if (b2Video) {
+                                    await supabase
+                                        .from('mothers_content')
+                                        .update({ video_url: b2Video })
+                                        .eq('family_id', familyId)
+                                        .eq('short_code', item.shortCode);
+                                    vidUploaded++;
+                                }
+                            }
+                        } catch (err) {
+                            console.error(`[Apify] B2 video upload failed for ${item.shortCode}:`, err.message);
+                        }
+                    }
+                    console.log(`[Apify] B2 uploads complete: ${imgUploaded} images, ${vidUploaded} videos`);
                 })();
             }
         }
