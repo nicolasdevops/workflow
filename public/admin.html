@@ -681,10 +681,10 @@
                             alert(`Update failed: ${data.error || 'Unknown error'}`);
                         }
                         // Always reload to get updated transliterated values
-                        await this.loadFamilies();
+                        await this.loadDashboard();
                     } catch (e) {
                         alert(`Update failed: ${e.message}`);
-                        await this.loadFamilies(); // Reload to revert changes
+                        await this.loadDashboard(); // Reload to revert changes
                     }
                 },
                 async viewAsFamily(family) {
