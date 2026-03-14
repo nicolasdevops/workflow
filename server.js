@@ -194,11 +194,21 @@ app.get('/', (req, res) => {
   console.log('🌐 Serving index.html to client...');
 
   const indexPath = path.join(__dirname, 'public', 'index.html');
-  res.sendFile(indexPath, (err) => {
+  const fs = require('fs');
+  fs.readFile(indexPath, 'utf8', (err, html) => {
     if (err) {
       console.error('Error serving index.html:', err);
-      res.status(500).send('<h1>Error loading page</h1><p>Could not find <code>public/index.html</code>. Please check server logs.</p>');
+      return res.status(500).send('<h1>Error loading page</h1><p>Could not find <code>public/index.html</code>. Please check server logs.</p>');
     }
+    // Inject absolute og:image URL so crawlers (IG, WhatsApp, Telegram) can fetch it
+    const proto = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.get('host');
+    const baseUrl = `${proto}://${host}`;
+    html = html.replace(
+      'content="/icons/sanad-logo.png"',
+      `content="${baseUrl}/icons/sanad-logo.png"`
+    );
+    res.send(html);
   });
 });
 
