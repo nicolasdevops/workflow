@@ -1001,13 +1001,13 @@
                     <div class="grid grid-cols-2 gap-2.5 mb-4" dir="rtl">
                         <div v-for="cat in uploadCategories" :key="cat.value">
                             <label :for="'catUpload_' + cat.value"
-                                   class="block cursor-pointer rounded-2xl border-2 transition-all duration-200 overflow-hidden"
+                                   class="block cursor-pointer rounded-2xl border-2 transition-all duration-200 overflow-hidden h-full"
                                    :class="mediaByCat(cat.value).length
                                      ? 'border-[#6B8E4E]/30 bg-[#6B8E4E]/5'
                                      : 'border-dashed border-gray-200 bg-gradient-to-br ' + (cat.tint || 'from-gray-50 to-white') + ' hover:border-[#3274B5]/40 hover:shadow-md'">
 
                                 <!-- Card top: emoji + label + upload hint -->
-                                <div class="px-3 pt-3 pb-2 text-center">
+                                <div class="px-3 pt-3 pb-2 text-center" style="min-height: 100px;">
                                     <div class="text-[28px] mb-1">{{ cat.emoji }}</div>
                                     <p class="text-[13px] font-bold text-[#3274B5] leading-tight" style="font-family: 'Geeza Pro', sans-serif;">{{ cat.ar }}</p>
                                     <!-- "Most impactful" badge for key categories -->
@@ -1422,7 +1422,7 @@
                 {{ error }}
             </div>
 
-            <div class="mt-6 flex items-center justify-center gap-24">
+            <div class="mt-6 flex items-center justify-center gap-12">
                 <p class="text-xs text-gray-400" dir="rtl">
                     <span class="inline-block w-2 h-2 bg-green-500 rounded-full ml-1"></span>
                     مشفّر من الطرف للطرف
