@@ -201,8 +201,8 @@
                     </div>
 
                     <div class="mb-6">
-                        <label class="flex items-center gap-2 text-gray-700 font-bold mb-2"><span class="text-[15px]">كلمة المرور (اختياري)</span> <img src="icons/password.png" class="h-[25px] w-auto object-contain"></label>
-                        <input v-model="form.password" type="password" class="w-2/3 px-2 py-0 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3274B5] text-right ml-auto text-sm h-[30px]" dir="ltr" placeholder="••••••••">
+                        <label class="flex items-center gap-2 text-gray-700/50 font-bold mb-2"><span class="text-[15px]">كلمة المرور (اختياري)</span> <img src="icons/password.png" class="h-[25px] w-auto object-contain opacity-50"></label>
+                        <input v-model="form.password" type="password" class="w-2/3 px-2 py-0 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3274B5] text-right ml-auto text-sm h-[30px] text-gray-400 placeholder-gray-300" dir="ltr" placeholder="••••••••">
                     </div>
 
                     <div v-if="authMode === 'login'" class="mb-6 text-right">
