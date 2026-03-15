@@ -160,11 +160,11 @@
             <div v-if="step === 'portal_login'" class="w-full max-w-[350px] mx-auto">
                 <div class="flex flex-row-reverse mb-6">
                     <button @click="authMode = 'register'" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-right pr-2 transition-all">
-                        <span :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register', 'font-normal': authMode !== 'register'}" class="inline-block pb-[11px]">تسجيل جديد | 1.</span>
+                        <span :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'register', 'font-normal': authMode !== 'register'}" class="inline-block pb-[11px]">تسجيل جديد <span class="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border border-current text-[10px] leading-none align-middle ml-1">1</span></span>
                     </button>
                     <div class="w-px h-5 bg-[#3274B5] self-center"></div>
                     <button @click="authMode = 'login'" class="flex-1 pt-2 pb-[11px] text-gray-600 text-base text-left pl-2 transition-all">
-                        <span :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login', 'font-normal': authMode !== 'login'}" class="inline-block pb-[11px]">تسجيل الدخول | 2.</span>
+                        <span :class="{'border-b-2 border-[#3274B5] font-bold': authMode === 'login', 'font-normal': authMode !== 'login'}" class="inline-block pb-[11px]"><span class="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border border-current text-[10px] leading-none align-middle mr-1">2</span> تسجيل الدخول</span>
                     </button>
                 </div>
 
