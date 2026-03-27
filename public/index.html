@@ -1001,9 +1001,13 @@
                     <!-- Selected category content -->
                     <div v-for="cat in uploadCategories" :key="'content_' + cat.value" v-show="selectedMediaCat === cat.value">
                         <div class="rounded-2xl border-2 transition-all duration-200 overflow-hidden mb-3"
-                             :class="mediaByCat(cat.value).length
+                             :class="[mediaByCat(cat.value).length
                                ? 'border-[#6B8E4E]/30 bg-[#6B8E4E]/5'
-                               : 'border-dashed border-gray-200 bg-gradient-to-br ' + (cat.tint || 'from-gray-50 to-white')">
+                               : 'border-dashed border-gray-200 bg-gradient-to-br ' + (cat.tint || 'from-gray-50 to-white'),
+                               mediaDragOver === cat.value ? 'ring-2 ring-[#3274B5] border-[#3274B5]/50 bg-[#3274B5]/5' : '']"
+                             @dragover.prevent="mediaDragOver = cat.value"
+                             @dragleave="mediaDragOver = null"
+                             @drop.prevent="dropMediaToCategory($event, cat.value)">
 
                             <!-- Category header -->
                             <div class="px-4 pt-4 pb-3 text-center" dir="rtl">
@@ -1014,8 +1018,11 @@
                                     الأكثر تأثيراً
                                 </span>
 
+                                <!-- Drop hint when dragging -->
+                                <p v-if="mediaDragOver === cat.value" class="mt-2 text-[11px] text-[#3274B5] font-bold animate-pulse">أفلت هنا للتصنيف</p>
+
                                 <!-- Upload button -->
-                                <div class="mt-3">
+                                <div v-else class="mt-3">
                                     <div v-if="categoryUploads[cat.value]?.active" class="flex items-center justify-center gap-1.5 text-[11px] text-[#3274B5] font-bold">
                                         <svg class="animate-spin h-3.5 w-3.5 text-[#3274B5]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                         <span>جاري رفع {{ categoryUploads[cat.value].count }} ملف...</span>
@@ -1059,13 +1066,17 @@
                         <input :id="'catUpload_' + cat.value" type="file" multiple @change="handleCategoryUpload($event, cat.value)" class="hidden" accept="image/*,video/*">
                     </div>
 
-                    <!-- Uncategorized media (from before categories existed) -->
+                    <!-- Uncategorized media -->
                     <div v-if="mediaByCat(null).length" class="mt-4" dir="rtl">
-                        <p class="text-xs text-gray-500 mb-2 font-bold text-right" style="font-family: 'Geeza Pro', sans-serif;">رفعات سابقة | Other Uploads</p>
+                        <p class="text-xs text-gray-500 mb-2 font-bold text-right" style="font-family: 'Geeza Pro', sans-serif;">رفعات بدون تصنيف | Uncategorized</p>
+                        <p class="text-[9px] text-gray-400 mb-2 text-right">اسحب الصورة للأعلى لتصنيفها | Drag to the category above</p>
                         <div class="grid grid-cols-5 gap-1.5">
-                            <div v-for="file in mediaByCat(null)" :key="file.id" class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200">
+                            <div v-for="file in mediaByCat(null)" :key="file.id"
+                                 class="relative group aspect-square bg-gray-100 rounded overflow-hidden border border-gray-200 cursor-grab active:cursor-grabbing"
+                                 draggable="true"
+                                 @dragstart="onMediaDragStart($event, file)">
                                 <div @click="previewFile = file" class="w-full h-full cursor-pointer">
-                                    <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover">
+                                    <img v-if="file.metadata.mimetype.startsWith('image')" :src="file.url" class="w-full h-full object-cover pointer-events-none">
                                     <div v-else class="w-full h-full relative">
                                         <video :src="file.url + '#t=0.5'" class="w-full h-full object-cover bg-gray-900 pointer-events-none" preload="metadata" muted playsinline></video>
                                         <div class="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 pointer-events-none">
@@ -1440,6 +1451,7 @@
                     mediaFiles: [],
                     mediaExpandedCat: null,
                     selectedMediaCat: 'inside_house',
+                    mediaDragOver: null,
                     uploadCategories: [
                         { value: 'inside_house', ar: 'جوا البيت', en: 'Inside the House', emoji: '🏠', tint: 'from-amber-50 to-orange-50/50' },
                         { value: 'outside_house', ar: 'برا البيت', en: 'Outside the House', emoji: '🏕️', tint: 'from-emerald-50 to-green-50/50' },
@@ -2318,6 +2330,29 @@
                 },
                 mediaByCat(cat) {
                     return this.mediaFiles.filter(f => (f.metadata?.category || null) === cat);
+                },
+                onMediaDragStart(e, file) {
+                    e.dataTransfer.setData('text/plain', JSON.stringify({ id: file.id }));
+                    e.dataTransfer.effectAllowed = 'move';
+                },
+                async dropMediaToCategory(e, category) {
+                    this.mediaDragOver = null;
+                    try {
+                        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                        if (!data.id) return;
+                        const res = await fetch('/api/portal/media/update', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-portal-token': this.token },
+                            body: JSON.stringify({ id: data.id, category })
+                        });
+                        if (res.ok) {
+                            const file = this.mediaFiles.find(f => f.id === data.id);
+                            if (file) {
+                                if (!file.metadata) file.metadata = {};
+                                file.metadata.category = category;
+                            }
+                        }
+                    } catch (err) { console.error('Drop categorize failed', err); }
                 },
                 async handleCategoryUpload(e, category) {
                     const files = Array.from(e.target.files);

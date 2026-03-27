@@ -1508,13 +1508,17 @@ app.get('/api/portal/media', portalAuth, async (req, res) => {
 
 // Update Media Description
 app.post('/api/portal/media/update', portalAuth, async (req, res) => {
-    const { id, description } = req.body;
+    const { id, description, category } = req.body;
     if (!id) return res.status(400).json({ error: 'Media ID required' });
 
     try {
+        const updates = {};
+        if (description !== undefined) updates.description = description;
+        if (category !== undefined) updates.category = category;
+
         const { error } = await supabase
             .from('media_uploads')
-            .update({ description })
+            .update(updates)
             .eq('id', id)
             .eq('family_id', req.user.id); // Security: Ensure ownership
 
